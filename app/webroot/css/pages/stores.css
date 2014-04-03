@@ -1,0 +1,37 @@
+.storeEntry .changeOverview, 
+.storeEntryTotal .changeOverview {
+  font-size: 11px;
+  margin: 0;
+}
+.table>tbody>tr>td{
+  padding: 30px 20px;
+  vertical-align: middle;
+}
+.storeEntry.loading, 
+.storeEntryTotal.loading{ opacity: 0.6;}
+.storeEntry.loading .dataCell,
+.storeEntryTotal.loading .dataCell{
+  background-image: url("../../b2b/images/ajax-loader.gif");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.storeEntry,
+.storeEntryTotal{
+  cursor: pointer;
+  opacity: 1.0;
+}
+#AllStores > thead > tr.storeEntryTotal > td {
+background: rgba(52, 73, 94, 0.8);
+color: #fff;
+font-weight: normal;
+padding-top: 17px;
+padding-bottom: 17px;
+border-bottom: 2px solid #1b2224;
+border-right: 1px solid #1b2224;
+}
+tr.storeEntryTotal .text-success {
+color: #76DA78;
+}
+tr.storeEntryTotal .text-danger {
+color: #DD5050;
+}

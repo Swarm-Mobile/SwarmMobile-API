@@ -1,0 +1,86 @@
+.accordion-group {
+	margin-bottom: 20px;
+	border: none;
+	box-shadow: none;
+}
+.accordion-heading {
+	color: #333;
+	font-size: 1.6em;
+	padding: 0;
+	color: #111;
+	padding: 20px 10px;
+	background: #e9eff0; /* Old browsers */
+	height: 28px;
+	line-height: 28px;
+	position: relative;
+	height: 70px;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+}
+.accordion-heading .accordion-toggle {
+	padding: 0;
+	display: block;
+}
+.accordion-heading .icon-chevron-right {
+	margin: 2px 10px 0;
+	opacity: 0.7;
+}
+.accordion-heading:hover {
+	/*color: #111;*/
+}
+.accordion-heading:hover .icon-chevron-right {
+	opacity: 1.0;
+}
+.step_action {
+	padding: 4px;
+	font-size: 14px;
+}
+.accordion-inner {
+	padding: 30px;
+}
+.statusWrapper {
+position: absolute;
+right: 0;
+height: 28px;
+line-height: 20px;
+top: 0;
+padding: 24px 10px;
+z-index: 100;
+}
+.step_status {
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	width: 120px;
+	margin: -4px 0 0;
+}
+
+.step_status i {
+	float: left;
+	margin: 1px 0 0 7px;
+}
+.markComplete {
+	padding: 1px 20px;
+}
+.error {
+	color: red;
+}
+.progress {
+	height: 20px;
+}
+.hours_hide .time,
+.hours_hide .time_to {
+	display: none;
+}
+
+/* make status buttons smaller and look better on mobile */
+@media (max-width: 767px) {
+	.step_status {
+	width: auto;
+	}
+	.step_status i {
+	float: left;
+	margin: 0;
+	}
+}
