@@ -5,17 +5,18 @@ switch ($subdomain) {
 	case 'api':
 	case 'intapi':
 	case 'devapi':
-		Router::connect('/*'			, array('controller' => 'api', 'action' => 'index'));
+	case 'newapi':
+		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));
 	default:
-		Router::connect('/'				, array('controller' => 'pages'	, 'action' => 'display', 'home'));
+		Router::connect('/'		, array('controller' => 'pages'	, 'action' => 'display', 'home'));
 		Router::connect('/solutions'	, array('controller' => 'pages'	, 'action' => 'display', 'solutions'));
 		Router::connect('/getstarted'	, array('controller' => 'pages'	, 'action' => 'display', 'getstarted'));
-		Router::connect('/about'		, array('controller' => 'pages'	, 'action' => 'display', 'about'));
-		Router::connect('/blog'			, array('controller' => 'pages'	, 'action' => 'display', 'blog'));
-		Router::connect('/blog/*'		, array('controller' => 'pages'	, 'action' => 'display', 'article'));
-		Router::connect('/api/*'		, array('controller' => 'api'	, 'action' => 'index'));
+		Router::connect('/about'	, array('controller' => 'pages'	, 'action' => 'display', 'about'));
+		Router::connect('/blog'		, array('controller' => 'pages'	, 'action' => 'display', 'blog'));
+		Router::connect('/blog/*'	, array('controller' => 'pages'	, 'action' => 'display', 'article'));
+		Router::connect('/api/*'	, array('controller' => 'api'	, 'action' => 'index'));
 		
-		Router::connect('/console'		, array('controller' => 'console', 'action' => 'display', 'home'));
+		Router::connect('/console'	, array('controller' => 'console', 'action' => 'display', 'home'));
 		Router::connect('/console/*'	, array('controller' => 'console', 'action' => 'display'));
 		
 		Router::connect('/dashboard'	, array('controller' => 'dashboard', 'action' => 'display', 'dashboard'));
