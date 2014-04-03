@@ -41,7 +41,7 @@
 </VirtualHost>
 ```
 
-* **NOTES:** new.swarm-mobile.com & newapi.swarm-mobile.com can be whatever you want 
+**NOTES:** *new.swarm-mobile.com & newapi.swarm-mobile.com can be whatever you want 
 and also you can modify your DocumentRoot path.*
 
 ##Test the API
