@@ -1,5 +1,7 @@
 <?php
 App::uses('APIComponent', 'Controller/Component');
-class ConsumerComponent extends Component {
-    public function consumers($params){}
+class ConsumerComponent extends APIComponent {
+    public function consumers($params){
+        
+    }
 }
