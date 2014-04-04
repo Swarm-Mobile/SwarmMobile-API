@@ -15,8 +15,8 @@ class APIComponent extends Component {
                             );
                         }
                         break;
-                    case 'int':
-                        if (($params[$param]) != (int)$params[$param]){
+                    case 'int':                                            
+                        if ((!is_numeric($params[$param]))||$params[$param]!=(int)$params[$param]){
                             throw new APIException(
                                 501, 
                                 'param_bad_formatted', 
