@@ -102,11 +102,13 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result) {
-        $this->createCacheFolders($component, $method);
-        $cache_file = $this->getCacheFilePath($component, $method, $params);
-        $handle = fopen($cache_file, 'w+');
-        fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-        fclose($handle);
+        if ($this->cache) {
+            $this->createCacheFolders($component, $method);
+            $cache_file = $this->getCacheFilePath($component, $method, $params);
+            $handle = fopen($cache_file, 'w+');
+            fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+            fclose($handle);
+        }
     }
 
 }
@@ -116,8 +118,8 @@ class APIException extends Exception {
     public $error_no;
     public $error;
     public $description;
-    
-    public function __construct($error_no, $error, $description) {       
+
+    public function __construct($error_no, $error, $description) {
         parent::__construct($error_no);
         $this->error_no = $error_no;
         $this->error = $error;
@@ -129,10 +131,10 @@ class APIException extends Exception {
         header("HTTP/1.1 {$this->error_no}");
         echo json_encode(
                 array(
-                    'error' => $this->error, 
+                    'error' => $this->error,
                     'error_description' => $this->description
                 )
-            );
+        );
         die();
     }
 

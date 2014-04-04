@@ -10,6 +10,8 @@ class APIComponent extends Component {
         'Europe/Amsterdam ' => 'Europe/Amsterdam',
         '' => 'America/Los_Angeles'
     );
+    public $timezone = 'America/Los_Angeles';
+    public $weekdays = array('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday');
 
     public function __construct(\ComponentCollection $collection, $settings = array()) {
         parent::__construct($collection, $settings);
@@ -60,16 +62,52 @@ class APIComponent extends Component {
         return $params['group_by'];
     }
 
-    public static function getLocalTimezone($tzName) {
+    public function parseDates($params, $timezone) {
+        $tzLocal = $this->getLocalTimezone($timezone);
+        $timezone = $tzLocal->getName();
+
+        $start_date = new DateTime($params['start_date'] . ' 00:00:00', $tzLocal);
+        $start_date = $start_date->setTimezone(new DateTimeZone('GMT'));
+        $start_date = $start_date->format('Y-m-d H:i:s');
+
+        $end_date = new DateTime($params['end_date'] . ' 23:59:59', $tzLocal);
+        $end_date = $end_date->setTimezone(new DateTimeZone('GMT'));
+        $end_date = $end_date->format('Y-m-d H:i:s');
+
+        return array($start_date, $end_date, $timezone);
+    }
+
+    public function getLocalTimezone($tzName) {
         $timezone = trim($tzName);
         try {
             $tzLocal = new DateTimeZone($timezone);
         } catch (Exception $e) {
-            $tzLocal = isset(self::$TZ_CORRECTIONS[$timezone]) ? 
-                new DateTimeZone(self::$TZ_CORRECTIONS[$timezone]) : 
-                new DateTimeZone('America/Los_Angeles');
+            $tzLocal = isset(self::$TZ_CORRECTIONS[$timezone]) ?
+                    new DateTimeZone(self::$TZ_CORRECTIONS[$timezone]) :
+                    new DateTimeZone('America/Los_Angeles');
         }
         return $tzLocal;
+    }
+
+    public function storeOpenCompare($data, $timezone) {        
+        $return = "(";
+        $i = 0;
+        $or = '';        
+        foreach ($this->weekdays as $day) {
+            $i++;
+            $open = $data['data'][$day . '_open'];
+            $close = $data['data'][$day . '_close'];
+            $tmp = <<<SQL
+$or
+(DAYOFWEEK(DATE(CONVERT_TZ(time_login,'GMT', '$timezone'))) = $i )
+AND DATE_FORMAT(CONVERT_TZ(time_login,'GMT', '$timezone'), '%H:%i') >= '$open'
+AND DATE_FORMAT(CONVERT_TZ(time_login,'GMT', '$timezone'), '%H:%i') <= '$close'
+AND DATE_FORMAT(convert_tz(time_logout,'GMT', '$timezone') - INTERVAL 1 HOUR, '%H:%i') <= '$close'
+SQL;
+            $or = ' OR ';
+            $return .= $tmp;
+        }        
+        return $return.')';
     }
 
 }
