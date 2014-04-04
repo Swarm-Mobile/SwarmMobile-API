@@ -1,7 +1,7 @@
 <?php
 
 App::uses('AppController', 'Controller');
-App::uses('APIComponent', 'Controller/Component');
+App::uses('OAuthClientComponent', 'Controller/Component');
 
 class DashboardController extends AppController {
 
@@ -12,8 +12,8 @@ class DashboardController extends AppController {
 		$path = func_get_args();
 		$count = count($path);
 		if (!$count){ return $this->redirect('/');}
-		$oAPI = new APIComponent();
-		$this->set('access_token',$oAPI->access_token);
+		$oOAuth = new OAuthClientComponent();
+		$this->set('access_token',$oOAuth->access_token);
 		try	{ $this->render(implode('/', $path));	} 
 		catch (MissingViewException $e) {
 			if (Configure::read('debug')) { throw $e; }
