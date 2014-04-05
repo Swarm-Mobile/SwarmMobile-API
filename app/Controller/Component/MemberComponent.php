@@ -21,7 +21,6 @@ class MemberComponent extends APIComponent {
         }
         return $tmp;
     }
-
     public function accessPoint($params) {
         $rules = array('member_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -38,7 +37,6 @@ class MemberComponent extends APIComponent {
         }
         return $tmp;
     }
-
     public function data($params) {
         $rules = array('member_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -103,9 +101,8 @@ SQL;
         }
         return $tmp;
     }
-
     public function settings($params) {
-        
+        //TODO
     }
 
 }

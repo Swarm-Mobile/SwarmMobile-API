@@ -12,6 +12,10 @@ class APIComponent extends Component {
     );
     public $timezone = 'America/Los_Angeles';
     public $weekdays = array('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday');
+    public $hours = array(
+        '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11',
+        '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'
+    );
 
     public function __construct(\ComponentCollection $collection, $settings = array()) {
         parent::__construct($collection, $settings);
@@ -89,10 +93,10 @@ class APIComponent extends Component {
         return $tzLocal;
     }
 
-    public function storeOpenCompare($data, $timezone) {        
+    public function storeOpenCompare($data, $timezone) {
         $return = "(";
         $i = 0;
-        $or = '';        
+        $or = '';
         foreach ($this->weekdays as $day) {
             $i++;
             $open = $data['data'][$day . '_open'];
@@ -106,8 +110,74 @@ AND DATE_FORMAT(convert_tz(time_logout,'GMT', '$timezone') - INTERVAL 1 HOUR, '%
 SQL;
             $or = ' OR ';
             $return .= $tmp;
-        }        
-        return $return.')';
+        }
+        return $return . ')';
+    }
+
+    public function registerFilter($data) {
+        return (!empty($data['data']['register_filter'])) ? "register_id='{$data['data']['register_filter']}' AND" : '';
+    }
+
+    public function outletFilter($data) {
+        return (!empty($data['data']['outlet_filter'])) ? "outlet_id='{$data['data']['outlet_filter']}' AND" : '';
+    }
+
+    public function recursiveCall($component, $method, $params) {        
+        $cResult = array();
+        if ($params['start_date'] != $params['end_date']) {            
+            $slave_params = $params;
+            $new_end_date = new DateTime($slave_params['end_date']);
+            date_sub($new_end_date, date_interval_create_from_date_string('1 days'));
+            $slave_params['end_date'] = date_format($new_end_date, 'Y-m-d');
+            $pResult = $this->api->internalCall($component, $method, $slave_params);
+            return $this->mergeResults(array($cResult, $pResult));
+        }
+    }
+
+    public function mergeResults($aResults = array()) {        
+        $result = array(
+            'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
+            'breakdown' => array(),
+            'options' => array()
+        );
+        foreach ($aResults as $cResult) {            
+            if (!empty($cResult)) {
+                $result['totals']['open'] += $cResult['totals']['open'];
+                $result['totals']['close'] += $cResult['totals']['close'];
+                $result['totals']['total'] += $cResult['totals']['total'];
+                foreach ($cResult['breakdown'] as $date => $v) {
+                    foreach ($v['hours'] as $hour => $values) {
+                        $result['breakdown'][$date]['hours'][$hour]['open'] = $values['open'];
+                        $result['breakdown'][$date]['hours'][$hour]['total'] += $values['total'];
+                    }
+                    foreach ($v['totals'] as $k=>$j){
+                        $result['breakdown'][$date]['totals'][$k] += $j;
+                    }
+                }
+            }
+        }
+        $result['options'] = $cResult['options'];
+        return $result;
+    }
+
+    public function fillBlanks($result) {
+        $tmp = $result;
+        foreach ($result['breakdown'] as $date => $values) {
+            foreach ($this->hours as $hour) {
+                if (!isset($result['breakdown'][$date]['hours'][$hour])) {
+                    $tmp['breakdown'][$date][$hour] = array(
+                        'open' => false,
+                        'total' => 0
+                    );
+                }
+            }
+            ksort($tmp['breakdown'][$date]['hours']);
+        }
+        return $tmp;
+    }
+
+    public function averagify($result) {
+        //TODO: foreach all made avg counting the number of days or hours
     }
 
 }

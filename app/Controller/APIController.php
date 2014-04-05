@@ -26,7 +26,7 @@ class APIController extends AppController {
                     $oOAuth->OAuth2->verifyAccessToken($_GET['access_token']);
                 }
                 $path = func_get_args();
-                echo json_encode($this->internalCall($path[0], $path[1], $_GET));
+                echo json_encode($this->internalCall($path[0], $path[1], $_GET));                
                 exit();
             }
             throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
