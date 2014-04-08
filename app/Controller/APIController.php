@@ -2,6 +2,7 @@
 
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('AppController', 'Controller');
+App::uses('Model', 'Model');
 
 //ONE for every component that extends from APIComponent
 App::uses('ConsumerComponent', 'Controller/Component');
@@ -18,6 +19,7 @@ class APIController extends AppController {
     private $cache = true;
 
     public function index() {
+		set_time_limit(3600);
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
@@ -68,6 +70,7 @@ class APIController extends AppController {
                 return $result;
             }
         }
+		return false;
         $oModel = new Model(false, 'cache', 'mongodb');
         $conditions = array();
         foreach($params as $k=>$v){
@@ -78,8 +81,8 @@ class APIController extends AppController {
                 $conditions,
                 'order' => array('_id' => -1),
             )
-        ); 
-        if(isset($aRes['Model'])){
+        );
+		if(isset($aRes['Model'])){
             unset($aRes['Model']['id']);
             unset($aRes['Model']['params']);
             unset($aRes['Model']['modified']);
@@ -132,7 +135,7 @@ class APIController extends AppController {
             foreach($params as $k=>$v){
                 $result['params'][$k] = $v;
             }
-            $oModel->save($result);
+            //$oModel->save($result);
         }
     }
 

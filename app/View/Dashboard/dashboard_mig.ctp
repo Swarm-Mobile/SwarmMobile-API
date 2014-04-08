@@ -4,9 +4,9 @@ $this->assign('title','Dashboard'); ?>
 <script type='text/javascript' src='/js/dashboard.class.js'></script>
 <script type='text/javascript'>
     $(document).ready(function() {
-        start_date = '2014-04-04';
-        end_date = '2014-04-04';
-        member_id = 789;
+        start_date = '2014-02-01';
+        end_date = '2014-03-10';
+        member_id = 689;
         access_token = '<?= $access_token ?>';
         dashboard.init(member_id, start_date, end_date, access_token);
     });

@@ -70,8 +70,8 @@ var dashboard = {
         'conversionRate',
         'totals'
     ],
-    start_date: '2014-01-01',
-    end_date: '2014-01-01',
+    start_date: '2014-03-01',
+    end_date: '2014-03-10',
     member_id: 0,
     access_token: '',
     init: function(member_id, start_date, end_date, access_token) {
@@ -85,7 +85,7 @@ var dashboard = {
                 var display = container.attr('swarm-display');
                 eval('container.'+display+"Metric()");
                 $.ajax({
-                    url: '/api/store/' + $(this).attr('data-type'),
+                    url: '/api/store/' + $(this).attr('swarm-data'),
                     type: 'GET',
                     data: {
                         member_id: dashboard.member_id,
