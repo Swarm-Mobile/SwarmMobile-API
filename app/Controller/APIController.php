@@ -11,11 +11,11 @@ App::uses('StoreComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
-    public $default_cache_time = 30;
+    public $default_cache_time = 300;
     public $cache_time_exceptions = array();
     public $uses = array();
     private $debug = true;
-    private $cache = false;
+    private $cache = true;
 
     public function index() {
         header("Content-Type: application/json");
@@ -26,7 +26,7 @@ class APIController extends AppController {
                     $oOAuth->OAuth2->verifyAccessToken($_GET['access_token']);
                 }
                 $path = func_get_args();
-                echo json_encode($this->internalCall($path[0], $path[1], $_GET));                
+                echo json_encode($this->internalCall($path[0], $path[1], $_GET));
                 exit();
             }
             throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
@@ -68,6 +68,25 @@ class APIController extends AppController {
                 return $result;
             }
         }
+        $oModel = new Model(false, 'cache', 'mongodb');
+        $conditions = array();
+        foreach($params as $k=>$v){
+            $conditions['params.'.$k] = $v;
+        }
+        $aRes = $oModel->find(
+            'first', array(
+                $conditions,
+                'order' => array('_id' => -1),
+            )
+        ); 
+        if(isset($aRes['Model'])){
+            unset($aRes['Model']['id']);
+            unset($aRes['Model']['params']);
+            unset($aRes['Model']['modified']);
+            unset($aRes['Model']['created']);
+            $this->cache($component, $method, $params, $aRes['Model']);
+            return $aRes['Model'];
+        }
         return false;
     }
 
@@ -108,6 +127,12 @@ class APIController extends AppController {
             $handle = fopen($cache_file, 'w+');
             fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
             fclose($handle);
+            $oModel = new Model(false, 'cache', 'mongodb');
+            $result['params'] = array();
+            foreach($params as $k=>$v){
+                $result['params'][$k] = $v;
+            }
+            $oModel->save($result);
         }
     }
 

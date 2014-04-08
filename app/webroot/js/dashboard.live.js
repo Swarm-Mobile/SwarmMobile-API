@@ -1,11 +1,7 @@
 var tick;
-
 global_data = 'There is no data to display.';
-
 $(document).ready(function() {
-
     refreshDashboard();
-
     //check for existing user preferences dashboard cookie
     var dashboard_filters = JSON.parse($.cookie('dashboard_filters'));
     //if we have a cookie, deal with them
@@ -16,12 +12,7 @@ $(document).ready(function() {
         setCookieFilters();
     }
 
-
-
-
-
-
-//define range pickers with options and defautls
+//define range pickers with options and defaults
     $('#range_a').daterangepicker(rangepicker_options,
             function(start, end) {
                 start = start.toDate();
@@ -246,41 +237,21 @@ var chart = new Highcharts.Chart({
             },
             data: []
         }
-        // {
-        //   name: 'Sensor Traffic',
-        //   visible: false,
-        //   yAxis: 0,
-        //   marker:{
-        //     symbol:'circle',
-        //     // lineColor:'#34495e',
-        //     // fillColor:'#34495e',
-        //     lineWidth:1,
-        //     radius: 2
-        //   },
-        //   lineWidth:2,
-        //   tooltip: {
-        //     valuePrefix: '',
-        //     valueSuffix: ''
-        //   },
-        //   data: []
-        // }
     ]
 });
 // end chart data
-
 
 function refreshDashboard() {
     getDashboardData(start_range_1, end_range_1, 'varA');
     getDashboardData(start_range_2, end_range_2, 'varB');
 }
-;
+
 function getDashboardData(start_date, end_date, placement) {
     if (placement == 'varA') {
 
         chart.showLoading();
 
     }
-    ;
 
     $('.progress-bar').css('width', 0);
     var requestCallback = new MyRequestsCompleted({
@@ -288,14 +259,12 @@ function getDashboardData(start_date, end_date, placement) {
         singleCallback: function() {
         }
     });
-//hide existing range data
-// $('.'+placement).html('');
+    
     showDashboardLoading();
     $('.metric .change,.insight .change').empty();
-
-
+    
     var data_set;
-
+    
     var dashboard_call = $.ajax({
         url: "/analytic/dashboard_feed_new.php",
         data: {
@@ -339,7 +308,6 @@ function getDashboardData(start_date, end_date, placement) {
                     chart.xAxis[0].isDirty = true;
                     chart.redraw();
                 }
-                ;
 
 //
 // SET METRICS
@@ -359,7 +327,6 @@ function getDashboardData(start_date, end_date, placement) {
                 if (!range_total_window_conversion || isNaN(range_total_window_conversion)) {
                     range_total_window_conversion = 0;
                 }
-                ;
 
                 range_avg_dwell = data.Totals.DwellTime;
                 range_avg_dwell_seconds = splitHMS(range_avg_dwell);
@@ -392,40 +359,30 @@ function getDashboardData(start_date, end_date, placement) {
                     }
                 }
                 requestCallback.requestComplete(true);
-
-
 // stopLoading();
-
             }
             ;
         }
     });
-
 }
 var MyRequestsCompleted = (function() {
     var numRequestToComplete,
             requestsCompleted,
             callBacks,
             singleCallBack;
-
     return function(options) {
         if (!options)
             options = {};
-
         numRequestToComplete = options.numRequest || 0;
         requestsCompleted = options.requestsCompleted || 0;
         callBacks = [];
         var fireCallbacks = function() {
             calcRangeChanges();
-
             for (var i = 0; i < callBacks.length; i++)
                 callBacks[i]();
         };
         if (options.singleCallback)
             callBacks.push(options.singleCallback);
-
-
-
         this.addCallbackToQueue = function(isComplete, callback) {
             if (isComplete)
                 requestsCompleted++;
@@ -451,28 +408,19 @@ function calcRangeChanges() {
         if ($(this).hasClass('dataRowTitles')) {
             return;
         }
-
-
         if ($(this).hasClass('AvgDwell')) {
-
             var_one = $(this).find('.varA').attr('data-seconds');
             var_two = $(this).find('.varB').attr('data-seconds');
         } else {
-
             var_one = $(this).find('.varA').attr('data-metric');
             var_two = $(this).find('.varB').attr('data-metric');
 
         }
         ;
-
         calculatePercentage(var_one, var_two, $(this).find('.change'), false, false, true, currency);
-
-
     })
 }
 ;
-
-
 
 function showDashboardLoading() {
     $('.focusNumber .varA, .secondaryNumber').html('<img src="/b2b/images/ajax-loader.gif"/>');

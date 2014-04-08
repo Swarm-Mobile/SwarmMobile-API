@@ -1264,6 +1264,7 @@ class MongodbSource extends DboSource {
 
 		$return = $this->_db
 			->command($query);
+                var_dump($query);
 		if ($this->fullDebug) {
 			$this->logQuery("db.runCommand( :query )", 	compact('query'));
 		}

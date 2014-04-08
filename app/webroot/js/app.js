@@ -1,7 +1,6 @@
 var authorized = 'no';
 var codesList = $('.codeList');
 var codesRedeemed = 0;
-
 $(function() {
 // on page load, get total visits && email for the device. If we have visits, open rewards that device is open to. If we have email, open deals. if it's a redemption page that's being loaded (clicked through email link or sent right there from a promo deal), then get the device info first, then, if authorized, redeem the deal
     //show join ML if no content is added/shown
@@ -45,8 +44,6 @@ $(function() {
                         }
                     }
                 }
-                ;
-
                 is_redeem_page = $.mobile.activePage.hasClass('barcodePage');
                 if (is_redeem_page) {
                     redeemPage($.mobile.activePage);
@@ -61,10 +58,6 @@ $(function() {
     } else {
         openRewards();
     }
-    ;
-
-
-
 });
 //display rewards based on device's visit count
 function openRewards() {
