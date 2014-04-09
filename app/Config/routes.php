@@ -21,7 +21,7 @@ switch ($subdomain) {
 		
 		Router::connect('/dashboard'	, array('controller' => 'dashboard', 'action' => 'display', 'dashboard'));
 		Router::connect('/dashboard/*'	, array('controller' => 'dashboard', 'action' => 'display'));
-		
+				
 		break;
 }
 CakePlugin::routes();

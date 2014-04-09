@@ -14,12 +14,12 @@ class StoreComponent extends APIComponent {
         $result = array();
         $calls = array(
             array('store', 'walkbys'),
-            array('store', 'footTraffic'),
-            array('store', 'transactions'),
-            array('store', 'revenue'),
-            array('store', 'avgTicket'),
-            array('store', 'windowConversion'),
-            array('store', 'conversionRate'),
+//            array('store', 'footTraffic'),
+//            array('store', 'transactions'),
+//            array('store', 'revenue'),
+//            array('store', 'avgTicket'),
+//            array('store', 'windowConversion'),
+//            array('store', 'conversionRate'),
         );
         foreach ($calls as $call) {
             $tmp = $this->api->internalCall($call[0], $call[1], $params);

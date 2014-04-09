@@ -20,6 +20,4 @@ class DashboardController extends AppController {
 			throw new NotFoundException();
 		}
 	}
-	
-	
 }
