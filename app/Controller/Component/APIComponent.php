@@ -162,7 +162,7 @@ SQL;
             }
         }
         $result['options'] = $cResult['options'];
-        $result['options']['end_date'] = $aResults[0]['options']['end_date'];
+        $result['options']['start_date'] = $aResults[0]['options']['start_date'];
         return $result;
     }
 
