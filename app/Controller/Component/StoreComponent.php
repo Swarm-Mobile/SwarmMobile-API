@@ -38,7 +38,7 @@ class StoreComponent extends APIComponent {
         if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('store', 'walkbys', $params);
         } else {
-            $data = $this->api->internalCall('member', 'data', $params);
+            $data = $this->api->internalCall('member', 'data', array('member_id'=>$params['member_id']));
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
