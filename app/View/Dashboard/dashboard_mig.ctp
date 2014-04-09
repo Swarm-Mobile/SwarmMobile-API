@@ -4,11 +4,9 @@ $this->assign('title','Dashboard'); ?>
 <script type='text/javascript' src='/js/dashboard.class.js'></script>
 <script type='text/javascript'>
     $(document).ready(function() {
-        start_date = '2014-02-01';
-        end_date = '2014-03-10';
         member_id = 689;
         access_token = '<?= $access_token ?>';
-        dashboard.init(member_id, start_date, end_date, access_token);
+        dashboard.init(member_id, access_token);
     });
 </script>
 <div class="row">
@@ -20,13 +18,52 @@ $this->assign('title','Dashboard'); ?>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-3 dataRow metric"
+<!--    <div class="col-md-3"
          swarm-data="walkbys"
          swarm-display="key"
-         swarm-color="1" 
+         swarm-color="blue" 
          swarm-title="Walkbys"
          swarm-icon="footstepsIcon"
-         swarm-comparison="false"
-         swarm-type="num"
+         swarm-comparison="true"         
+         ></div>-->
+    <div id="chart1" class="col-md-9"
+         swarm-data="walkbys"
+         swarm-display="monoGraph"
+         swarm-comparison="true"  
          ></div>
+    <!--
+    <div class="col-md-3"
+         swarm-data="footTraffic"
+         swarm-display="key"
+         swarm-color="green" 
+         swarm-title="Total Shoppers"
+         swarm-icon="guestsIcon"
+         swarm-comparison="true"         
+         ></div>
+    <div class="col-md-3"
+         swarm-data="transactions"
+         swarm-display="key"
+         swarm-color="orange" 
+         swarm-title="Transactions"
+         swarm-icon="tagIcon"
+         swarm-comparison="true"         
+         ></div>
+    <div class="col-md-3"
+         swarm-data="revenue"
+         swarm-display="key"
+         swarm-color="yellow" 
+         swarm-title="Revenue"
+         swarm-icon="revenueIcon"
+         swarm-comparison="true"
+         swarm-type="currency"
+         ></div>
+    <div class="col-md-3"
+         swarm-data="walkbys"
+         swarm-display="insight"
+         swarm-color="blue" 
+         swarm-title="Walkbys"
+         swarm-icon="footstepsIcon"
+         swarm-comparison="true"         
+         ></div>
+    -->
 </div>

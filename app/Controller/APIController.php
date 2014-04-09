@@ -16,10 +16,10 @@ class APIController extends AppController {
     public $cache_time_exceptions = array();
     public $uses = array();
     private $debug = true;
-    private $cache = true;
+    private $cache = false;
 
     public function index() {
-		set_time_limit(3600);
+        set_time_limit(3600);
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
@@ -70,19 +70,19 @@ class APIController extends AppController {
                 return $result;
             }
         }
-		return false;
+        return false;
         $oModel = new Model(false, 'cache', 'mongodb');
         $conditions = array();
-        foreach($params as $k=>$v){
-            $conditions['params.'.$k] = $v;
+        foreach ($params as $k => $v) {
+            $conditions['params.' . $k] = $v;
         }
         $aRes = $oModel->find(
-            'first', array(
-                $conditions,
-                'order' => array('_id' => -1),
-            )
+                'first', array(
+            $conditions,
+            'order' => array('_id' => -1),
+                )
         );
-		if(isset($aRes['Model'])){
+        if (isset($aRes['Model'])) {
             unset($aRes['Model']['id']);
             unset($aRes['Model']['params']);
             unset($aRes['Model']['modified']);
@@ -132,7 +132,7 @@ class APIController extends AppController {
             fclose($handle);
             $oModel = new Model(false, 'cache', 'mongodb');
             $result['params'] = array();
-            foreach($params as $k=>$v){
+            foreach ($params as $k => $v) {
                 $result['params'][$k] = $v;
             }
             //$oModel->save($result);
