@@ -56,7 +56,7 @@ class APIController extends AppController {
         try {
             if ($this->request->is('get')) {
                 if (!$this->debug) {
-                    $oOAuth = new OAuthComponent();
+                    $oOAuth = new OAuthComponent(new ComponentCollection());
                     $oOAuth->OAuth2->verifyAccessToken($_GET['access_token']);
                     $this->user = $oOAuth->user();
                 }
@@ -71,6 +71,9 @@ class APIController extends AppController {
                 unset($_GET['norollups']);
                 unset($_GET['nocache']);
                 $this->params = $_GET;
+                if(!isset($path[1])){
+                    $path[1] = '';
+                }
                 $this->endpoint = $path[0].'/'.$path[1];
                 echo json_encode($this->internalCall($path[0], $path[1], $_GET));
                 $this->call_log();
