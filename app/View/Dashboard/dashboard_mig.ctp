@@ -18,20 +18,14 @@ $this->assign('title','Dashboard'); ?>
     </div>
 </div>
 <div class="row">
-<!--    <div class="col-md-3"
+    <div class="col-md-3"
          swarm-data="walkbys"
          swarm-display="key"
          swarm-color="blue" 
          swarm-title="Walkbys"
          swarm-icon="footstepsIcon"
          swarm-comparison="true"         
-         ></div>-->
-    <div id="chart1" class="col-md-9"
-         swarm-data="walkbys"
-         swarm-display="monoGraph"
-         swarm-comparison="true"  
          ></div>
-    <!--
     <div class="col-md-3"
          swarm-data="footTraffic"
          swarm-display="key"
@@ -57,13 +51,37 @@ $this->assign('title','Dashboard'); ?>
          swarm-comparison="true"
          swarm-type="currency"
          ></div>
+</div>
+<div class="row">
     <div class="col-md-3"
-         swarm-data="walkbys"
+         swarm-data="windowConversion"
          swarm-display="insight"
          swarm-color="blue" 
-         swarm-title="Walkbys"
-         swarm-icon="footstepsIcon"
+         swarm-title="Window Conversion"         
+         swarm-comparison="true"
+         swarm-type="rate"
+         ></div>
+        <div class="col-md-3"
+         swarm-data=""
+         swarm-display="insight"
+         swarm-color="green" 
+         swarm-title="Return Shoppers"         
          swarm-comparison="true"         
          ></div>
-    -->
+        <div class="col-md-3"
+         swarm-data="conversionRate"
+         swarm-display="insight"
+         swarm-color="orange" 
+         swarm-title="Window Conversion"         
+         swarm-comparison="true"
+         swarm-type="rate"
+         ></div>
+        <div class="col-md-3"
+         swarm-data="avgTicket"
+         swarm-display="insight"
+         swarm-color="yellow" 
+         swarm-title="Average Ticket"         
+         swarm-comparison="true"
+         swarm-type="currency"
+         ></div>
 </div>

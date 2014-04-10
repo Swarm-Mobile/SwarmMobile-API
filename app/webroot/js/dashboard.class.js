@@ -440,11 +440,11 @@ var dashboard = {
                                     access_token: dashboard.access_token
                                 },
                                 success: function(pData) {
-                                    container[display + "Metric"]({cData: cData, pData: pData});
+                                    container[display + "Metric"]({cData: cData.data, pData: pData.data});
                                 }
                             });
                         } else {
-                            container[display + "Metric"]({cData: cData});
+                            container[display + "Metric"]({cData: cData.data});
                         }
                     }
                 });

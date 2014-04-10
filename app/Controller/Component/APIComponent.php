@@ -1,6 +1,6 @@
 <?php
 
-class APIComponent extends Component {
+class APIComponent {
 
     public $api;
     public static $TZ_CORRECTIONS = array(
@@ -17,42 +17,43 @@ class APIComponent extends Component {
         '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'
     );
 
-    public function __construct(\ComponentCollection $collection, $settings = array()) {
-        parent::__construct($collection, $settings);
+    public function __construct() {
         $this->api = new APIController();
     }
 
     public function validate($params, $rules) {
-        foreach ($rules as $param => $validators) {
-            foreach ($validators as $validator) {
-                switch ($validator) {
-                    case 'required':
-                        if (empty($params[$param])) {
-                            throw new APIException(
-                            501, 'required_param_not_found', "Param $param is required and isn't found on the request."
-                            );
-                        }
-                        break;
-                    case 'int':
-                        if ((!is_numeric($params[$param])) || $params[$param] != (int) $params[$param]) {
-                            throw new APIException(
-                            501, 'param_bad_formatted', "Param $param needs to be and int."
-                            );
-                        }
-                        break;
-                    case 'numeric':
-                        if (!is_numeric($params[$param])) {
-                            throw new APIException(
-                            501, 'param_bad_formatted', "Param $param needs to be and int."
-                            );
-                        }
-                        break;
-                    case 'date':
-                        //TODO:
-                        break;
-                    case 'datetime':
-                        //TODO:
-                        break;
+        if (!empty($rules)) {
+            foreach ($rules as $param => $validators) {
+                foreach ($validators as $validator) {
+                    switch ($validator) {
+                        case 'required':
+                            if (empty($params[$param])) {
+                                throw new APIException(
+                                501, 'required_param_not_found', "Param $param is required and isn't found on the request."
+                                );
+                            }
+                            break;
+                        case 'int':
+                            if ((!is_numeric($params[$param])) || $params[$param] != (int) $params[$param]) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be and int."
+                                );
+                            }
+                            break;
+                        case 'numeric':
+                            if (!is_numeric($params[$param])) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be and int."
+                                );
+                            }
+                            break;
+                        case 'date':
+                            //TODO:
+                            break;
+                        case 'datetime':
+                            //TODO:
+                            break;
+                    }
                 }
             }
         }
@@ -129,8 +130,7 @@ SQL;
             $slave_params = $params;
             do {
                 $slave_params['end_date'] = $slave_params['start_date'];
-                $result = $this->api->internalCall($component, $method, $slave_params);
-                $aResults[] = $result;
+                $aResults[] = $this->api->internalCall($component, $method, $slave_params);
                 $new_start_date = new DateTime($slave_params['start_date']);
                 date_add($new_start_date, date_interval_create_from_date_string('1 days'));
                 $slave_params['start_date'] = date_format($new_start_date, 'Y-m-d');
@@ -141,22 +141,26 @@ SQL;
 
     public function mergeResults($aResults = array()) {
         $result = array(
-            'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-            'breakdown' => array(),
-            'options' => array()
+            'data' => array(
+                'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
+                'breakdown' => array(),
+                'options' => array()
+            )
         );
         foreach ($aResults as $cResult) {
             if (!empty($cResult)) {
-                $result['totals']['open'] += $cResult['totals']['open'];
-                $result['totals']['close'] += $cResult['totals']['close'];
-                $result['totals']['total'] += $cResult['totals']['total'];
-                foreach ($cResult['breakdown'] as $date => $v) {
-                    foreach ($v['hours'] as $hour => $values) {
-                        $result['breakdown'][$date]['hours'][$hour]['open'] = $values['open'];
-                        $result['breakdown'][$date]['hours'][$hour]['total'] += $values['total'];
-                    }
-                    foreach ($v['totals'] as $k => $j) {
-                        $result['breakdown'][$date]['totals'][$k] += $j;
+                $result['data']['totals']['open'] += $cResult['data']['totals']['open'];
+                $result['data']['totals']['close'] += $cResult['data']['totals']['close'];
+                $result['data']['totals']['total'] += $cResult['data']['totals']['total'];
+                if (!empty($cResult['data']['breakdown'])) {
+                    foreach ($cResult['data']['breakdown'] as $date => $v) {
+                        foreach ($v['hours'] as $hour => $values) {
+                            $result['data']['breakdown'][$date]['hours'][$hour]['open'] = $values['open'];
+                            @$result['data']['breakdown'][$date]['hours'][$hour]['total'] += $values['total'];
+                        }
+                        foreach ($v['totals'] as $k => $j) {                            
+                            @$result['data']['breakdown'][$date]['totals'][$k] += $j;
+                        }
                     }
                 }
             }
@@ -173,16 +177,16 @@ SQL;
         while ($start_date <= $end_date) {
             $date = date_format($start_date, 'Y-m-d');
             foreach ($this->hours as $hour) {
-                if (!isset($result['breakdown'][$date]['hours'][$hour])) {
-                    $tmp['breakdown'][$date]['hours'][$hour] = array(
+                if (!isset($result['data']['breakdown'][$date]['hours'][$hour])) {
+                    $tmp['data']['breakdown'][$date]['hours'][$hour] = array(
                         'open' => false,
                         'total' => 0
                     );
                 }
             }
-            ksort($tmp['breakdown'][$date]['hours']);
-            if (!isset($tmp['breakdown'][$date]['totals'])) {
-                $tmp['breakdown'][$date]['totals'] = array(
+            ksort($tmp['data']['breakdown'][$date]['hours']);
+            if (!isset($tmp['data']['breakdown'][$date]['totals'])) {
+                $tmp['data']['breakdown'][$date]['totals'] = array(
                     'open' => 0,
                     'close' => 0,
                     'total' => 0
@@ -191,10 +195,6 @@ SQL;
             date_add($start_date, date_interval_create_from_date_string('1 days'));
         }
         return $tmp;
-    }
-
-    public function averagify($result) {
-        //TODO: foreach all made avg counting the number of days or hours
     }
 
 }
