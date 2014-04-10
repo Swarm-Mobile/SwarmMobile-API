@@ -15,18 +15,50 @@ class APIController extends AppController {
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
     public $uses = array();
+    
     public $debug = true;
     public $cache = true;
     public $rollups = true;
+    
+    public $user = array('id_user'=>0,'username'=>'');
+    public $endpoint = '';
+    public $request_start = 0;
+    public $request_end = 0;    
+    
+    public $microtime = 0;
+    
+    public $response_code = 200;
+    public $response_message = 'OK';
+    public $params = array();    
 
+    private function call_log() {
+        $this->request_end = date('Y-m-d H:i:s');
+        $oModel = new Model(false, 'calls', 'mongodb');
+        $call = array(
+            'id_user'=>$this->user['id_user'],
+            'username'=>$this->user['username'],
+            'endpoint'=>$this->endpoint,
+            'request_start'=>$this->request_start,
+            'request_end'=>$this->request_end,
+            'response_time'=>  microtime(true) - $this->microtime,
+            'response_code'=>$this->response_code,
+            'response_message'=>$this->response_message,
+            'params'=>$this->params            
+        );
+        $oModel->save($call);
+    }
+    
     public function index() {
         set_time_limit(3600);
+        $this->microtime = microtime(true);
+        $this->request_start = date('Y-m-d H:i:s');
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
                 if (!$this->debug) {
                     $oOAuth = new OAuthComponent();
                     $oOAuth->OAuth2->verifyAccessToken($_GET['access_token']);
+                    $this->user = $oOAuth->user();
                 }
                 $path = func_get_args();
                 if (isset($_GET['norollups'])) {
@@ -38,14 +70,23 @@ class APIController extends AppController {
                 unset($_GET['access_token']);
                 unset($_GET['norollups']);
                 unset($_GET['nocache']);
+                $this->params = $_GET;
+                $this->endpoint = $path[0].'/'.$path[1];
                 echo json_encode($this->internalCall($path[0], $path[1], $_GET));
+                $this->call_log();
                 exit();
             }
             throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
         } catch (OAuth2AuthenticateException $e) {
+            $this->response_code = $e->getCode();
+            $this->response_message = $e->getMessage();
+            $this->call_log();
             $e->sendHttpResponse();
             return false;
         } catch (APIException $e) {
+            $this->response_code = $e->error_no;
+            $this->response_message = $e->error;
+            $this->call_log();
             $e->_displayError();
             return false;
         }
