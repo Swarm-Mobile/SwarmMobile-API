@@ -127,6 +127,9 @@ var tools = {
         return 0;
     },
     addCommas: function(nStr) {
+        if(nStr >= 1000){
+            nStr.toFixed(0);
+        }
         nStr += '';
         x = nStr.split('.');
         x1 = x[0];

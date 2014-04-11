@@ -235,16 +235,21 @@ SQL;
                 $total_hours += $num_hours;                
                 foreach ($values['totals'] as $k => $v) {
                     $result['data']['breakdown'][$date]['totals'][$k] = round($v / $num_hours,2);
+                }                
+                foreach($values['hours'] as $h => $v){                    
+                    foreach($v as $i => $j){                        
+                        $result['data']['breakdown'][$date]['hours'][$h][$i] = is_numeric($j)?round($j,2):$j;
+                    }
                 }
             }
             foreach ($result['data']['totals'] as $k => $v) {
                 $result['data']['totals'][$k] = round($v / $total_hours,2);
-            }
+            }            
         } else {
             foreach ($result['data']['totals'] as $k => $v) {
                 $result['data']['totals'][$k] = round($v / $num_days,2);
             }
-        }
+        }        
         return $result;
     }
 
