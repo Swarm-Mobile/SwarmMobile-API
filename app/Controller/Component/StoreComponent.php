@@ -257,7 +257,7 @@ SQL;
             $outlet_filter = $data['data']['outlet_filter'];
             $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
             
-            $lightspeed_id = $data['data']['lightspeed_id'];
+            $lightspeed_id = (empty($data['data']['lightspeed_id']))?0:$data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
             $oModel = new Model(false, $table, 'pos');
@@ -300,7 +300,7 @@ SQL;
             $outlet_filter = $data['data']['outlet_filter'];
             $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
 
-            $lightspeed_id = $data['data']['lightspeed_id'];
+            $lightspeed_id = (empty($data['data']['lightspeed_id']))?0:$data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
             $oModel = new Model(false, $table, 'pos');
@@ -343,7 +343,7 @@ SQL;
             $outlet_filter = $data['data']['outlet_filter'];
             $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
 
-            $lightspeed_id = $data['data']['lightspeed_id'];
+            $lightspeed_id = (empty($data['data']['lightspeed_id']))?0:$data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
             $oModel = new Model(false, $table, 'pos');
@@ -421,7 +421,7 @@ SQL;
         }
     }
 
-    public function itemsPerTransaction($params) {
+    public function itemsPerTransaction($params) {        
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -438,8 +438,7 @@ SQL;
             $register_filter = (!empty($register_filter)) ? " AND invoices.register_id = $register_filter " : '';
             $outlet_filter = $data['data']['outlet_filter'];
             $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
-
-            $lightspeed_id = $data['data']['lightspeed_id'];
+            $lightspeed_id = (empty($data['data']['lightspeed_id']))?0:$data['data']['lightspeed_id'];            
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
             $oModel = new Model(false, $table, 'pos');
