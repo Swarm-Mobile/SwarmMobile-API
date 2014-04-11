@@ -160,7 +160,52 @@ class DATABASE_CONFIG {
             'prefix' => '',
         )
     );
-    public $live = array();
+    public $live = array(
+        'mongodb' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'localhost',
+            'database' => 'local',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
+        'oauth' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'oauth',
+            'prefix' => '',
+        ),
+        'ee' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'live_admin',
+            'password' => 'TH9DrAqe4rAsta',
+            'database' => 'ee_prod',
+            'prefix' => '',
+        ),
+        'pos' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmposdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'posadmin',
+            'password' => 'dUdEph94aR5fr6',
+            'database' => 'pos_production',
+            'prefix' => '',
+        ),
+        'swarmdata' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
+        )
+    );
 
     function __construct() {
         $env = getenv('server_location');
