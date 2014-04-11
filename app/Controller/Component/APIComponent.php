@@ -158,7 +158,7 @@ SQL;
                             $result['data']['breakdown'][$date]['hours'][$hour]['open'] = $values['open'];
                             @$result['data']['breakdown'][$date]['hours'][$hour]['total'] += $values['total'];
                         }
-                        foreach ($v['totals'] as $k => $j) {                            
+                        foreach ($v['totals'] as $k => $j) {
                             @$result['data']['breakdown'][$date]['totals'][$k] += $j;
                         }
                     }
@@ -170,7 +170,7 @@ SQL;
         return $result;
     }
 
-    public function fillBlanks($result, $start_date, $end_date) {
+    public function fillBlanks($result, $data, $start_date, $end_date) {
         $tmp = $result;
         $start_date = new DateTime($start_date);
         $end_date = new DateTime($end_date);
@@ -178,8 +178,13 @@ SQL;
             $date = date_format($start_date, 'Y-m-d');
             foreach ($this->hours as $hour) {
                 if (!isset($result['data']['breakdown'][$date]['hours'][$hour])) {
+                    $weekday = strtolower(date('l', strtotime($date)));
+                    $open = (
+                            (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
+                            (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
+                            );
                     $tmp['data']['breakdown'][$date]['hours'][$hour] = array(
-                        'open' => false,
+                        'open' => $open,
                         'total' => 0
                     );
                 }
@@ -195,6 +200,25 @@ SQL;
             date_add($start_date, date_interval_create_from_date_string('1 days'));
         }
         return $tmp;
+    }
+
+    public function averagify($result) {       
+        $num_days = count($result['data']['breakdown']);
+        if ($num_days == 1) {
+            foreach ($result['data']['breakdown'] as $date => $values) {
+                foreach ($values['totals'] as $k => $v) {
+                    $result['data']['breakdown'][$date]['totals'][$k] = $v / 24;
+                }
+            }
+            foreach ($result['data']['totals'] as $k => $v) {
+                $result['data']['totals'][$k] = $v / ($num_days * 24);
+            }
+        } else {
+            foreach ($result['data']['totals'] as $k => $v) {
+                $result['data']['totals'][$k] = $v / $num_days;
+            }
+        }
+        return $result;
     }
 
 }

@@ -28,4 +28,4 @@
 <script type="text/javascript" src="/js/moment.min.js"></script>
 <script type="text/javascript" src="/js/dashboard-datepicker.js"></script>
 <script type="text/javascript" src="/js/daterangepicker.js"></script>
-<script type="text/javascript" src="/js/dashboard.live.js?v=3.2"></script>
+<!--script type="text/javascript" src="/js/dashboard.live.js?v=3.2"></script-->

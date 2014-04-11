@@ -16,6 +16,6 @@
 </div>
 <script type="text/javascript">
     $(function() {
-        $('#setupModal').modal('show');
+        //$('#setupModal').modal('show');
     });
 </script>

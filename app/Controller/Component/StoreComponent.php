@@ -33,7 +33,7 @@ class StoreComponent extends APIComponent {
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
         );
-        return $this->fillBlanks($cResult, $start_date, $end_date);
+        return $this->fillBlanks($cResult, $data, $start_date, $end_date);
     }
 
     private function calculate($aRes1, $aRes2) {
@@ -130,7 +130,65 @@ SQL;
             $bind['start_date'] = $start_date;
             $bind['end_date'] = $end_date;
             $aRes = $oDb->fetchAll($sSQL, $bind);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/walkbys', 0, 't2');
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
+        }
+    }
+    
+    public function returning($params) {
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $ap_id = $data['data']['ap_id'];
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $table = 'sessions';
+            $oModel = new Model(false, $table, 'swarmdata');
+            $oDb = $oModel->getDataSource();
+
+            $sSQL = <<<SQL
+SELECT 
+    COUNT(unique_mac) as value, 
+    hour, 
+    date
+FROM (
+    SELECT 
+        DISTINCT sessions.mac_id as unique_mac,
+        (convert_tz(time_login,'GMT',:timezone)) as max_login,
+        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%Y-%m-%d') AS date,
+        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%H') AS hour
+    FROM sessions
+    INNER JOIN mac_address 
+      ON sessions.mac_id = mac_address.id
+    WHERE (status !='noise' AND NOISE is false) 
+      AND (sessionid='instore' OR sessionid='passive' OR sessionid='active' OR sessionid='login') 
+      AND time_logout IS NOT NULL
+      AND (network_id = :ap_id)
+      AND time_login BETWEEN :start_date AND :end_date
+    GROUP BY sessions.mac_id
+) t2
+INNER JOIN network_mac_logins nml
+    ON nml.first_logout   < t2.max_login 
+    AND nml.mac_id=t2.unique_mac
+WHERE nml.network_id= :ap_id
+  AND nml.first_logout IS NOT NULL
+  AND t2.max_login  IS NOT NULL
+GROUP BY date ASC, hour ASC               
+SQL;
+
+            $bind = array();
+            $bind['timezone'] = $timezone;
+            $bind['ap_id'] = $ap_id;
+            $bind['start_date'] = $start_date;
+            $bind['end_date'] = $end_date;
+            $aRes = $oDb->fetchAll($sSQL, $bind);
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
 
@@ -176,7 +234,7 @@ FROM(
 ) as t2 GROUP BY date ASC, hour ASC                     
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/footTraffic', 0, 't2');
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
 
@@ -213,7 +271,7 @@ WHERE store_id= $lightspeed_id
 GROUP BY date ASC, hour ASC                
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/transactions', 0, 0);
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0);
         }
     }
 
@@ -250,7 +308,7 @@ WHERE store_id= $lightspeed_id
 GROUP BY date ASC, hour ASC                   
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/revenue', 0, 0);
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0);
         }
     }
 
@@ -287,7 +345,7 @@ WHERE store_id= $lightspeed_id
 GROUP BY date ASC, hour ASC                  
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/footTraffic', 0, 0);
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0);
         }
     }
 
@@ -299,7 +357,7 @@ SQL;
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params));
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $ap_id = $data['data']['ap_id'];
@@ -340,7 +398,57 @@ SQL;
             $bind['start_date'] = $start_date;
             $bind['end_date'] = $end_date;
             $aRes = $oDb->fetchAll($sSQL, $bind);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/dwell', 0, 0);
+            return $this->averagify($this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0));
+        }
+    }
+
+    public function itemsPerTransaction($params) {
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $timezone = $data['data']['timezone'];
+            $register_filter = $data['data']['register_filter'];
+            $outlet_filter = $data['data']['outlet_filter'];
+            $lightspeed_id = $data['data']['lightspeed_id'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $table = 'invoices';
+            $oModel = new Model(false, $table, 'pos');
+            $oDb = $oModel->getDataSource();
+            $sSQL = <<<SQL
+SELECT 
+    ROUND(AVG(item_count),1) as value, 
+    hour, 
+    date
+FROM (
+    SELECT 
+        invoices.invoice_id,count(*) as item_count,
+        DATE_FORMAT(CONVERT_TZ(invoices.ts,'GMT',:timezone),'%Y-%m-%d') AS date,
+        DATE_FORMAT(CONVERT_TZ(invoices.ts,'GMT',:timezone),'%k') AS hour
+    FROM `invoice_lines` 
+    INNER JOIN invoices ON invoice_lines.invoice_id = invoices.invoice_id
+    WHERE invoices.store_id= $lightspeed_id
+      AND invoices.COMPLETED 
+      AND invoices.total != 0 
+      AND register_id='$register_filter'
+      AND outlet_id='$outlet_filter]'
+      AND invoices.ts BETWEEN :start_date AND :end_date
+    GROUP BY invoice_lines.invoice_id
+) as t2
+GROUP BY date ASC, hour ASC              
+SQL;
+            $bind = array();
+            $bind['timezone'] = $timezone;            
+            $bind['start_date'] = $start_date;
+            $bind['end_date'] = $end_date;
+            $aRes = $oDb->fetchAll($sSQL, $bind);            
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
 

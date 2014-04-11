@@ -17,8 +17,8 @@ class APIController extends AppController {
     public $uses = array();
     
     public $debug = true;
-    public $cache = true;
-    public $rollups = true;
+    public $cache = false;
+    public $rollups = false;
     
     public $user = array('id_user'=>0,'username'=>'');
     public $endpoint = '';
