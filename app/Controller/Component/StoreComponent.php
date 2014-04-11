@@ -4,13 +4,13 @@ App::uses('APIComponent', 'Controller/Component');
 
 class StoreComponent extends APIComponent {
 
-    private function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2) {
+    private function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2) {        
         $cResult = array();
         foreach ($aRes as $oRow) {
             $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
             $date = $oRow[$t2]['date'];
             $hour = $oRow[$t2]['hour'];
-            $cValue = (int) $oRow[$t1]['value'];
+            $cValue = $oRow[$t1]['value'];
             if (
                     (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
                     (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
@@ -32,7 +32,7 @@ class StoreComponent extends APIComponent {
             'member_id' => $params['member_id'],
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
-        );
+        );        
         return $this->fillBlanks($cResult, $data, $start_date, $end_date);
     }
 
@@ -320,7 +320,7 @@ WHERE store_id= $lightspeed_id
     AND invoices.ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC                   
 SQL;
-            $aRes = $oDb->fetchAll($sSQL);
+            $aRes = $oDb->fetchAll($sSQL);            
             return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0);
         }
     }

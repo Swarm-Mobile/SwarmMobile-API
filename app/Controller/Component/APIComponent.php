@@ -216,13 +216,22 @@ SQL;
         $close_hour = (int) strstr($data['data'][$weekday . '_close'], ':', true);
         return ($close_hour - $open_hour)+1;        
     }
+    
+    public function countRevenueHours($result,$date){
+        $i = 0;           
+        foreach($result['data']['breakdown'][$date]['hours'] as $hour=>$v){
+            $i += ($v['total']>0 && $v['open'])?1:0;
+        }
+        return $i;
+    }
 
     public function averagify($result, $data) {       
         $num_days = count($result['data']['breakdown']);        
         $total_hours = 0;
         if ($num_days == 1) {
-            foreach ($result['data']['breakdown'] as $date => $values) {
-                $num_hours = $this->countOpenHours($data, $date);
+            foreach ($result['data']['breakdown'] as $date => $values) {                
+                //$num_hours = $this->countOpenHours($data);                
+                $num_hours = $this->countRevenueHours($result, $date);                
                 $total_hours += $num_hours;                
                 foreach ($values['totals'] as $k => $v) {
                     $result['data']['breakdown'][$date]['totals'][$k] = round($v / $num_hours,2);
