@@ -1,84 +1,51 @@
-<?php 
-    $this->assign('title','Dashboard');
-?>
+<?php $this->assign('title', 'Dashboard'); ?>
+<script type='text/javascript' src='/js/swarm.keyMetric.js'></script>
+<script type='text/javascript' src='/js/swarm.insightMetric.js'></script>
+<script type='text/javascript' src='/js/swarm.monoGraphMetric.js'></script>
+<script type='text/javascript' src='/js/swarm.multiGraphMetric.js'></script>
+<script type='text/javascript' src='/js/swarm.breakdownGraphMetric.js'></script>
+<script type='text/javascript' src='/js/swarm.tools.class.js'></script>
+<script type='text/javascript' src='/js/swarm.dashboard.class.js'></script>
+<script type='text/javascript'>
+    $(document).ready(function() {
+        member_id = 689;
+        access_token = '<?= $access_token ?>';
+        dashboard.init(member_id, access_token);
+    });
+</script>
 <div class="row">
     <div class="col-md-12 dataRow">
-        <?= $this->element('dashboard/export-button')?>  
-        <?= $this->element('dashboard/show-hide-metrics')?>
-        <?= $this->element('dashboard/refresh-button')?>        
+        <?= $this->element('dashboard/export-button') ?>  
+        <?= $this->element('dashboard/show-hide-metrics') ?>
+        <?= $this->element('dashboard/refresh-button') ?>        
         <h2 class="headerSpacing">Key Metrics</h2>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-3 dataRow metric Walkbys" data-title="Walkbys">
-        <h5 class="primaryRegular caps text-center">Walkbys</h5>
-        <div class="focusNumber text-center primaryBold">
-            <i class="circleIcon hidden-xs color_bg1 footstepsIcon">
-            </i>
-            <span class="varA"></span>
-        </div>
-        <div class="progress">
-            <div class="progress-bar color_bg1" role="progressbar"></div>
-        </div>
-        <div class="bottomMetrics">
-            <div class="col-md-6 col-xs-6 subtle small varB"></div>
-            <div class="col-md-6 col-xs-6 subtle small text-right change"></div>
-        </div>
-    </div>
-    <div class="col-md-3 dataRow metric TotalShoppers" data-title="TotalShoppers">
-        <h5 class="primaryRegular caps text-center">Total Shoppers</h5>
-        <div class="focusNumber text-center primaryBold">
-            <i class="circleIcon hidden-xs color_bg2 guestsIcon"></i>
-            <span class="varA"></span>
-        </div>
-        <div class="progress">
-            <div class="progress-bar color_bg2" role="progressbar"></div>
-        </div>
-        <div class="bottomMetrics">
-            <div class="col-md-6 col-xs-6 subtle small varB"></div>
-            <div class="col-md-6 col-xs-6 subtle small text-right change"></div>
-        </div>
-    </div>
-    <div class="col-md-3 dataRow metric Transactions {if lightspeed_store_id}{if:else}hide{/if}"  data-title="Transactions">
-        <h5 class="primaryRegular caps text-center">Transactions</h5>
-        <div class="focusNumber text-center primaryBold">
-            <i class="circleIcon hidden-xs color_bg3 tagIcon"></i>
-            <span class="varA"></span>
-        </div>
-        <div class="progress">
-            <div class="progress-bar color_bg3" role="progressbar"></div>
-        </div>
-        <div class="bottomMetrics">
-            <div class="col-md-6 col-xs-6 subtle small varB"></div>
-            <div class="col-md-6 col-xs-6 subtle small text-right change"></div>
-        </div>
-    </div>
-    <div class="col-md-3 dataRow metric last Revenue {if lightspeed_store_id}{if:else}hide{/if}" data-title="Revenue">
-        <h5 class="primaryRegular caps text-center">Revenue</h5>
-        <div class="focusNumber text-center primaryBold">
-            <i class="circleIcon hidden-xs color_bg4 revenueIcon"></i>
-            <span class="varA"></span>
-        </div>
-        <div class="progress">
-            <div class="progress-bar color_bg4" role="progressbar"></div>
-        </div>
-        <div class="bottomMetrics">
-            <div class="col-md-6 col-xs-6 subtle small varB"></div>
-            <div class="col-md-6 col-xs-6 subtle small text-right change percentString"></div>
-        </div>
-    </div>    
-    <!--
-    <div class="col-md-6 dataRow last ">
-        <div class="alert-info noPosInfoWindow">
-            <p class="text-center spacingTop">
-                <strong>Your point of sale system is not currently integrated with your Swarm account.</strong>
-            </p>
-            <p class="text-center">
-                <a href="mailto:info@swarm-mobile.com"> <strong>Contact Swarm Mobile to integrate your point of sale data and have access to conversion rates, revenue, transaction data, etc...</strong></a>
-            </p>
-        </div>
-    </div>
-    -->    
+    <div class="col-md-3"
+         swarm-data="walkbys"
+         swarm-display="key"         
+         swarm-title="Walkbys"
+         swarm-comparison="true"         
+         ></div>
+    <div class="col-md-3"
+         swarm-data="footTraffic"
+         swarm-display="key"         
+         swarm-title="Total Shoppers"
+         swarm-comparison="true"         
+         ></div>
+    <div class="col-md-3"
+         swarm-data="transactions"
+         swarm-display="key"         
+         swarm-title="Transactions"
+         swarm-comparison="true"         
+         ></div>
+    <div class="col-md-3"
+         swarm-data="revenue"
+         swarm-display="key"         
+         swarm-title="Revenue"
+         swarm-comparison="true"         
+         ></div>
 </div>
 <div class="row">
     <div class="col-md-12 dataRow text-right">
@@ -95,49 +62,49 @@
     </div>
 </div>
 <div class="row spacing">
-    <div class="col-md-3 dataRow">
-        <div class="insight color_border1 WindowConversion" data-title="WindowConversion">
-            <div class="primaryRegular caps small">Window Conversion</div>
-            <div class="small subtle pull-right text-right change percentString"></div>
-            <div class="varB hide"></div>
-            <div class="secondaryNumber primaryBold varA"></div>
-        </div>
+    <div class="col-md-3">
+        <div
+            swarm-data="windowConversion"
+            swarm-display="insight"         
+            swarm-title="Window Conversion"
+            swarm-comparison="true"         
+            ></div>
     </div>
-    <div class="col-md-3 dataRow">
-        <div class="insight color_border2 ReturningShoppers" data-title="ReturningShoppers">
-            <div class="primaryRegular caps small">Return Shoppers</div>
-            <div class="small subtle pull-right text-right change"></div>
-            <div class="varB hide"></div>
-            <div class="secondaryNumber primaryBold varA"></div>
-        </div>
-        <div class="insight color_border2 AvgDwell visible-xs visible-sm" data-title="AvgDwell">
-            <div class="primaryRegular caps small">Dwell Time</div>
-            <div class="small subtle pull-right text-right change secondString"></div>
-            <div class="varB hide"></div>
-            <div class="secondaryNumber primaryBold varA"></div>
-        </div>
+    <div class="col-md-3">
+        <div
+            swarm-data="returning"
+            swarm-display="insight"         
+            swarm-title="Return Shoppers"
+            swarm-comparison="true"         
+            ></div>
+        <div
+            swarm-data="dwell"
+            swarm-display="insight"         
+            swarm-title="Dwell Time"
+            swarm-comparison="true"         
+            ></div>
     </div>
-    <div class="col-md-3 dataRow">
-        <div class="insight color_border3 ConversionRate {if lightspeed_store_id}{if:else}hide{/if}" data-title="ConversionRate">
-            <div class="primaryRegular caps small">Conversion Rate</div>
-            <div class="small subtle pull-right text-right change percentString"></div>
-            <div class="varB hide"></div>
-            <div class="secondaryNumber primaryBold varA"></div>
-        </div>
+    <div class="col-md-3">
+        <div
+            swarm-data="conversionRate"
+            swarm-display="insight"         
+            swarm-title="Conversion Rate"
+            swarm-comparison="true"         
+            ></div>
     </div>
-    <div class="col-md-3 dataRow last">
-        <div class="insight color_border4 last AvgTicket {if lightspeed_store_id}{if:else}hide{/if}" data-title="AvgTicket">
-            <div class="primaryRegular caps small">Average Ticket</div>
-            <div class="small subtle pull-right text-right change"></div>
-            <div class="varB hide"></div>
-            <div class="secondaryNumber primaryBold varA"></div>
-        </div>
-        <div class="insight color_border4 last ItemsPerTransaction visible-xs visible-sm {if lightspeed_store_id}{if:else}hide{/if}" data-title="ItemsPerTransaction">
-            <div class="primaryRegular caps small">Items / Transaction</div>
-            <div class="small subtle pull-right text-right change"></div>
-            <div class="varB hide"></div>
-            <div class="secondaryNumber primaryBold varA"></div>
-        </div>
+    <div class="col-md-3">
+        <div
+            swarm-data="avgTicket"
+            swarm-display="insight"         
+            swarm-title="Average Ticket"
+            swarm-comparison="true"         
+            ></div>
+        <div
+            swarm-data="itemsPerTransaction"
+            swarm-display="insight"         
+            swarm-title="Items / Transaction"
+            swarm-comparison="true"         
+            ></div>
     </div>
 </div>
 <div class="row">
@@ -155,9 +122,12 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12 dataRow">
-        <div id="avc"></div>
-    </div>
+    <div clasS="col-md-12" id="multi-graph"
+         swarm-data="walkbys,footTraffic,transactions,revenue"
+         swarm-display="multiGraph"                  
+         swarm-axis-title="Shoppers"        
+         swarm-title="Store Hours"
+         ></div>
 </div>
 <div class="row">
     <div class="col-md-12 dataRow text-right">

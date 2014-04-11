@@ -43,19 +43,19 @@ class StoreComponent extends APIComponent {
                 foreach ($v as $i => $j) {
                     $a = $aRes1['data']['breakdown'][$date]['hours'][$hour][$i];
                     $b = $aRes2['data']['breakdown'][$date]['hours'][$hour][$i];
-                    $result['data']['breakdown'][$date]['hours'][$hour][$i] = round($a / $b, 2);
+                    $result['data']['breakdown'][$date]['hours'][$hour][$i] = round(($a/$b)*100, 2);
                 }
             }
             foreach ($values['totals'] as $k => $v) {
                 $a = $aRes1['data']['breakdown'][$date]['totals'][$k];
                 $b = $aRes2['data']['breakdown'][$date]['totals'][$k];
-                $result['data']['breakdown'][$date]['totals'][$k] = round($a / $b, 2);
+                $result['data']['breakdown'][$date]['totals'][$k] = round(($a/$b)*100, 2);
             }
         }
         foreach ($aRes1['data']['totals'] as $k => $v) {
             $a = $aRes1['data']['totals'][$k];
             $b = $aRes2['data']['totals'][$k];
-            $result['data']['totals'][$k] = round($a / $b, 2);
+            $result['data']['totals'][$k] = round(($a/$b)*100, 2);
         }
         return $result;
     }
@@ -71,6 +71,7 @@ class StoreComponent extends APIComponent {
         $calls = array(
             array('store', 'walkbys'),
             array('store', 'footTraffic'),
+            array('store', 'returning'),
             array('store', 'transactions'),
             array('store', 'revenue'),
             array('store', 'avgTicket'),
@@ -133,7 +134,7 @@ SQL;
             return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
-    
+
     public function returning($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -287,6 +288,12 @@ SQL;
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $timezone = $data['data']['timezone'];
+
+            $register_filter = $data['data']['register_filter'];
+            $register_filter = (!empty($register_filter)) ? " AND register_id = $register_filter " : '';
+            $outlet_filter = $data['data']['outlet_filter'];
+            $outlet_filter = (!empty($outlet_filter)) ? " AND outlet_id = $outlet_filter " : '';
+
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
@@ -295,16 +302,16 @@ SQL;
 
             $sSQL = <<<SQL
 SELECT 
-    SUM(total) as revenue,
+    SUM(total) as value,
     DATE_FORMAT(CONVERT_TZ(invoices.ts,'GMT','$timezone'),'%Y-%m-%d' ) AS date,
-    DATE_FORMAT(CONVERT_TZ(ts,'GMT','$timezone'), '%k:00') AS hour
+    DATE_FORMAT(CONVERT_TZ(ts,'GMT','$timezone'), '%k') AS hour
 FROM $table
 WHERE store_id= $lightspeed_id
     AND completed 
     AND invoices.total != 0 
-    AND {$this->registerFilter($data)}
-	{$this->outletFilter($data)}
-        invoices.ts BETWEEN '$start_date' AND '$end_date'
+    $register_filter
+    $outlet_filter
+    AND invoices.ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC                   
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
@@ -319,11 +326,17 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
         } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $timezone = $data['data']['timezone'];
+
+            $register_filter = $data['data']['register_filter'];
+            $register_filter = (!empty($register_filter)) ? " AND register_id = $register_filter " : '';
+            $outlet_filter = $data['data']['outlet_filter'];
+            $outlet_filter = (!empty($outlet_filter)) ? " AND outlet_id = $outlet_filter " : '';
+
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
@@ -332,20 +345,20 @@ SQL;
 
             $sSQL = <<<SQL
 SELECT 
-    AVG(total) AS avgTicket,
+    AVG(total) AS value,
     DATE_FORMAT(CONVERT_TZ(invoices.ts,'GMT','$timezone'),'%Y-%m-%d' ) AS date,
-    DATE_FORMAT(CONVERT_TZ(ts,'GMT','$timezone'), '%k:00') AS hour
+    DATE_FORMAT(CONVERT_TZ(ts,'GMT','$timezone'), '%k') AS hour
 FROM $table
 WHERE store_id= $lightspeed_id
     AND completed 
     AND invoices.total != 0 
-    AND {$this->registerFilter($data)}
-	{$this->outletFilter($data)}
-        invoices.ts BETWEEN '$start_date' AND '$end_date'
+    $register_filter
+    $outlet_filter
+    AND invoices.ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC                  
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0);
+            return $this->averagify($this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0), $data);
         }
     }
 
@@ -356,10 +369,10 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
-            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params));
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
         } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -398,7 +411,7 @@ SQL;
             $bind['start_date'] = $start_date;
             $bind['end_date'] = $end_date;
             $aRes = $oDb->fetchAll($sSQL, $bind);
-            return $this->averagify($this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0));
+            return $this->averagify($this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0), $data);
         }
     }
 
@@ -409,13 +422,17 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
         } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $timezone = $data['data']['timezone'];
+
             $register_filter = $data['data']['register_filter'];
+            $register_filter = (!empty($register_filter)) ? " AND register_id = $register_filter " : '';
             $outlet_filter = $data['data']['outlet_filter'];
+            $outlet_filter = (!empty($outlet_filter)) ? " AND outlet_id = $outlet_filter " : '';
+
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
@@ -436,32 +453,46 @@ FROM (
     WHERE invoices.store_id= $lightspeed_id
       AND invoices.COMPLETED 
       AND invoices.total != 0 
-      AND register_id='$register_filter'
-      AND outlet_id='$outlet_filter]'
+      $register_filter
+      $outlet_filter
       AND invoices.ts BETWEEN :start_date AND :end_date
     GROUP BY invoice_lines.invoice_id
 ) as t2
 GROUP BY date ASC, hour ASC              
 SQL;
             $bind = array();
-            $bind['timezone'] = $timezone;            
+            $bind['timezone'] = $timezone;
             $bind['start_date'] = $start_date;
             $bind['end_date'] = $end_date;
-            $aRes = $oDb->fetchAll($sSQL, $bind);            
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
+            $aRes = $oDb->fetchAll($sSQL, $bind);
+            return $this->averagify($this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2'), $data);
         }
     }
 
     public function windowConversion($params) {
         $ft = $this->api->internalCall('store', 'footTraffic', $params);
         $wb = $this->api->internalCall('store', 'walkbys', $params);
-        return $this->calculate($ft, $wb);
+        $result = $this->calculate($ft, $wb);
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
     }
 
     public function conversionRate($params) {
         $tr = $this->api->internalCall('store', 'transactions', $params);
         $ft = $this->api->internalCall('store', 'footTraffic', $params);
-        return $this->calculate($tr, $ft);
+        $result = $this->calculate($tr, $ft);
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
     }
 
     function openHours($params) {

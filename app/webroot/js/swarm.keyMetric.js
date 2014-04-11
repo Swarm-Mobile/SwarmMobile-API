@@ -8,12 +8,13 @@ jQuery.fn.keyMetric = function(options) {
         comparison: false
     }, options);
 
-    comparison = Boolean(tools.coalesce($(this).attr('swarm-comparison'), options.comparison));
+    comparison = Boolean(tools.coalesce($(this).attr('swarm-comparison'), options.comparison));    
     icon = tools.coalesce($(this).attr('swarm-icon'), options.icon);
+    icon = (icon === 'false')?false:true;
     if(icon){icon = tools.endpointIcon($(this).attr('swarm-data'));}
     color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
     title = tools.coalesce($(this).attr('swarm-title'), options.title);
-    type = tools.coalesce($(this).attr('swarm-type'), options.type);
+    type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);    
     c = (type === 'currency') ? '$' : '';
     p = (type === 'rate') ? '%' : '';
 
@@ -29,17 +30,17 @@ jQuery.fn.keyMetric = function(options) {
         html += '<span class="varA" data-metric="0"><img src="/b2b/images/ajax-loader.gif"></span>';
     } else {
         var varA = options.cData.data['totals']['total'];
-        tmp = (type === 'time')?tools.makeHMS(varA):varA;
+        tmp = (type === 'time')?tools.makeHMS(varA):tools.addCommas(varA);
         html += '<span class="varA" data-metric="' + tmp + '">' + c + tmp + p + '</span>';
     }
     html += '</div>';
 
     if (comparison) {
         var varB = (Object.keys(options.cData).length === 0) ? 0 : options.pData.data['totals']['total'];
-        var percentage = (varB === 0) ? 0 : Math.round(varA / varB);
+        var percentage = (varB === 0) ? 0 : Math.abs(Math.round(100-((varA / varB)*100)));
         var sign = ((varA > varB) ? '+' : '-');
         var color_class = ((varB > varA) ? 'text-danger' : 'text-success');
-        varB = (type === 'time')?tools.makeHMS(varB):varB;
+        varB = (type === 'time')?tools.makeHMS(varB):tools.addCommas(varB);
         html += '<div class="progress">';
         html += '<div class="progress-bar color_bg' + color + '" ';
         html += 'role="progressbar" style="width: ' + percentage + '%;"></div>';

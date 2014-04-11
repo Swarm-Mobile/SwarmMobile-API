@@ -8,7 +8,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
         icon: false,
         comparison: false
     }, options);
-    options.type = tools.coalesce($(this).attr('data-type'), options.type);
+    options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
     function render(source) {
         var html = '';
         var c = (options.type === 'currency') ? '$' : '';
@@ -50,7 +50,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
     key_html += 'swarm-data="' + container.attr('swarm-data') + '"';
     key_html += ' swarm-display="key"';
     key_html += ' swarm-title="' + title + '"';
-    key_html += 'swarm-type="' + container.attr('swarm-type') + '"';
+    key_html += 'swarm-type="' + options.type + '"';
     key_html += 'swarm-comparison="true">';
     key_html += '</div>';
     var keyMetric = $(key_html);
@@ -65,7 +65,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
     monoGraph_html += 'swarm-data="' + container.attr('swarm-data') + '"';
     monoGraph_html += 'swarm-display="monoGraph"';
     monoGraph_html += 'swarm-title=""';
-    monoGraph_html += 'swarm-type="' + container.attr('swarm-type') + '"';
+    monoGraph_html += 'swarm-type="' + options-type + '"';
     monoGraph_html += '></div>';
     var monoGraphMetric = $(monoGraph_html);
     $(this).append(monoGraphMetric);

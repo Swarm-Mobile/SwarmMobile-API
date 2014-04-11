@@ -3,11 +3,13 @@ jQuery.fn.multiGraphMetric = function(options) {
         cData: {},
         info: 'open',
         title: 'Graph Metric',
-        axis_title: 'Axis Title'
+        axis_title: 'Axis Title',
+        type:'num'
     }, options);
 
     function init(container) {
         options.title = tools.coalesce(container.attr('swarm-title'), options.title);
+        options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
         options.axis_title = tools.coalesce(container.attr('swarm-axis-title'), options.axis_title);
         dashboard.charts[container.attr('id')] = new Highcharts.Chart({
             chart: {
@@ -149,8 +151,8 @@ jQuery.fn.multiGraphMetric = function(options) {
             zIndex: 0,
             data: data,
             tooltip: {
-                valueSuffix: (container.attr('swarm-type') === 'currency') ? '$' : '',
-                valuePrefix: (container.attr('swarm-type') === 'rate') ? '%' : ''
+                valueSuffix: (options.type === 'currency') ? '$' : '',
+                valuePrefix: (options.type === 'rate') ? '%' : ''
             }
         });
     }
@@ -164,12 +166,12 @@ jQuery.fn.multiGraphMetric = function(options) {
         data_sources = container.attr('swarm-data').split(',');
         for (var i = 0; i < data_sources.length; i++) {
             if ('/store/' + data_sources[i] === options.cData.options.endpoint) {
-                var type = tools.endpointLineType(data_sources[i]);
+                var type = tools.endpointLineType(data_sources[i]);                
                 sources.push({
                     name: data_sources[i],
                     type: type,
                     color: (type === 'areaspline') ? tools.endpointColor(data_sources[i]) : tools.hex('grey')
-                });
+                });                
             }
         }
         sources.forEach(function(source) {

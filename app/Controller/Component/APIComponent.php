@@ -199,23 +199,41 @@ SQL;
             }
             date_add($start_date, date_interval_create_from_date_string('1 days'));
         }
+        if(!isset($tmp['data']['totals'])){
+            $tmp['data']['totals'] = array(
+                'open' => 0,
+                'total' => 0,
+                'close' => 0
+            );
+        }
         return $tmp;
     }
+    
+    public function countOpenHours($data){
+        $i = 0;
+        $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
+        $open_hour = (int) strstr($data['data'][$weekday . '_open'], ':', true);
+        $close_hour = (int) strstr($data['data'][$weekday . '_close'], ':', true);
+        return ($close_hour - $open_hour)+1;        
+    }
 
-    public function averagify($result) {       
-        $num_days = count($result['data']['breakdown']);
+    public function averagify($result, $data) {       
+        $num_days = count($result['data']['breakdown']);        
+        $total_hours = 0;
         if ($num_days == 1) {
             foreach ($result['data']['breakdown'] as $date => $values) {
+                $num_hours = $this->countOpenHours($data, $date);
+                $total_hours += $num_hours;                
                 foreach ($values['totals'] as $k => $v) {
-                    $result['data']['breakdown'][$date]['totals'][$k] = $v / 24;
+                    $result['data']['breakdown'][$date]['totals'][$k] = round($v / $num_hours,2);
                 }
             }
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = $v / ($num_days * 24);
+                $result['data']['totals'][$k] = round($v / $total_hours,2);
             }
         } else {
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = $v / $num_days;
+                $result['data']['totals'][$k] = round($v / $num_days,2);
             }
         }
         return $result;

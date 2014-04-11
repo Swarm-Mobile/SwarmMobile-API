@@ -16,8 +16,8 @@ var dashboard = {
 
         dashboard.start_date = '2014-03-05';
         dashboard.end_date = '2014-03-05';
-        dashboard.p_start_date = '2014-02-27';
-        dashboard.p_end_date = '2014-02-27';
+        dashboard.p_start_date = '2014-02-26';
+        dashboard.p_end_date = '2014-02-26';
 
         $('div[swarm-data]').each(function() {
             var container = $(this);

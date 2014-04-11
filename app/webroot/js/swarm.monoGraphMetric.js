@@ -10,6 +10,8 @@ jQuery.fn.monoGraphMetric = function(options) {
     }, options);    
     function init(container) {
         options.title = tools.coalesce(container.attr('swarm-title'), options.title);
+        options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
+        
         dashboard.charts[container.attr('id')] = new Highcharts.Chart({
             chart: {
                 renderTo: container.attr('id'),
@@ -128,8 +130,8 @@ jQuery.fn.monoGraphMetric = function(options) {
             zIndex: 0,
             data: data,
             tooltip: {
-                valueSuffix: (container.attr('swarm-type') === 'currency') ? '$' : '',
-                valuePrefix: (container.attr('swarm-type') === 'rate') ? '%' : ''
+                valueSuffix: (options.type === 'currency') ? '$' : '',
+                valuePrefix: (options.type === 'rate') ? '%' : ''
             }
         });
     }
