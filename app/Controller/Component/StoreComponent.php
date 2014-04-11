@@ -251,6 +251,12 @@ SQL;
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $timezone = $data['data']['timezone'];
+            
+            $register_filter = $data['data']['register_filter'];
+            $register_filter = (!empty($register_filter)) ? " AND invoices.register_id = $register_filter " : '';
+            $outlet_filter = $data['data']['outlet_filter'];
+            $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
+            
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
@@ -266,9 +272,9 @@ FROM $table
 WHERE store_id= $lightspeed_id
     AND completed 
     AND invoices.total != 0 
-    AND {$this->registerFilter($data)}
-	{$this->outletFilter($data)}
-        invoices.ts BETWEEN '$start_date' AND '$end_date'
+    $register_filter
+    $outlet_filter
+    AND invoices.ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC                
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
@@ -290,9 +296,9 @@ SQL;
             $timezone = $data['data']['timezone'];
 
             $register_filter = $data['data']['register_filter'];
-            $register_filter = (!empty($register_filter)) ? " AND register_id = $register_filter " : '';
+            $register_filter = (!empty($register_filter)) ? " AND invoices.register_id = $register_filter " : '';
             $outlet_filter = $data['data']['outlet_filter'];
-            $outlet_filter = (!empty($outlet_filter)) ? " AND outlet_id = $outlet_filter " : '';
+            $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
 
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -333,9 +339,9 @@ SQL;
             $timezone = $data['data']['timezone'];
 
             $register_filter = $data['data']['register_filter'];
-            $register_filter = (!empty($register_filter)) ? " AND register_id = $register_filter " : '';
+            $register_filter = (!empty($register_filter)) ? " AND invoices.register_id = $register_filter " : '';
             $outlet_filter = $data['data']['outlet_filter'];
-            $outlet_filter = (!empty($outlet_filter)) ? " AND outlet_id = $outlet_filter " : '';
+            $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
 
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -429,9 +435,9 @@ SQL;
             $timezone = $data['data']['timezone'];
 
             $register_filter = $data['data']['register_filter'];
-            $register_filter = (!empty($register_filter)) ? " AND register_id = $register_filter " : '';
+            $register_filter = (!empty($register_filter)) ? " AND invoices.register_id = $register_filter " : '';
             $outlet_filter = $data['data']['outlet_filter'];
-            $outlet_filter = (!empty($outlet_filter)) ? " AND outlet_id = $outlet_filter " : '';
+            $outlet_filter = (!empty($outlet_filter)) ? " AND invoices.outlet_id = $outlet_filter " : '';
 
             $lightspeed_id = $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
