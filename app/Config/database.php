@@ -126,9 +126,9 @@ class DATABASE_CONFIG {
         'oauth' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => false,
-            'host' => 'localhost',
-            'login' => 'root',
-            'password' => '',
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
             'database' => 'oauth',
             'prefix' => '',
         ),
