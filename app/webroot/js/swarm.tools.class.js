@@ -123,7 +123,8 @@ var tools = {
             h = (h > 0) ? (((h < 10) ? ('0' + h) : h) + ":") : "";
             s = (s < 10) ? ('0' + s) : s;
             return h + m + s;
-        }
+        } 
+        return 0;
     },
     addCommas: function(nStr) {
         nStr += '';
