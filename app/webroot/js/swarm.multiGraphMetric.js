@@ -4,7 +4,7 @@ jQuery.fn.multiGraphMetric = function(options) {
         info: 'open',
         title: 'Graph Metric',
         axis_title: 'Axis Title',
-        type:'num'
+        type: 'num'
     }, options);
 
     function init(container) {
@@ -78,44 +78,60 @@ jQuery.fn.multiGraphMetric = function(options) {
                             fontWeight: 'bold'
                         }
                     }
-                }]
-        });
-        dashboard.charts[container.attr('id')].addAxis({
-            min: 0,
-            allowDecimals: false,
-            title: {
-                text: options.axis_title,
-                style: {
-                    color: '#1b2224',
-                    fontWeight: 'bold'
-                }
-            }
-        });
-    }
-    function render(container, options, source) {
-        var data = [0];
-        var categories = ['Open'];
-        var series_name = '';
-        if (Object.keys(options.cData.data.breakdown).length === 1) {
-            series_name = options.cData.options.endpoint;
-            series_name = series_name.substring(series_name.indexOf('/', 1) + 1);
-            series_name = tools.ucwords(series_name);
-
-            if (source.type === 'spline') {
-                dashboard.charts[container.attr('id')].addAxis({
+                }],
+            yAxis: [{
                     min: 0,
                     allowDecimals: false,
-                    opposite: true,
+                    gridLineColor: '#e9eff0',
+                    lineColor: '#e9eff0',
+                    lineWidth: 1,
                     title: {
-                        text: series_name,
+                        text: options.axis_title,
                         style: {
                             color: '#1b2224',
                             fontWeight: 'bold'
                         }
                     }
-                });
-            }
-
+                },
+                {
+                    opposite: true,
+                    min: 0,
+                    allowDecimals: false,
+                    gridLineColor: '#e9eff0',
+                    lineColor: '#e9eff0',
+                    gridLineWidth: 0,
+                    lineWidth: 1,
+                    labels: {
+                        formatter: function() {
+                            return currency + this.value;
+                        },
+                        style: {
+                            color: '#1b2224'
+                        }
+                    },
+                    title: {
+                        text: '',
+                        style: {
+                            color: '#1b2224',
+                            fontWeight: 'bold'
+                        }
+                    }
+                }]
+        });
+    }
+    function render(container, options, source) {
+        var data = [];
+        var categories = [];
+        var series_name = '';
+        series_name = options.cData.options.endpoint;
+        series_name = series_name.substring(series_name.indexOf('/', 1) + 1);
+        series_name = tools.ucwords(series_name);
+        if (source.type === 'spline') {
+            dashboard.charts[container.attr('id')].yAxis[1].update({title: {text: series_name}});
+        }
+        if (Object.keys(options.cData.data.breakdown).length === 1) {
+            categories.push('Open');
+            data.push(0);
             for (var i = 0; i < 24; i++) {
                 var k = (i < 10) ? '0' + i : '' + i;
                 var v = options.cData.data.breakdown[options.cData.options.start_date].hours[k];
@@ -130,31 +146,55 @@ jQuery.fn.multiGraphMetric = function(options) {
                     categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
                 }
             }
+            categories.push('Close');
+            data.push(0);
         } else {
             $.each(options.cData.data.breakdown, function(k, v) {
                 data.push(v['totals'][options.info]);
                 categories.push(k);
             });
         }
-        categories.push('Close');        
-        data.push(0);
         dashboard.charts[container.attr('id')].xAxis[0].categories = categories;
-        dashboard.charts[container.attr('id')].yAxis[0].update({title: {text: null}});
-        dashboard.charts[container.attr('id')].addSeries({
-            name: series_name,
-            min: 0,
-            allowDecimals: false,
-            lineWidth: 2,
-            type: source.type,
-            color: source.color,
-            yAxis: 0,
-            zIndex: 0,
-            data: data,
-            tooltip: {
-                valueSuffix: (options.type === 'currency') ? '$' : '',
-                valuePrefix: (options.type === 'rate') ? '%' : ''
-            }
-        });
+        var yAxis = (source.type === 'spline') ? 1 : 0;
+        if (source.type === 'spline') {
+            dashboard.charts[container.attr('id')].addSeries({
+                name: series_name,
+                min: 0,
+                allowDecimals: false,
+                lineWidth: 2,
+                type: source.type,
+                color: source.color,
+                yAxis: yAxis,
+                visible: (yAxis === 0),
+                zIndex: 0,
+                data: data,
+                marker: {
+                    symbol: 'circle',
+                    fillColor: '#4e5c60'
+                },
+                tooltip: {
+                    valuePrefix: currency,
+                    valueSuffix: ''
+                }
+            });
+        } else {
+            dashboard.charts[container.attr('id')].addSeries({
+                name: series_name,
+                min: 0,
+                allowDecimals: false,
+                lineWidth: 2,
+                type: source.type,
+                color: source.color,
+                yAxis: yAxis,
+                visible: (yAxis === 0),
+                zIndex: 0,
+                data: data,
+                tooltip: {
+                    valueSuffix: (options.type === 'currency') ? currency : '',
+                    valuePrefix: (options.type === 'rate') ? '%' : ''
+                }
+            });
+        }
     }
 
     var container = $(this);
@@ -166,12 +206,12 @@ jQuery.fn.multiGraphMetric = function(options) {
         data_sources = container.attr('swarm-data').split(',');
         for (var i = 0; i < data_sources.length; i++) {
             if ('/store/' + data_sources[i] === options.cData.options.endpoint) {
-                var type = tools.endpointLineType(data_sources[i]);                
+                var type = tools.endpointLineType(data_sources[i]);
                 sources.push({
                     name: data_sources[i],
                     type: type,
                     color: (type === 'areaspline') ? tools.endpointColor(data_sources[i]) : tools.hex('grey')
-                });                
+                });
             }
         }
         sources.forEach(function(source) {

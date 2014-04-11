@@ -15,7 +15,7 @@ jQuery.fn.keyMetric = function(options) {
     color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
     title = tools.coalesce($(this).attr('swarm-title'), options.title);
     type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);    
-    c = (type === 'currency') ? '$' : '';
+    c = (type === 'currency') ? currency : '';
     p = (type === 'rate') ? '%' : '';
 
     var html = '<h5 class="primaryRegular caps text-center">' + title + '</h5>';

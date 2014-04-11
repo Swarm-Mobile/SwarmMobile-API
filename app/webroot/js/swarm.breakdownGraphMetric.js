@@ -11,30 +11,32 @@ jQuery.fn.breakdownGraphMetric = function(options) {
     options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
     function render(source) {
         var html = '';
-        var c = (options.type === 'currency') ? '$' : '';
+        var c = (options.type === 'currency') ? currency : '';
         var p = (options.type === 'rate') ? '%' : '';
         if (Object.keys(source.data.breakdown).length === 1) {
             for (var i = 0; i < 24; i++) {
                 var k = (i < 10) ? '0' + i : '' + i;
                 var v = source.data.breakdown[source.options.start_date].hours[k];
+                var total = (options.type === 'time')?tools.makeHMS(v.total):tools.addCommas(v.total);
                 if (options.info === 'open' && v.open) {
                     var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM');
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
-                    html += '<span class="metricData pull-right">' + c + v.total + p + '</span></p>';
+                    html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 } else if (options.info === 'close' && !v.open) {
                     var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM');
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
-                    html += '<span class="metricData pull-right">' + c + v.total + p + '</span></p>';
+                    html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 } else if (options.info === 'total') {
                     var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM');
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
-                    html += '<span class="metricData pull-right">' + c + v.total + p + '</span></p>';
+                    html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 }
             }
         } else {
             $.each(source.data.breakdown, function(k, v) {
+                var total = (options.type === 'time')?tools.makeHMS(v['totals'][options.info]):tools.addCommas(v['totals'][options.info]);
                 html += '<p><span class="primaryBold metricTitle">' + k + ':</span>';
-                html += '<span class="metricData pull-right">' + c + v['totals'][options.info] + p + '</span></p>';
+                html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
             });
         }
         return html;
@@ -65,12 +67,12 @@ jQuery.fn.breakdownGraphMetric = function(options) {
     monoGraph_html += 'swarm-data="' + container.attr('swarm-data') + '"';
     monoGraph_html += 'swarm-display="monoGraph"';
     monoGraph_html += 'swarm-title=""';
-    monoGraph_html += 'swarm-type="' + options-type + '"';
+    monoGraph_html += 'swarm-type="' + options - type + '"';
     monoGraph_html += '></div>';
     var monoGraphMetric = $(monoGraph_html);
-    $(this).append(monoGraphMetric);
-    monoGraphMetric.monoGraphMetric();
-    monoGraphMetric.monoGraphMetric({cData: options.cData, pData: options.pData});
+    $(this).append(monoGraphMetric);    
+    monoGraphMetric.monoGraphMetric();    
+    monoGraphMetric.monoGraphMetric({cData: options.cData, pData: options.pData});    
 
     //DRILLDOWN METRIC
     if (Object.keys(options.cData).length !== 0) {
@@ -79,7 +81,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
         drilldown_html += '<div class="col-md-6 col-xs-6 global drilldownTarget color_border' + color + '">';
         drilldown_html += render(options.cData);
         drilldown_html += '</div>';
-        drilldown_html += '<div class="col-md-6 col-xs-6 comparison drilldownTarget">'
+        drilldown_html += '<div class="col-md-6 col-xs-6 comparison drilldownTarget">';
         drilldown_html += render(options.pData);
         drilldown_html += '</div>';
         drilldown_html += '</div>';

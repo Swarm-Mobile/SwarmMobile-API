@@ -10,6 +10,7 @@
     $(document).ready(function() {
         member_id = 689;
         access_token = '<?= $access_token ?>';
+        currency = '$';
         dashboard.init(member_id, access_token);
     });
 </script>

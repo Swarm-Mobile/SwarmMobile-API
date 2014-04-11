@@ -6,23 +6,15 @@ var dashboard = {
     member_id: 0,
     access_token: '',
     charts: {},
-    init: function(member_id, access_token, start_date, end_date, p_start_date, p_end_date) {
-        dashboard.member_id = member_id;
-        dashboard.access_token = access_token;
+    render: function(start_date, end_date, p_start_date, p_end_date) {
         dashboard.start_date = tools.coalesce(start_date, dashboard.start_date);
-        dashboard.end_date = tools.coalesce(start_date, dashboard.end_date);
-        dashboard.p_start_date = tools.coalesce(start_date, dashboard.p_start_date);
-        dashboard.p_end_date = tools.coalesce(start_date, dashboard.p_end_date);
-
-        dashboard.start_date = '2014-03-05';
-        dashboard.end_date = '2014-03-05';
-        dashboard.p_start_date = '2014-02-26';
-        dashboard.p_end_date = '2014-02-26';
-
+        dashboard.end_date = tools.coalesce(end_date, dashboard.end_date);
+        dashboard.p_start_date = tools.coalesce(p_start_date, dashboard.p_start_date);
+        dashboard.p_end_date = tools.coalesce(p_end_date, dashboard.p_end_date);
         $('div[swarm-data]').each(function() {
             var container = $(this);
             var display = container.attr('swarm-display');
-            var resources = container.attr('swarm-data').split(',');            
+            var resources = container.attr('swarm-data').split(',');
             container[display + "Metric"]();
             resources.forEach(function(resource) {
                 $.ajax({
@@ -49,13 +41,21 @@ var dashboard = {
                                     container[display + "Metric"]({cData: cData, pData: pData});
                                 }
                             });
-                        } else {                            
+                        } else {
                             container[display + "Metric"]({cData: cData});
                         }
                     }
                 });
             });
-
         });
+    },
+    init: function(member_id, access_token, start_date, end_date, p_start_date, p_end_date) {
+        dashboard.member_id = member_id;
+        dashboard.access_token = access_token;
+        dashboard.start_date = tools.coalesce(start_date, dashboard.start_date);
+        dashboard.end_date = tools.coalesce(end_date, dashboard.end_date);
+        dashboard.p_start_date = tools.coalesce(p_start_date, dashboard.p_start_date);
+        dashboard.p_end_date = tools.coalesce(p_end_date, dashboard.p_end_date);
+        dashboard.render();
     }
 };

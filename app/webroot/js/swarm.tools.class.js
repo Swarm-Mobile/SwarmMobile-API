@@ -1,3 +1,7 @@
+if(typeof(currency) === 'undefined'){
+    var currency = '$';    
+}
+
 var tools = {
     defaults: function(type) {
         if (type === 'start_date' || type === 'end_date') {

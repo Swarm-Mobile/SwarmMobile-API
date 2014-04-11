@@ -11,7 +11,6 @@ jQuery.fn.monoGraphMetric = function(options) {
     function init(container) {
         options.title = tools.coalesce(container.attr('swarm-title'), options.title);
         options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
-        
         dashboard.charts[container.attr('id')] = new Highcharts.Chart({
             chart: {
                 renderTo: container.attr('id'),
@@ -87,10 +86,13 @@ jQuery.fn.monoGraphMetric = function(options) {
         });
     }
     function render(container, options, source) {
-        var data = [0];
-        var categories = ['Open'];
-        var series_name = '';        
+        if(Object.keys(options[source.name]).length === 0){return;}
+        var data = [];
+        var categories = [];
+        var series_name = '';                
         if (Object.keys(options[source.name].data.breakdown).length === 1) {
+            categories.push('Open');
+            data.push(0);
             for (var i = 0; i < 24; i++) {        
                 var k = (i < 10) ? '0' + i : '' + i;
                 var v = options[source.name].data.breakdown[options[source.name].options.start_date].hours[k];                
@@ -105,6 +107,8 @@ jQuery.fn.monoGraphMetric = function(options) {
                     categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
                 }
             }
+            categories.push('Close');
+            data.push(0);        
             series_name = tools.parseDate(options[source.name].options.start_date);
         } else {
             $.each(options[source.name].data.breakdown, function(k, v) {
@@ -114,8 +118,6 @@ jQuery.fn.monoGraphMetric = function(options) {
             series_name = tools.parseDate(options[source.name].options.start_date);
             series_name += ' - ', tools.parseDate(options[source.name].options.end_date);
         }
-        categories.push('Close');
-        data.push(0);        
         dashboard.charts[container.attr('id')].xAxis[0].categories = categories;
         dashboard.charts[container.attr('id')].xAxis[0].options.tickInterval = ((categories.length > 10) ? Math.floor(categories.length / 4) : 1);
         dashboard.charts[container.attr('id')].yAxis[0].update({title: {text: null}});
@@ -130,7 +132,7 @@ jQuery.fn.monoGraphMetric = function(options) {
             zIndex: 0,
             data: data,
             tooltip: {
-                valueSuffix: (options.type === 'currency') ? '$' : '',
+                valueSuffix: (options.type === 'currency') ? currency : '',
                 valuePrefix: (options.type === 'rate') ? '%' : ''
             }
         });
@@ -152,7 +154,7 @@ jQuery.fn.monoGraphMetric = function(options) {
                 type: 'spline',
                 color: '#4e5c60'
             }
-        ];        
+        ];           
         sources.forEach(function(source) {
             render(container, options, source);
         });

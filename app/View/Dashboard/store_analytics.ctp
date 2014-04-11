@@ -11,6 +11,7 @@
         member_id = 689;
         access_token = '<?= $access_token ?>';
         dashboard.init(member_id, access_token);
+        currency = '$';
     });
 </script>
 <div class="row">

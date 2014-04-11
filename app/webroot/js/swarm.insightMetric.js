@@ -12,7 +12,7 @@ jQuery.fn.insightMetric = function(options) {
     color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
     title = tools.coalesce($(this).attr('swarm-title'), options.title);
     type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
-    c = (type === 'currency') ? '$' : '';
+    c = (type === 'currency') ? currency : '';
     p = (type === 'rate') ? '%' : '';   
     var varA = (Object.keys(options.cData).length === 0) ? 0 : options.cData.data['totals']['total'];
     var html = '<div class="insight color_border' + color + '" data-title="' + title + '">';
