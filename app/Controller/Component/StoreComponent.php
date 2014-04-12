@@ -99,6 +99,8 @@ class StoreComponent extends APIComponent {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
+            $factor = $data['data']['traffic_factor'];
+            $factor = 1+((empty($factor)?0:$factor/100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'sessions';
             $oModel = new Model(false, $table, 'swarmdata');
@@ -106,14 +108,14 @@ class StoreComponent extends APIComponent {
 
             $sSQL = <<<SQL
 SELECT 
-    COUNT(walkbys) as value, 
+    ROUND(COUNT(walkbys)*$factor) as value, 
     hour, 
     date
 FROM(
     SELECT 
         DISTINCT sessions.mac_id as walkbys,        
         DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%Y-%m-%d') AS date,
-        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%H') AS hour
+        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%k') AS hour
     FROM sessions
     INNER JOIN mac_address 
         ON sessions.mac_id = mac_address.id
@@ -124,12 +126,13 @@ FROM(
     GROUP BY sessions.mac_id
 ) as t2 GROUP BY date ASC, hour ASC             
 SQL;
-
             $bind = array();
             $bind['timezone'] = $timezone;
             $bind['ap_id'] = $ap_id;
             $bind['start_date'] = $start_date;
-            $bind['end_date'] = $end_date;
+            $bind['end_date'] = $end_date;            
+            var_dump($sSQL, $bind);
+            
             $aRes = $oDb->fetchAll($sSQL, $bind);
             return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
@@ -163,7 +166,7 @@ FROM (
         DISTINCT sessions.mac_id as unique_mac,
         (convert_tz(time_login,'GMT',:timezone)) as max_login,
         DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%Y-%m-%d') AS date,
-        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%H') AS hour
+        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%k') AS hour
     FROM sessions
     INNER JOIN mac_address 
       ON sessions.mac_id = mac_address.id
