@@ -5,8 +5,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
         info: 'open',
         title: 'Breakdown Metric',
         type: 'num',
-        icon: false,
-        comparison: false
+        icon: false,        
     }, options);
     options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
     function render(source) {
@@ -74,7 +73,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
     monoGraphMetric.monoGraphMetric();    
     monoGraphMetric.monoGraphMetric({cData: options.cData, pData: options.pData});    
 
-    //DRILLDOWN METRIC
+    //DRILLDOWN METRIC    
     if (Object.keys(options.cData).length !== 0) {
         color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
         var drilldown_html = '<div class="drilldown col-md-9 col-md-offset-3">';
