@@ -138,7 +138,7 @@ class DATABASE_CONFIG {
             'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login' => 'swarmdev',
             'password' => 'dev2DaMax',
-            'database' => 'ee_ivan',
+            'database' => 'ee_int',
             'prefix' => '',
         ),
         'pos' => array(

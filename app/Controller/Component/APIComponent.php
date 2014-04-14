@@ -199,7 +199,7 @@ SQL;
             }
             date_add($start_date, date_interval_create_from_date_string('1 days'));
         }
-        if(!isset($tmp['data']['totals'])){
+        if (!isset($tmp['data']['totals'])) {
             $tmp['data']['totals'] = array(
                 'open' => 0,
                 'total' => 0,
@@ -208,48 +208,127 @@ SQL;
         }
         return $tmp;
     }
-    
-    public function countOpenHours($data){
+
+    public function countOpenHours($data) {
         $i = 0;
         $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
         $open_hour = (int) strstr($data['data'][$weekday . '_open'], ':', true);
         $close_hour = (int) strstr($data['data'][$weekday . '_close'], ':', true);
-        return ($close_hour - $open_hour)+1;        
+        return ($close_hour - $open_hour) + 1;
     }
-    
-    public function countRevenueHours($result,$date){
-        $i = 0;           
-        foreach($result['data']['breakdown'][$date]['hours'] as $hour=>$v){
-            $i += ($v['total']>0 && $v['open'])?1:0;
+
+    public function countRevenueHours($result, $date) {
+        $i = 0;
+        foreach ($result['data']['breakdown'][$date]['hours'] as $hour => $v) {
+            $i += ($v['total'] > 0 && $v['open']) ? 1 : 0;
         }
         return $i;
     }
 
-    public function averagify($result, $data) {       
-        $num_days = count($result['data']['breakdown']);        
+    public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
+        $cResult = array();
+        foreach ($aRes as $oRow) {
+            $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
+            $date = $oRow[$t2]['date'];
+            $hour = $oRow[$t2]['hour'];
+            $cValue = $oRow[$t1][$dbAlias];
+            if ($hour < 10) {
+                $hour = '0' . $hour;
+            }
+            if (
+                    (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
+                    (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
+            ) {
+                $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
+                @$cResult['data']['breakdown'][$date]['totals']['open'] += $cValue;
+                @$cResult['data']['totals']['open'] += $cValue;
+            } else {
+                $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
+                @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
+                @$cResult['data']['totals']['close'] += $cValue;
+            }
+            @$cResult['data']['breakdown'][$date]['totals']['total'] += $cValue;
+            @$cResult['data']['breakdown'][$date]['hours'][$hour]['total'] += $cValue;
+            @$cResult['data']['totals']['total'] += $cValue;
+        }
+        $cResult['options'] = array(
+            'endpoint' => $endpoint,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $this->fillBlanks($cResult, $data, $start_date, $end_date);
+    }
+
+    public function averagify($result, $data) {
+        $num_days = count($result['data']['breakdown']);
         $total_hours = 0;
         if ($num_days == 1) {
-            foreach ($result['data']['breakdown'] as $date => $values) {                
-                //$num_hours = $this->countOpenHours($data);                
-                $num_hours = $this->countRevenueHours($result, $date);                
-                $total_hours += $num_hours;                
+            foreach ($result['data']['breakdown'] as $date => $values) {
+                $num_hours = $this->countRevenueHours($result, $date);
+                $total_hours += $num_hours;
                 foreach ($values['totals'] as $k => $v) {
-                    $result['data']['breakdown'][$date]['totals'][$k] = round($v / $num_hours,2);
-                }                
-                foreach($values['hours'] as $h => $v){                    
-                    foreach($v as $i => $j){                        
-                        $result['data']['breakdown'][$date]['hours'][$h][$i] = is_numeric($j)?round($j,2):$j;
-                    }
+                    $result['data']['breakdown'][$date]['totals'][$k] = ($num_hours == 0) ? 0 : round($v / $num_hours, 2);
                 }
             }
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = round($v / $total_hours,2);
-            }            
+                $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $total_hours, 2);
+            }
         } else {
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = round($v / $num_days,2);
+                $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $num_days, 2);
             }
-        }        
+        }
+        return $result;
+    }
+
+    public function percentify($aRes1, $aRes2) {
+        $result = array();
+        foreach ($aRes1['data']['breakdown'] as $date => $values) {
+            foreach ($values['hours'] as $hour => $v) {
+                foreach ($v as $i => $j) {
+                    $a = $aRes1['data']['breakdown'][$date]['hours'][$hour][$i];
+                    $b = $aRes2['data']['breakdown'][$date]['hours'][$hour][$i];
+                    $result['data']['breakdown'][$date]['hours'][$hour][$i] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+                }
+            }
+            foreach ($values['totals'] as $k => $v) {
+                $a = $aRes1['data']['breakdown'][$date]['totals'][$k];
+                $b = $aRes2['data']['breakdown'][$date]['totals'][$k];
+                $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+            }
+        }
+        foreach ($aRes1['data']['totals'] as $k => $v) {
+            $a = $aRes1['data']['totals'][$k];
+            $b = $aRes2['data']['totals'][$k];
+            $result['data']['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+        }
+        return $result;
+    }
+
+    public function calculate($aRes1, $aRes2, $hours = false) {
+        $result = $aRes1;
+        foreach ($aRes1['data']['breakdown'] as $date => $values) {
+            if ($hours) {
+                foreach ($values['hours'] as $hour => $v) {
+                    foreach ($v as $i => $j) {
+                        $a = $aRes1['data']['breakdown'][$date]['hours'][$hour][$i];
+                        $b = $aRes2['data']['breakdown'][$date]['hours'][$hour][$i];
+                        $result['data']['breakdown'][$date]['hours'][$hour][$i] = ($b == 0) ? 0.00 : round($a / $b, 2);
+                    }
+                }
+            }
+            foreach ($values['totals'] as $k => $v) {
+                $a = $aRes1['data']['breakdown'][$date]['totals'][$k];
+                $b = $aRes2['data']['breakdown'][$date]['totals'][$k];
+                $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0 : round($a / $b, 2);
+            }
+        }
+        foreach ($aRes1['data']['totals'] as $k => $v) {
+            $a = $aRes1['data']['totals'][$k];
+            $b = $aRes2['data']['totals'][$k];
+            $result['data']['totals'][$k] = ($b == 0) ? 0 : round($a / $b, 2);
+        }
         return $result;
     }
 

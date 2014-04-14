@@ -2,15 +2,16 @@ jQuery.fn.monoGraphMetric = function(options) {
     var options = jQuery.extend({
         cData: {},
         pData: {},
+        info:'open',
         title: 'Key Metric',
         type: 'num',
         icon: false,
-        comparison: false,
-        info:'open'
+        comparison: false
     }, options);    
     function init(container) {
         options.title = tools.coalesce(container.attr('swarm-title'), options.title);
         options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
+        options.info = tools.coalesce($(this).attr('swarm-info'), options.info);
         dashboard.charts[container.attr('id')] = new Highcharts.Chart({
             chart: {
                 renderTo: container.attr('id'),
@@ -61,8 +62,8 @@ jQuery.fn.monoGraphMetric = function(options) {
                         symbol: 'circle',
                         lineWidth: 2,
                         radius: 4,
-                        lineColor: null
-                    }
+                        lineColor: null 
+                   }
                 }
             },
             title: {text: null},
@@ -98,13 +99,13 @@ jQuery.fn.monoGraphMetric = function(options) {
                 var v = options[source.name].data.breakdown[options[source.name].options.start_date].hours[k];                
                 if (options.info === 'open' && v.open) {                    
                     data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
+                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM'));
                 } else if (options.info === 'close' && !v.open) {
                     data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
+                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM'));
                 } else if (options.info === 'total') {
                     data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
+                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM'));
                 }
             }
             categories.push('Close');

@@ -2,6 +2,7 @@ jQuery.fn.keyMetric = function(options) {
     var options = jQuery.extend({
         cData: {},
         pData: {},
+        info: 'open',
         title: 'Key Metric',
         type: 'num',
         icon: true,
@@ -15,6 +16,7 @@ jQuery.fn.keyMetric = function(options) {
     color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
     title = tools.coalesce($(this).attr('swarm-title'), options.title);
     type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);    
+    info = tools.coalesce($(this).attr('swarm-info'), options.info);
     c = (type === 'currency') ? currency : '';
     p = (type === 'rate') ? '%' : '';
 
@@ -24,19 +26,18 @@ jQuery.fn.keyMetric = function(options) {
         html += '<i class="circleIcon hidden-xs color_bg' + color;
         html += ' ' + icon + '"></i>';
     }
-
     if (Object.keys(options.cData).length === 0) {
-        var varA = (Object.keys(options.cData).length === 0) ? 0 : options.cData.data['totals']['total'];
+        var varA = (Object.keys(options.cData).length === 0) ? 0 : options.cData.data['totals'][info];
         html += '<span class="varA" data-metric="0"><img src="/b2b/images/ajax-loader.gif"></span>';
     } else {
-        var varA = options.cData.data['totals']['total'];
+        var varA = options.cData.data['totals'][info];
         tmp = (type === 'time')?tools.makeHMS(varA):tools.addCommas(varA);
         html += '<span class="varA" data-metric="' + tmp + '">' + c + tmp + p + '</span>';
     }
     html += '</div>';
 
     if (comparison) {
-        var varB = (Object.keys(options.cData).length === 0) ? 0 : options.pData.data['totals']['total'];
+        var varB = (Object.keys(options.cData).length === 0) ? 0 : options.pData.data['totals'][info];
         var percentage = (varB === 0) ? 0 : Math.abs(Math.round(100-((varA / varB)*100)));
         var sign = ((varA > varB) ? '+' : '-');
         var color_class = ((varB > varA) ? 'text-danger' : 'text-success');

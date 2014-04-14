@@ -5,9 +5,10 @@ jQuery.fn.breakdownGraphMetric = function(options) {
         info: 'open',
         title: 'Breakdown Metric',
         type: 'num',
-        icon: false,        
+        icon: false        
     }, options);
     options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
+    options.info = tools.coalesce($(this).attr('swarm-info'), options.info);
     function render(source) {
         var html = '';
         var c = (options.type === 'currency') ? currency : '';
@@ -16,17 +17,17 @@ jQuery.fn.breakdownGraphMetric = function(options) {
             for (var i = 0; i < 24; i++) {
                 var k = (i < 10) ? '0' + i : '' + i;
                 var v = source.data.breakdown[source.options.start_date].hours[k];
-                var total = (options.type === 'time')?tools.makeHMS(v.total):tools.addCommas(v.total);
+                var total = (options.type === 'time')?tools.makeHMS(v.total):tools.addCommas(v.total);                   
                 if (options.info === 'open' && v.open) {
-                    var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM');
+                    var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM');
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
                     html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 } else if (options.info === 'close' && !v.open) {
-                    var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM');
+                    var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM');
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
                     html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 } else if (options.info === 'total') {
-                    var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM');
+                    var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM');
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
                     html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 }

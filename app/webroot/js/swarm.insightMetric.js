@@ -2,6 +2,7 @@ jQuery.fn.insightMetric = function(options) {
     var options = jQuery.extend({
         cData: {},
         pData: {},
+        info: 'open',
         title: 'Insight Metric',
         type: 'num',
         comparison: false
@@ -12,14 +13,15 @@ jQuery.fn.insightMetric = function(options) {
     color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
     title = tools.coalesce($(this).attr('swarm-title'), options.title);
     type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
+    info = tools.coalesce($(this).attr('swarm-info'), options.info);
     c = (type === 'currency') ? currency : '';
     p = (type === 'rate') ? '%' : '';   
-    var varA = (Object.keys(options.cData).length === 0) ? 0 : options.cData.data['totals']['total'];
+    var varA = (Object.keys(options.cData).length === 0) ? 0 : options.cData.data['totals'][info];
     var html = '<div class="insight color_border' + color + '" data-title="' + title + '">';
     html += '<div class="primaryRegular caps small">' + title + '</div>';
     html += '<div class="small subtle pull-right text-right change">';
     if (comparison) {
-        var varB = (Object.keys(options.cData).length === 0) ? 0 : options.pData.data['totals']['total'];
+        var varB = (Object.keys(options.cData).length === 0) ? 0 : options.pData.data['totals'][info];
         var percentage = (varB === 0) ? 0 : Math.abs(Math.round(100-((varA / varB)*100)));
         var sign = ((varA > varB) ? '+' : '-');
         var color_class = ((varB > varA) ? 'text-danger' : 'text-success');

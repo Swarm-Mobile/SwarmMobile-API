@@ -11,6 +11,7 @@ jQuery.fn.multiGraphMetric = function(options) {
         options.title = tools.coalesce(container.attr('swarm-title'), options.title);
         options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
         options.axis_title = tools.coalesce(container.attr('swarm-axis-title'), options.axis_title);
+        options.info = tools.coalesce($(this).attr('swarm-info'), options.info);
         dashboard.charts[container.attr('id')] = new Highcharts.Chart({
             chart: {
                 renderTo: container.attr('id'),
