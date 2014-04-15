@@ -15,10 +15,11 @@ var dashboard = {
             var container = $(this);
             var display = container.attr('swarm-display');
             var resources = container.attr('swarm-data').split(',');
+            var component = tools.coalesce(container.attr('swarm-component'), 'store');            
             container[display + "Metric"]();
             resources.forEach(function(resource) {
                 $.ajax({
-                    url: '/api/store/' + resource,
+                    url: '/api/'+component+'/' + resource,
                     type: 'GET',
                     data: {
                         member_id: dashboard.member_id,
@@ -29,7 +30,7 @@ var dashboard = {
                     success: function(cData) {
                         if (container.attr('swarm-comparison') === 'true') {
                             $.ajax({
-                                url: '/api/store/' + resource,
+                                url: '/api/'+component+'/' + resource,
                                 type: 'GET',
                                 data: {
                                     member_id: dashboard.member_id,

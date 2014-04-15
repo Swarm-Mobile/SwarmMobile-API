@@ -74,6 +74,8 @@ var tools = {
             {name: 'footTraffic', color: '#27ae60', type: 'num', line_type: 'areaspline', icon: 'guestsIcon'},
             {name: 'returning', color: '#27ae60', type: 'num', line_type: 'areaspline', icon: 'guestsIcon'},
             {name: 'dwell', color: '#27ae60', type: 'time', line_type: 'areaspline', icon: 'guestsIcon'},
+            {name: 'wifiConnections', color: '#3498db', type: 'num', line_type: 'areaspline', icon: 'guestsIcon'},
+            {name: 'emailsCaptured', color: '#27ae60', type: 'num', line_type: 'areaspline', icon: 'guestsIcon'},
             {name: 'transactions', color: '#fd7037', type: 'num', line_type: 'areaspline', icon: 'tagIcon'},
             {name: 'revenue', color: '#f39c12', type: 'currency', line_type: 'spline', icon: 'revenueIcon'},
             {name: 'avgTicket', color: '#f39c12', type: 'currency', line_type: 'areaspline', icon: 'revenueIcon'},

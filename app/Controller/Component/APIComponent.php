@@ -122,6 +122,29 @@ SQL;
     public function outletFilter($data) {
         return (!empty($data['data']['outlet_filter'])) ? "outlet_id='{$data['data']['outlet_filter']}' AND" : '';
     }
+    
+    public function iterativeQuery($component, $method, $params){
+        $aResults = array();
+        if ($params['start_date'] != $params['end_date']) {
+            $end = new DateTime($params['end_date']);
+            $slave_params = $params;
+            do {
+                $slave_params['end_date'] = $slave_params['start_date'];
+                $result = $this->api->internalCall($component, $method, $slave_params);
+                $aResults[] = $result;                
+                $new_start_date = new DateTime($slave_params['start_date']);
+                date_add($new_start_date, date_interval_create_from_date_string('1 days'));
+                $slave_params['start_date'] = date_format($new_start_date, 'Y-m-d');
+            } while ($new_start_date <= $end);
+            $result = array();
+            foreach($aResults as $cResult){
+                foreach($cResult as $oRow){
+                    $result[] = $oRow;
+                }
+            }
+            return $result;
+        }
+    }
 
     public function iterativeCall($component, $method, $params) {
         $aResults = array();
@@ -130,16 +153,17 @@ SQL;
             $slave_params = $params;
             do {
                 $slave_params['end_date'] = $slave_params['start_date'];
-                $aResults[] = $this->api->internalCall($component, $method, $slave_params);
+                $result = $this->api->internalCall($component, $method, $slave_params);
+                $aResults[] = $result;                
                 $new_start_date = new DateTime($slave_params['start_date']);
                 date_add($new_start_date, date_interval_create_from_date_string('1 days'));
                 $slave_params['start_date'] = date_format($new_start_date, 'Y-m-d');
-            } while ($new_start_date <= $end);
+            } while ($new_start_date <= $end);            
             return $this->mergeResults($aResults);
         }
     }
 
-    public function mergeResults($aResults = array()) {
+    public function mergeResults($aResults = array()) {        
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
@@ -147,11 +171,11 @@ SQL;
                 'options' => array()
             )
         );
-        foreach ($aResults as $cResult) {
+        foreach ($aResults as $cResult) {            
             if (!empty($cResult)) {
                 $result['data']['totals']['open'] += $cResult['data']['totals']['open'];
                 $result['data']['totals']['close'] += $cResult['data']['totals']['close'];
-                $result['data']['totals']['total'] += $cResult['data']['totals']['total'];
+                $result['data']['totals']['total'] += $cResult['data']['totals']['total'];                
                 if (!empty($cResult['data']['breakdown'])) {
                     foreach ($cResult['data']['breakdown'] as $date => $v) {
                         foreach ($v['hours'] as $hour => $values) {
@@ -205,7 +229,8 @@ SQL;
                 'total' => 0,
                 'close' => 0
             );
-        }        
+        }
+        unset($tmp['data']['breakdown']['']);
         return $tmp;
     }
 
@@ -226,7 +251,7 @@ SQL;
     }
 
     public function hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
-        $cResult = array();
+        $cResult = array('data'=>array('totals'=>array('open'=>0,'close'=>0,'total'=>0)));
         $date = strtolower(date('Y-m-d', strtotime($start_date)));
         foreach ($aByHour as $oRow) {
             $weekday = strtolower(date('l', strtotime($start_date)));
@@ -258,11 +283,12 @@ SQL;
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
         );
+        unset($cResult['breakdown']['data']['']);
         return $this->fillBlanks($cResult, $data, $start_date, $end_date);
     }
 
     public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {        
-        $cResult = array();
+        $cResult = array('data'=>array('totals'=>array('open'=>0,'close'=>0,'total'=>0)));
         foreach ($aRes as $oRow) {
             $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
             $date = $oRow[$t2]['date'];
@@ -293,6 +319,7 @@ SQL;
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
         );
+        unset($cResult['breakdown']['data']['']);
         return $this->fillBlanks($cResult, $data, $start_date, $end_date);
     }
 
@@ -315,6 +342,7 @@ SQL;
                 $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $num_days, 2);
             }
         }
+        unset($result['breakdown']['data']['']);
         return $result;
     }
 
@@ -348,6 +376,7 @@ SQL;
                 $result['data']['totals'][$k] = 100;
             }
         }
+        unset($result['breakdown']['data']['']);
         return $result;
     }
 
@@ -374,6 +403,7 @@ SQL;
             $b = $aRes2['data']['totals'][$k];
             $result['data']['totals'][$k] = ($b == 0) ? 0 : round($a / $b, 2);
         }
+        unset($result['breakdown']['data']['']);
         return $result;
     }
 

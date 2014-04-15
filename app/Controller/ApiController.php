@@ -106,7 +106,7 @@ class APIController extends AppController {
                     $this->cache($component, $method, $params, $result);
                 }
                 return $result;
-            }
+            }            
             throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
         }
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");

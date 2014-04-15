@@ -24,6 +24,7 @@ class StoreComponent extends APIComponent {
         );
         return $result;
     }
+
     public function totals($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -78,29 +79,23 @@ SELECT
 FROM(
     SELECT 
         DISTINCT sessions.mac_id as walkbys,        
-        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%Y-%m-%d') AS date,
-        DATE_FORMAT(convert_tz(time_login,'GMT', :timezone), '%k') AS hour
+        DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+        DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
     FROM sessions
     INNER JOIN mac_address 
         ON sessions.mac_id = mac_address.id
     WHERE ( status !='noise' AND NOISE is false) 
-      AND (network_id=:ap_id) 
+      AND (network_id= $ap_id) 
       AND (sessionid='passerby') 
-      AND time_login BETWEEN :start_date AND :end_date
+      AND time_login BETWEEN '$start_date' AND '$end_date'
     GROUP BY sessions.mac_id
 ) as t2 GROUP BY date ASC, hour ASC             
 SQL;
-            $bind = array();
-            $bind['timezone'] = $timezone;
-            $bind['ap_id'] = $ap_id;
-            $bind['start_date'] = $start_date;
-            $bind['end_date'] = $end_date;
-
-            $aRes = $oDb->fetchAll($sSQL, $bind);
+            $aRes = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
-    
+
     public function purchaseInfo($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -109,7 +104,7 @@ SQL;
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->iterativeQuery('store', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $timezone = $data['data']['timezone'];
@@ -155,6 +150,7 @@ SQL;
             return $aRes;
         }
     }
+
     public function transactions($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -167,6 +163,7 @@ SQL;
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
     }
+
     public function revenue($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -179,6 +176,7 @@ SQL;
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
     }
+
     public function avgTicket($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -193,6 +191,7 @@ SQL;
         $aRes2 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
         return $this->calculate($aRes1, $aRes2);
     }
+
     public function itemsPerTransaction($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -209,20 +208,65 @@ SQL;
     }
 
     public function windowConversion($params) {
-        $ft = $this->api->internalCall('store', 'footTraffic', $params);
-        $wb = $this->api->internalCall('store', 'walkbys', $params);
-        $result = $this->percentify($ft, $wb);
-        $result['options'] = array(
-            'endpoint' => '/store/' . __FUNCTION__,
-            'member_id' => $params['member_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
-        return $result;
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $ap_id = $data['data']['ap_id'];
+            $timezone = $data['data']['timezone'];
+            $factor = $data['data']['traffic_factor'];
+            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $table = 'sessions';
+            $oModel = new Model(false, $table, 'swarmdata');
+            $oDb = $oModel->getDataSource();
+            $aTmp = array(
+                'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
+                'walkbys' => array("'passerby'")
+            );
+            foreach ($aTmp as $var => $aStates) {
+                $aStates = implode(',', $aStates);
+                $sSQL = <<<SQL
+SELECT 
+    ROUND(COUNT(*)*$factor) as value,
+    date, 
+    hour 
+FROM(
+    SELECT 
+        DISTINCT ses1.mac_id as value, 
+        DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%k') AS hour,
+	DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%Y-%m-%d') AS date	        
+    FROM sessions ses1
+    WHERE sessionid IN ($aStates)
+      AND time_logout IS NOT NULL
+      AND (network_id= $ap_id) 
+      AND time_login BETWEEN '$start_date' AND '$end_date'
+) t2
+GROUP BY date ASC, hour ASC
+SQL;
+                $$var = $oDb->fetchAll($sSQL);
+                $$var = $this->format($$var, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
+            }
+            $result = $this->percentify($footTraffic, $walkbys);
+            $result['options'] = array(
+                'endpoint' => '/store/' . __FUNCTION__,
+                'member_id' => $params['member_id'],
+                'start_date' => $params['start_date'],
+                'end_date' => $params['end_date'],
+            );
+            return $result;
+        }
     }
+
     public function conversionRate($params) {
         $tr = $this->api->internalCall('store', 'transactions', $params);
-        $ft = $this->api->internalCall('store', 'footTraffic', $params);         
+        $ft = $this->api->internalCall('store', 'footTraffic', $params);
         $result = $this->percentify($tr, $ft);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
@@ -273,6 +317,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
+
     private function dwellByDate($start_date, $end_date, $timezone, $ap_id) {
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
@@ -297,6 +342,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
+
     public function dwell($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -365,6 +411,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
+
     private function returningByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
         $sSQL = <<<SQL
 SELECT  
@@ -396,6 +443,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
+
     public function returning($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -457,6 +505,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
+
     private function footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
         $sSQL = <<<SQL
 SELECT 
@@ -477,6 +526,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
+
     public function footTraffic($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -494,7 +544,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $ap_id, $factor);
-            $aByDate = $this->footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor);            
+            $aByDate = $this->footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }

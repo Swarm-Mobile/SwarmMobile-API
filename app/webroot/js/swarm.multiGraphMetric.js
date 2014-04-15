@@ -205,8 +205,9 @@ jQuery.fn.multiGraphMetric = function(options) {
         title = tools.coalesce(container.attr('swarm-title'), options.title);
         var sources = [];
         data_sources = container.attr('swarm-data').split(',');
+        var component = tools.coalesce(container.attr('swarm-component'), 'store');
         for (var i = 0; i < data_sources.length; i++) {
-            if ('/store/' + data_sources[i] === options.cData.options.endpoint) {
+            if ('/'+component+'/' + data_sources[i] === options.cData.options.endpoint) {
                 var type = tools.endpointLineType(data_sources[i]);
                 sources.push({
                     name: data_sources[i],
