@@ -58,7 +58,6 @@ class APIComponent {
             }
         }
     }
-
     public function getGroupByType($params) {
         if ((!isset($params['group_by'])) ||
                 (!in_array($params['group_by'], array('hour', 'date')))) {
@@ -66,7 +65,6 @@ class APIComponent {
         }
         return $params['group_by'];
     }
-
     public function parseDates($params, $timezone) {
         $tzLocal = $this->getLocalTimezone($timezone);
         $timezone = $tzLocal->getName();
@@ -81,7 +79,6 @@ class APIComponent {
 
         return array($start_date, $end_date, $timezone);
     }
-
     public function getLocalTimezone($tzName) {
         $timezone = trim($tzName);
         try {
@@ -93,7 +90,6 @@ class APIComponent {
         }
         return $tzLocal;
     }
-
     public function storeOpenCompare($data, $timezone) {
         $return = "(";
         $i = 0;
@@ -114,15 +110,12 @@ SQL;
         }
         return $return . ')';
     }
-
     public function registerFilter($data) {
         return (!empty($data['data']['register_filter'])) ? "register_id='{$data['data']['register_filter']}' AND" : '';
     }
-
     public function outletFilter($data) {
         return (!empty($data['data']['outlet_filter'])) ? "outlet_id='{$data['data']['outlet_filter']}' AND" : '';
     }
-
     public function iterativeCall($component, $method, $params) {
         $aResults = array();
         if ($params['start_date'] != $params['end_date']) {
@@ -138,7 +131,6 @@ SQL;
             return $this->mergeResults($aResults);
         }
     }
-
     public function mergeResults($aResults = array()) {
         $result = array(
             'data' => array(
@@ -169,7 +161,6 @@ SQL;
         $result['options']['start_date'] = $aResults[0]['options']['start_date'];
         return $result;
     }
-
     public function fillBlanks($result, $data, $start_date, $end_date) {
         $tmp = $result;
         $start_date = new DateTime($start_date);
@@ -208,7 +199,6 @@ SQL;
         }
         return $tmp;
     }
-
     public function countOpenHours($data) {
         $i = 0;
         $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
@@ -216,7 +206,6 @@ SQL;
         $close_hour = (int) strstr($data['data'][$weekday . '_close'], ':', true);
         return ($close_hour - $open_hour) + 1;
     }
-
     public function countRevenueHours($result, $date) {
         $i = 0;
         foreach ($result['data']['breakdown'][$date]['hours'] as $hour => $v) {
@@ -224,7 +213,41 @@ SQL;
         }
         return $i;
     }
-
+    public function hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
+        $cResult = array();
+        $date = strtolower(date('Y-m-d', strtotime($start_date)));
+        foreach ($aByHour as $oRow) {
+            $weekday = strtolower(date('l', strtotime($start_date)));
+            $hour = $oRow[$t2]['hour'];
+            $cValue = $oRow[$t1][$dbAlias];
+            if ($hour < 10) {
+                $hour = '0' . $hour;
+            }
+            if (
+                    (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
+                    (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
+            ) {
+                $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
+                @$cResult['data']['breakdown'][$date]['totals']['open'] += $cValue;
+            } else {
+                $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
+                @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
+            }
+            @$cResult['data']['breakdown'][$date]['hours'][$hour]['total'] += $cValue;
+        }
+        $aByDate[0][0]['value'] = (empty($aByDate[0][0]['value'])) ? 0 : $aByDate[0][0]['value'];
+        @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
+        @$cResult['data']['totals']['total'] = $aByDate[0][0]['value'];
+        @$cResult['data']['totals']['open']  = $aByDate[0][0]['value'];
+        @$cResult['data']['totals']['close'] = 0;
+        $cResult['options'] = array(
+            'endpoint' => $endpoint,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $this->fillBlanks($cResult, $data, $start_date, $end_date);
+    }
     public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
         $cResult = array();
         foreach ($aRes as $oRow) {
@@ -259,7 +282,6 @@ SQL;
         );
         return $this->fillBlanks($cResult, $data, $start_date, $end_date);
     }
-
     public function averagify($result, $data) {
         $num_days = count($result['data']['breakdown']);
         $total_hours = 0;
@@ -281,7 +303,6 @@ SQL;
         }
         return $result;
     }
-
     public function percentify($aRes1, $aRes2) {
         $result = array();
         foreach ($aRes1['data']['breakdown'] as $date => $values) {
@@ -305,7 +326,6 @@ SQL;
         }
         return $result;
     }
-
     public function calculate($aRes1, $aRes2, $hours = false) {
         $result = $aRes1;
         foreach ($aRes1['data']['breakdown'] as $date => $values) {
