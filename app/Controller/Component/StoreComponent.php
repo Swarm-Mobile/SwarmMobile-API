@@ -31,6 +31,7 @@ class StoreComponent extends APIComponent {
             'end_date' => array('required', 'date')
         );
         $this->validate($rules, $params);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         $result = array();
         $calls = array(
             array('store', 'walkbys'),
@@ -46,7 +47,11 @@ class StoreComponent extends APIComponent {
         );
         foreach ($calls as $call) {
             $tmp = $this->api->internalCall($call[0], $call[1], $params);
-            $result[$call[1]] = $tmp['data']['totals']['total'];
+            if($data['data']['transactions_while_closed'] == 'no'){
+                $result[$call[1]] = $tmp['data']['totals']['open'];                
+            } else {
+                $result[$call[1]] = $tmp['data']['totals']['total'];                
+            }
         }
         return $result;
     }
