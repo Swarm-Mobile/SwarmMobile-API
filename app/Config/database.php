@@ -117,8 +117,8 @@ class DATABASE_CONFIG {
     public $int = array(
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'localhost',
-            'database' => 'local',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'API',
             'port' => 27017,
             'prefix' => '',
             'persistent' => 'true'
