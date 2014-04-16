@@ -2,6 +2,8 @@ if(typeof(currency) === 'undefined'){
     var currency = '$';    
 }
 
+api_url = 'http://intapi.swarm-mobile.com/';
+
 var tools = {
     defaults: function(type) {
         if (type === 'start_date' || type === 'end_date') {

@@ -2,12 +2,12 @@ jQuery.fn.monoGraphMetric = function(options) {
     var options = jQuery.extend({
         cData: {},
         pData: {},
-        info:'open',
+        info: 'open',
         title: 'Key Metric',
         type: 'num',
         icon: false,
         comparison: false
-    }, options);    
+    }, options);
     function init(container) {
         options.title = tools.coalesce(container.attr('swarm-title'), options.title);
         options.type = tools.coalesce(tools.endpointType($(this).attr('swarm-data')), options.type);
@@ -62,8 +62,8 @@ jQuery.fn.monoGraphMetric = function(options) {
                         symbol: 'circle',
                         lineWidth: 2,
                         radius: 4,
-                        lineColor: null 
-                   }
+                        lineColor: null
+                    }
                 }
             },
             title: {text: null},
@@ -87,29 +87,46 @@ jQuery.fn.monoGraphMetric = function(options) {
         });
     }
     function render(container, options, source) {
-        if(Object.keys(options[source.name]).length === 0){return;}
+        if (Object.keys(options[source.name]).length === 0) {
+            return;
+        }
         var data = [];
         var categories = [];
-        var series_name = '';                
+        var series_name = '';
         if (Object.keys(options[source.name].data.breakdown).length === 1) {
             categories.push('Open');
             data.push(0);
-            for (var i = 0; i < 24; i++) {        
-                var k = (i < 10) ? '0' + i : '' + i;
-                var v = options[source.name].data.breakdown[options[source.name].options.start_date].hours[k];                
-                if (options.info === 'open' && v.open) {                    
-                    data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM'));
-                } else if (options.info === 'close' && !v.open) {
-                    data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM'));
-                } else if (options.info === 'total') {
-                    data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM'));
+            var ini = 0;
+            var end = 23;            
+            if (nightclub) {                
+                for (var i = 23; i >= 0; i--) {
+                    var k = (i%24 < 10) ? '0' + i%24 : '' + i%24;
+                    var v = options[source.name].data.breakdown[options[source.name].options.start_date].hours[k];                    
+                    if(!v.open){
+                        ini = i+1;
+                        end = (i===0)?23:(ini-1);
+                        break;
+                    }
                 }
             }
-            categories.push('Close');
-            data.push(0);        
+            for (var i = ini; (i%24) + ini !== end + ini; i++) {                
+                var k = (i%24 < 10) ? '0' + i%24 : '' + i%24;                
+                var v = options[source.name].data.breakdown[options[source.name].options.start_date].hours[k];                
+                k = parseInt(k);
+                var category = (k === 0)?'12 AM':((k%12)+((k>12)?' PM':' AM'));
+                if (options.info === 'open' && v.open) {
+                    data.push(v.total);
+                    categories.push(category);
+                } else if (options.info === 'close' && !v.open) {
+                    data.push(v.total);
+                    categories.push(category);
+                } else if (options.info === 'total') {
+                    data.push(v.total);
+                    categories.push(category);
+                }
+            }
+            categories.push('Close');            
+            data.push(0);
             series_name = tools.parseDate(options[source.name].options.start_date);
         } else {
             $.each(options[source.name].data.breakdown, function(k, v) {
@@ -155,7 +172,7 @@ jQuery.fn.monoGraphMetric = function(options) {
                 type: 'spline',
                 color: '#4e5c60'
             }
-        ];           
+        ];
         sources.forEach(function(source) {
             render(container, options, source);
         });

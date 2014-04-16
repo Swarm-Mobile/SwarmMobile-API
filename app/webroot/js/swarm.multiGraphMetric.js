@@ -133,21 +133,36 @@ jQuery.fn.multiGraphMetric = function(options) {
         if (Object.keys(options.cData.data.breakdown).length === 1) {
             categories.push('Open');
             data.push(0);
-            for (var i = 0; i < 24; i++) {
-                var k = (i < 10) ? '0' + i : '' + i;
-                var v = options.cData.data.breakdown[options.cData.options.start_date].hours[k];
-                if (options.info === 'open' && v.open) {
-                    data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
-                } else if (options.info === 'close' && !v.open) {
-                    data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
-                } else if (options.info === 'total') {
-                    data.push(v.total);
-                    categories.push(((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : k + ' AM'));
+            var ini = 0;
+            var end = 23;            
+            if (nightclub) {                
+                for (var i = 23; i >= 0; i--) {
+                    var k = (i%24 < 10) ? '0' + i%24 : '' + i%24;
+                    var v = options.cData.data.breakdown[options.cData.options.start_date].hours[k];                    
+                    if(!v.open){
+                        ini = i+1;
+                        end = (i===0)?23:(ini-1);
+                        break;
+                    }
                 }
             }
-            categories.push('Close');
+            for (var i = ini; (i%24) + ini !== end + ini; i++) {                
+                var k = (i%24 < 10) ? '0' + i%24 : '' + i%24;                
+                var v = options.cData.data.breakdown[options.cData.options.start_date].hours[k];                
+                k = parseInt(k);
+                var category = (k === 0)?'12 AM':((k%12)+((k>12)?' PM':' AM'));
+                if (options.info === 'open' && v.open) {
+                    data.push(v.total);
+                    categories.push(category);
+                } else if (options.info === 'close' && !v.open) {
+                    data.push(v.total);
+                    categories.push(category);
+                } else if (options.info === 'total') {
+                    data.push(v.total);
+                    categories.push(category);
+                }
+            }
+            categories.push('Close');     
             data.push(0);
         } else {
             $.each(options.cData.data.breakdown, function(k, v) {

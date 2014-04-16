@@ -82,6 +82,18 @@ class APIComponent {
         return array($start_date, $end_date, $timezone);
     }
 
+    public function getNightClubTimezone($data){
+        if($data['data']['nightclub_hours'] == 'yes'){
+            switch($data['data']['nightclub_hours_location']){
+                case 'eastcoast_time': return 'America/Detroit';
+                case 'pacific_time': return 'America/Los_Angeles';
+                case 'mountain_time': return 'America/Denver';
+                case 'central_time': return 'America/Chicago';
+            }
+        }
+        return $data['data']['timezone'];
+    }
+    
     public function getLocalTimezone($tzName) {
         $timezone = trim($tzName);
         try {
@@ -284,9 +296,31 @@ SQL;
             'end_date' => $params['end_date'],
         );
         unset($cResult['breakdown']['data']['']);
-        return $this->fillBlanks($cResult, $data, $start_date, $end_date);
+        $result = $this->fillBlanks($cResult, $data, $start_date, $end_date);
+        return $this->nightClubFormat($result, $data);
     }
 
+    private function nightClubFormat($result, $data){
+        if($data['data']['nightclub_hours'] == 'yes'){
+            $ncResult = array();
+            $ncResult['options'] = $result['options'];
+            $ncResult['data']['totals'] = $result['data']['totals'];
+            foreach($result['data']['breakdown'] as $date=>$values){
+                $ncResult['data']['breakdown'][$date]['totals'] = $values['totals'];
+                foreach($values['hours'] as $h=>$v){                   
+                    $tzLocal = $this->getLocalTimezone($data['data']['timezone']);
+                    $tzNC = $this->getNightClubTimezone($data);                    
+                    $tmp = new DateTime("2014-01-01 $h:00:00", $tzLocal);
+                    $tmp = $tmp->setTimezone(new DateTimeZone($tzNC));
+                    $h = $tmp->format('H');
+                    $ncResult['data']['breakdown'][$date]['hours'][$h] = $v;
+                }
+            }
+            return $ncResult;
+        }
+        return $result;
+    }
+    
     public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {        
         $cResult = array('data'=>array('totals'=>array('open'=>0,'close'=>0,'total'=>0)));
         foreach ($aRes as $oRow) {
@@ -320,7 +354,8 @@ SQL;
             'end_date' => $params['end_date'],
         );
         unset($cResult['breakdown']['data']['']);
-        return $this->fillBlanks($cResult, $data, $start_date, $end_date);
+        $result = $this->fillBlanks($cResult, $data, $start_date, $end_date);
+        return $this->nightClubFormat($result, $data);
     }
 
     public function averagify($result, $data) {

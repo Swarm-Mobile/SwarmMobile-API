@@ -17,9 +17,25 @@ jQuery.fn.breakdownGraphMetric = function(options) {
         var c = (options.type === 'currency') ? currency : '';
         var p = (options.type === 'rate') ? '%' : '';
         if (Object.keys(source.data.breakdown).length === 1) {
-            for (var i = 0; i < 24; i++) {
-                var k = (i < 10) ? '0' + i : '' + i;
+            var ini = 0;
+            var end = 23;            
+            if (nightclub) {                
+                for (var i = 23; i >= 0; i--) {
+                    var k = (i%24 < 10) ? '0' + i%24 : '' + i%24;
+                    var v = source.data.breakdown[source.options.start_date].hours[k];             
+                    if(!v.open){
+                        ini = i+1;
+                        end = (i===0)?23:(ini-1);
+                        break;
+                    }
+                }
+            }
+            for (var i = ini; (i%24) + ini !== end + ini; i++) {                
+                var k = (i%24 < 10) ? '0' + i%24 : '' + i%24;                
                 var v = source.data.breakdown[source.options.start_date].hours[k];
+                var total = (options.type === 'time') ? tools.makeHMS(v.total) : tools.addCommas(v.total);               
+                k = parseInt(k);
+                var category = (k === 0)?'12 AM':((k%12)+((k>12)?' PM':' AM'));
                 var total = (options.type === 'time') ? tools.makeHMS(v.total) : tools.addCommas(v.total);
                 if (options.info === 'open' && v.open) {
                     var hour = ((k > 11) ? ((k === 12) ? 12 : ((k % 13) + 1)) + ' PM' : parseInt(k) + ' AM');
@@ -34,7 +50,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
                     html += '<p><span class="primaryBold metricTitle">' + hour + ':</span>';
                     html += '<span class="metricData pull-right">' + c + total + p + '</span></p>';
                 }
-            }
+            }            
         } else {
             $.each(source.data.breakdown, function(k, v) {
                 var total = (options.type === 'time') ? tools.makeHMS(v['totals'][options.info]) : tools.addCommas(v['totals'][options.info]);
@@ -87,7 +103,7 @@ jQuery.fn.breakdownGraphMetric = function(options) {
         //DRILLDOWN METRIC    
         if (Object.keys(options.cData).length !== 0) {
             color = tools.color(tools.hex(tools.endpointColor($(this).attr('swarm-data'))));
-            var drilldown_html = '<div class="drilldown col-md-9 col-md-offset-3">';
+            var drilldown_html = '<div class="drilldown col-md-9 col-md-offset-3" style="display:none">';
             drilldown_html += '<div class="col-md-6 col-xs-6 global drilldownTarget color_border' + color + '">';
             drilldown_html += render(options.cData);
             drilldown_html += '</div>';

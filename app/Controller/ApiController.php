@@ -52,6 +52,10 @@ class APIController extends AppController {
         set_time_limit(3600);
         $this->microtime = microtime(true);
         $this->request_start = date('Y-m-d H:i:s');
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: GET");
+        header("Access-Control-Allow-Headers: X-PINGOTHER");
+        header("Access-Control-Max-Age: 1728000");
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {

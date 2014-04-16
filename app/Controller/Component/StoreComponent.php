@@ -24,7 +24,6 @@ class StoreComponent extends APIComponent {
         );
         return $result;
     }
-
     public function totals($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -36,13 +35,14 @@ class StoreComponent extends APIComponent {
         $calls = array(
             array('store', 'walkbys'),
             array('store', 'footTraffic'),
-            array('store', 'returning'),
             array('store', 'transactions'),
             array('store', 'revenue'),
-            array('store', 'avgTicket'),
-            array('store', 'dwell'),
             array('store', 'windowConversion'),
+            array('store', 'returning'),
+            array('store', 'dwell'),
             array('store', 'conversionRate'),
+            array('store', 'avgTicket'),
+            array('store', 'itemsPerTransaction'),
         );
         foreach ($calls as $call) {
             $tmp = $this->api->internalCall($call[0], $call[1], $params);
@@ -50,7 +50,7 @@ class StoreComponent extends APIComponent {
         }
         return $result;
     }
-
+    
     public function walkbys($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -95,7 +95,7 @@ SQL;
             return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
-
+    
     public function purchaseInfo($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -150,7 +150,6 @@ SQL;
             return $aRes;
         }
     }
-
     public function transactions($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -163,7 +162,6 @@ SQL;
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
     }
-
     public function revenue($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -176,7 +174,6 @@ SQL;
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
     }
-
     public function avgTicket($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -191,7 +188,6 @@ SQL;
         $aRes2 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
         return $this->calculate($aRes1, $aRes2);
     }
-
     public function itemsPerTransaction($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -206,7 +202,7 @@ SQL;
         $aRes2 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
         return $this->calculate($aRes1, $aRes2, true);
     }
-
+    
     public function windowConversion($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -263,7 +259,6 @@ SQL;
             return $result;
         }
     }
-
     public function conversionRate($params) {
         $tr = $this->api->internalCall('store', 'transactions', $params);
         $ft = $this->api->internalCall('store', 'footTraffic', $params);
@@ -276,7 +271,7 @@ SQL;
         );
         return $result;
     }
-
+    
     private function dwellByHour($start_date, $end_date, $timezone, $ap_id) {
         $sSQL = <<<SQL
 SELECT
@@ -317,7 +312,6 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
-
     private function dwellByDate($start_date, $end_date, $timezone, $ap_id) {
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
@@ -342,7 +336,6 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
-
     public function dwell($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -362,7 +355,7 @@ SQL;
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
-
+    
     private function returningByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
         $sSQL = <<<SQL
 SELECT
@@ -411,7 +404,6 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
-
     private function returningByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
         $sSQL = <<<SQL
 SELECT  
@@ -443,7 +435,6 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
-
     public function returning($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -465,7 +456,7 @@ SQL;
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
-
+    
     private function footTrafficByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
         $sSQL = <<<SQL
 SELECT 
@@ -505,7 +496,6 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
-
     private function footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
         $sSQL = <<<SQL
 SELECT 
@@ -526,7 +516,6 @@ SQL;
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
-
     public function footTraffic($params) {
         $rules = array(
             'member_id' => array('required', 'int'),

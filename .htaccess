@@ -4,4 +4,4 @@
    RewriteRule    (.*) app/webroot/$1 [L]
 </IfModule>
 
-SetEnv server_location "live"
+SetEnv server_location "int"

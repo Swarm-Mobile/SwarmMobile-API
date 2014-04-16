@@ -11,6 +11,7 @@ var dashboard = {
         dashboard.end_date = tools.coalesce(end_date, dashboard.end_date);
         dashboard.p_start_date = tools.coalesce(p_start_date, dashboard.p_start_date);
         dashboard.p_end_date = tools.coalesce(p_end_date, dashboard.p_end_date);
+        dashboard.member_id = tools.coalesce(member_id, dashboard.p_end_date);
         $('div[swarm-data]').each(function() {
             var container = $(this);
             var display = container.attr('swarm-display');
@@ -19,24 +20,28 @@ var dashboard = {
             container[display + "Metric"]();
             resources.forEach(function(resource) {
                 $.ajax({
-                    url: '/api/'+component+'/' + resource,
+                    url: api_url+component+'/' + resource,
                     type: 'GET',
                     data: {
                         member_id: dashboard.member_id,
                         start_date: dashboard.start_date,
                         end_date: dashboard.end_date,
-                        access_token: dashboard.access_token
+                        access_token: dashboard.access_token,
+                        nocache: no_cache,
+                        norollups: no_rollups
                     },
                     success: function(cData) {
                         if (container.attr('swarm-comparison') === 'true') {
                             $.ajax({
-                                url: '/api/'+component+'/' + resource,
+                                url: api_url+component+'/'+resource,
                                 type: 'GET',
                                 data: {
                                     member_id: dashboard.member_id,
                                     start_date: dashboard.p_start_date,
                                     end_date: dashboard.p_end_date,
-                                    access_token: dashboard.access_token
+                                    access_token: dashboard.access_token,
+                                    nocache: no_cache,
+                                    norollups: no_rollups
                                 },
                                 success: function(pData) {
                                     container[display + "Metric"]({cData: cData, pData: pData});

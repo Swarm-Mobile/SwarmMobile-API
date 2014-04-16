@@ -3,7 +3,7 @@
 $subdomain = strstr($_SERVER['HTTP_HOST'], '.', true);
 switch ($subdomain) {
 	case 'api':
-	//case 'intapi':
+	case 'intapi':
 	case 'devapi':
 	case 'newapi':
 		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));
