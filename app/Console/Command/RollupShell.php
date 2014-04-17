@@ -63,7 +63,7 @@ class RollupShell extends AppShell {
         $aRes = $oModel->find('all',array("params.id" => "$member"));
         $this->out('Results before: '.count($aRes));
         $oModel->deleteAll(array("params.id" => "$member"));
-        $aRes = $oModel->find('all',array("params.id" => "$member"));
+        $aRes = $oModel->find('all',array("params.member_id" => "$member"));
         $this->out('Results after: '.count($aRes));
         $this->out("Cleaned");
     }
