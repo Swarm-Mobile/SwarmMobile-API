@@ -215,10 +215,10 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params),$data);
         } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
@@ -348,10 +348,10 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params),$data);
         } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);

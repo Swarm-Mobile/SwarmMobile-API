@@ -374,7 +374,7 @@ SQL;
             }
         } else {
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $num_days, 2);
+                $result['data']['totals'][$k] = round($v / $num_days, 2);
             }
         }
         unset($result['breakdown']['data']['']);
