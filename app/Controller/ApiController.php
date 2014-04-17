@@ -66,10 +66,10 @@ class APIController extends AppController {
                 }
                 $path = func_get_args();
                 if (isset($_GET['norollups'])) {
-                    $this->rollups = !$_GET['norollups'];
+                    $this->rollups = !(int)$_GET['norollups'];
                 }
                 if (isset($_GET['nocache'])) {
-                    $this->cache = !$_GET['nocache'];
+                    $this->cache = !(int)$_GET['nocache'];
                 }
                 unset($_GET['access_token']);
                 unset($_GET['norollups']);
