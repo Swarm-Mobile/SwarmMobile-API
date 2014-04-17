@@ -15,39 +15,45 @@ class APIController extends AppController {
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
     public $uses = array();
-    
     public $debug = true;
     public $cache = true;
     public $rollups = true;
-    
-    public $user = array('id_user'=>0,'username'=>'');
+    public $user = array('id_user' => 0, 'username' => '');
     public $endpoint = '';
     public $request_start = 0;
-    public $request_end = 0;    
-    
+    public $request_end = 0;
     public $microtime = 0;
-    
     public $response_code = 200;
     public $response_message = 'OK';
-    public $params = array();    
+    public $params = array();
 
     private function call_log() {
         $this->request_end = date('Y-m-d H:i:s');
         $oModel = new Model(false, 'calls', 'mongodb');
         $call = array(
-            'id_user'=>$this->user['id_user'],
-            'username'=>$this->user['username'],
-            'endpoint'=>$this->endpoint,
-            'request_start'=>$this->request_start,
-            'request_end'=>$this->request_end,
-            'response_time'=>  microtime(true) - $this->microtime,
-            'response_code'=>$this->response_code,
-            'response_message'=>$this->response_message,
-            'params'=>$this->params            
+            'id_user' => $this->user['id_user'],
+            'username' => $this->user['username'],
+            'endpoint' => $this->endpoint,
+            'request_start' => $this->request_start,
+            'request_end' => $this->request_end,
+            'response_time' => microtime(true) - $this->microtime,
+            'response_code' => $this->response_code,
+            'response_message' => $this->response_message,
+            'params' => $this->params
         );
         $oModel->save($call);
     }
-    
+
+    public function __construct($request = null, $response = null) {
+        if (isset($_GET['norollups'])) {
+            $this->rollups = !(int) $_GET['norollups'];
+        }
+        if (isset($_GET['nocache'])) {
+            $this->cache = !(int) $_GET['nocache'];
+        }
+        parent::__construct($request, $response);
+    }
+
     public function index() {
         set_time_limit(3600);
         $this->microtime = microtime(true);
@@ -65,21 +71,16 @@ class APIController extends AppController {
                     $this->user = $oOAuth->user();
                 }
                 $path = func_get_args();
-                if (isset($_GET['norollups'])) {
-                    $this->rollups = !(int)$_GET['norollups'];
-                }
-                if (isset($_GET['nocache'])) {
-                    $this->cache = !(int)$_GET['nocache'];
-                }
-                unset($_GET['access_token']);
-                unset($_GET['norollups']);
-                unset($_GET['nocache']);
-                $this->params = $_GET;
-                if(!isset($path[1])){
+                $params = $_GET;
+                unset($params['access_token']);
+                unset($params['norollups']);
+                unset($params['nocache']);
+                $this->params = $params;
+                if (!isset($path[1])) {
                     $path[1] = '';
                 }
-                $this->endpoint = $path[0].'/'.$path[1];
-                echo json_encode($this->internalCall($path[0], $path[1], $_GET));
+                $this->endpoint = $path[0] . '/' . $path[1];
+                echo json_encode($this->internalCall($path[0], $path[1], $params));
                 $this->call_log();
                 exit();
             }
@@ -110,7 +111,7 @@ class APIController extends AppController {
                     $this->cache($component, $method, $params, $result);
                 }
                 return $result;
-            }            
+            }
             throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
         }
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
