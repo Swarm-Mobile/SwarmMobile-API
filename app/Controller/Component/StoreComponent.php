@@ -350,7 +350,7 @@ SQL;
         $this->validate($params, $rules);
         $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
-            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params),$data);
+            return $this->iterativeHourDateCall('store', __FUNCTION__, $params);
         } else {
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
