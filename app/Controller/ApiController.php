@@ -45,13 +45,13 @@ class APIController extends AppController {
     }
 
     public function __construct($request = null, $response = null) {
+        parent::__construct($request, $response);
         if (isset($_GET['norollups'])) {
             $this->rollups = !(int) $_GET['norollups'];
         }
         if (isset($_GET['nocache'])) {
             $this->cache = !(int) $_GET['nocache'];
         }
-        parent::__construct($request, $response);
     }
 
     public function index() {
@@ -65,13 +65,13 @@ class APIController extends AppController {
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
+                $params = $_GET;
                 if (!$this->debug) {
                     $oOAuth = new OAuthComponent(new ComponentCollection());
-                    $oOAuth->OAuth2->verifyAccessToken($_GET['access_token']);
+                    $oOAuth->OAuth2->verifyAccessToken($params['access_token']);
                     $this->user = $oOAuth->user();
                 }
                 $path = func_get_args();
-                $params = $_GET;
                 unset($params['access_token']);
                 unset($params['norollups']);
                 unset($params['nocache']);
