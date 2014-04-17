@@ -47,6 +47,8 @@ class RollupShell extends AppShell {
             }
             $member = trim($member);
             $oAPI = new APIController();
+            $oAPI->cache = true;
+            $oAPI->rollups = true;
             $result = $oAPI->internalCall('store', 'totals', array(
                 'member_id' => $member,
                 'start_date' => $start_date,
