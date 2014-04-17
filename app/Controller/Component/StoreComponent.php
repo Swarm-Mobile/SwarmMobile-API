@@ -30,7 +30,7 @@ class StoreComponent extends APIComponent {
             'start_date' => array('required', 'date'),
             'end_date' => array('required', 'date')
         );
-        $this->validate($rules, $params);
+        $this->validate($params,$rules);
         $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         $result = array();
         $calls = array(
