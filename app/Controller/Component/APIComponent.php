@@ -24,35 +24,37 @@ class APIComponent {
     public function validate($params, $rules) {
         if (!empty($rules)) {
             foreach ($rules as $param => $validators) {
-                foreach ($validators as $validator) {
-                    switch ($validator) {
-                        case 'required':
-                            if (empty($params[$param])) {
-                                throw new APIException(
-                                501, 'required_param_not_found', "Param $param is required and isn't found on the request."
-                                );
-                            }
-                            break;
-                        case 'int':
-                            if ((!is_numeric($params[$param])) || $params[$param] != (int) $params[$param]) {
-                                throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be and int."
-                                );
-                            }
-                            break;
-                        case 'numeric':
-                            if (!is_numeric($params[$param])) {
-                                throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be and int."
-                                );
-                            }
-                            break;
-                        case 'date':
-                            //TODO:
-                            break;
-                        case 'datetime':
-                            //TODO:
-                            break;
+                if (!empty($validators)) {
+                    foreach ($validators as $validator) {
+                        switch ($validator) {
+                            case 'required':
+                                if (empty($params[$param])) {
+                                    throw new APIException(
+                                    501, 'required_param_not_found', "Param $param is required and isn't found on the request."
+                                    );
+                                }
+                                break;
+                            case 'int':
+                                if ((!is_numeric($params[$param])) || $params[$param] != (int) $params[$param]) {
+                                    throw new APIException(
+                                    501, 'param_bad_formatted', "Param $param needs to be and int."
+                                    );
+                                }
+                                break;
+                            case 'numeric':
+                                if (!is_numeric($params[$param])) {
+                                    throw new APIException(
+                                    501, 'param_bad_formatted', "Param $param needs to be and int."
+                                    );
+                                }
+                                break;
+                            case 'date':
+                                //TODO:
+                                break;
+                            case 'datetime':
+                                //TODO:
+                                break;
+                        }
                     }
                 }
             }
@@ -230,12 +232,12 @@ SQL;
                 'breakdown' => array(),
                 'options' => array()
             )
-        );        
+        );
         foreach ($aResults as $cResult) {
             if (!empty($cResult)) {
-                $result['data']['totals']['open'] += $cResult['data']['totals']['open']/count($aResults);
-                $result['data']['totals']['close'] += $cResult['data']['totals']['close']/count($aResults);
-                $result['data']['totals']['total'] += $cResult['data']['totals']['total']/count($aResults);
+                $result['data']['totals']['open'] += $cResult['data']['totals']['open'] / count($aResults);
+                $result['data']['totals']['close'] += $cResult['data']['totals']['close'] / count($aResults);
+                $result['data']['totals']['total'] += $cResult['data']['totals']['total'] / count($aResults);
                 if (!empty($cResult['data']['breakdown'])) {
                     foreach ($cResult['data']['breakdown'] as $date => $v) {
                         foreach ($v['hours'] as $hour => $values) {

@@ -1,6 +1,6 @@
 <?php
 
-App::uses('APIController', 'Controller');
+require_once(__DIR__.'/../../Controller/ApiController.php');
 App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
@@ -30,18 +30,18 @@ class RollupShell extends AppShell {
         } else {
             $members = explode(',', $this->params['member_id']);
         }
-        $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
-        $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
-        $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
-        $rebuild_text = ($rebuild) ? 'YES' : 'NO';
-        $this->out("Rebuild : $rebuild_text");
+        $start_date     = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
+        $end_date       = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
+        $rebuild        = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
+        $rebuild_text   = ($rebuild) ? 'YES' : 'NO';
+        $this->out("Rebuild                  : $rebuild_text");
+        $this->out("Start Date               : $start_date");
+        $this->out("End Date                 : $end_date");
         $this->out("Members to process (ID's):" . implode(' ', $members));
-        $this->out("Start Date: $start_date");
-        $this->out("End Date  : $end_date");
         $this->out("");
         foreach ($members as $member) {
             $this->out("Processing member :$member");
-            $this->out("Start : " . date('H:i:s'));
+            $this->out("Start             : " . date('H:i:s'));
             if ($rebuild) {
                 $this->clean($member);
             }
@@ -52,7 +52,7 @@ class RollupShell extends AppShell {
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->out("End :" . date('H:i:s'));
+            $this->out("End               :" . date('H:i:s'));
         }
         $this->out("Done!");
     }
