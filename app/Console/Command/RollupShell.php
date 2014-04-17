@@ -37,10 +37,10 @@ class RollupShell extends AppShell {
         $this->out("Rebuild                  : $rebuild_text");
         $this->out("Start Date               : $start_date");
         $this->out("End Date                 : $end_date");
-        $this->out("Members to process (ID's):" . implode(' ', $members));
+        $this->out("Members to process (ID's): " . implode(' ', $members));
         $this->out("");
         foreach ($members as $member) {
-            $this->out("Processing member :$member");
+            $this->out("Processing member : $member");
             $this->out("Start             : " . date('H:i:s'));
             if ($rebuild) {
                 $this->clean($member);
