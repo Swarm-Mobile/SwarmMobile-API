@@ -1,14 +1,14 @@
 <?php
 
-App::uses('APIController', 'Controller');
-App::uses('APIComponent', 'Controller/Component');
+App::uses('ApiController', 'Controller');
+App::uses('ApiComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
 class RollupShell extends AppShell {
 
     private function setEnvironment() {
-        $htaccess = file_get_contents(__DIR__.'/../../.htaccess');
+        $htaccess = file_get_contents(__DIR__.'/../../../.htaccess');
         $pattern = '/.*SetEnv server_location "(.*)"/';
         if (preg_match_all($pattern, $htaccess, $matches)) {
             putenv('server_location=' . $matches[1][0]);
@@ -18,7 +18,8 @@ class RollupShell extends AppShell {
 
     public function main() {
         $this->setEnvironment();
-        if ($this->params['member_id'] == 'all' || empty($this->params['all'])) {
+        $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
+        if ($member_id == 'all') {
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = "SELECT member_id FROM exp_members WHERE group_id = 6";
             $aRes = $oModel->query($sSQL);
