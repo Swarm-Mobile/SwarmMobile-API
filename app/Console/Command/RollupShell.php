@@ -52,7 +52,7 @@ class RollupShell extends AppShell {
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->out("End               :" . date('H:i:s'));
+            $this->out("End               : " . date('H:i:s'));
         }
         $this->out("Done!");
     }
