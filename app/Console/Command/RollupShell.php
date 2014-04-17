@@ -54,20 +54,28 @@ class RollupShell extends AppShell {
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
+            $this->out('Requests cached   : '.$this->mongoResults($member));
             $this->out("End               : " . date('H:i:s'));
+            $this->out("");            
         }
         $this->out("Done!");
     }
-
-    private function clean($member) {
-        $this->out("Cleaning previous rollups");
+    
+    private function mongoResults($member){
         $oModel = new Model(false, 'cache', 'mongodb');
         $aRes = $oModel->find('all',array("params.id" => "$member"));
-        $this->out('Results before: '.count($aRes));
+        return count($aRes);
+    }
+
+    private function clean($member) {
+        $this->out("");
+        $this->out("Cleaning previous rollups");
+        $this->out('Results before: '.$this->mongoResults($member));
+        $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array("params.id" => "$member"));
-        $aRes = $oModel->find('all',array("params.member_id" => "$member"));
-        $this->out('Results after: '.count($aRes));
+        $this->out('Results after: '.$this->mongoResults($member));
         $this->out("Cleaned");
+        $this->out("");
     }
 
     public function getOptionParser() {
