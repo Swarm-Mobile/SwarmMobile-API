@@ -8,7 +8,7 @@ App::uses('Model', 'Model');
 class RollupShell extends AppShell {
 
     private function setEnvironment() {
-        $htaccess = file_get_contents(__DIR__.'/../.htaccess');
+        $htaccess = file_get_contents(__DIR__.'/../../.htaccess');
         $pattern = '/.*SetEnv server_location "(.*)"/';
         if (preg_match_all($pattern, $htaccess, $matches)) {
             putenv('server_location=' . $matches[1][0]);
