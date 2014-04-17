@@ -67,6 +67,8 @@ SQL;
             if ($rebuild) {
                 $start_date = $this->getFirstRegisterDate($member);
                 $end_date = date('Y-m-d');
+                $this->out("Start Date               : $start_date");
+                $this->out("End Date                 : $end_date");
                 $this->clean($member, $start_date, $end_date);
             }
             $member = trim($member);
