@@ -23,17 +23,16 @@ class RollupShell extends AppShell {
         $result = $oDb->query($sSQL);                
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
         $sSQL = <<<SQL
-SELECT 
-    DATE(time_login) as first_date
+SELECT DATE(time_login) as first_date
 FROM sessions 
 WHERE network_id = $ap_id  
-ORDER BY time_login DESC  
+ORDER BY time_login ASC  
 LIMIT 1
 SQL;
         $oModel = new Model(false, 'sessions', 'swarmdata');
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);                
-        return $result[0]['sessions']['first_date'];
+        return $result[0][0]['first_date'];
     }
 
     public function main() {
