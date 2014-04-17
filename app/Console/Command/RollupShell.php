@@ -63,7 +63,7 @@ class RollupShell extends AppShell {
     
     private function mongoResults($member){
         $oModel = new Model(false, 'cache', 'mongodb');
-        $aRes = $oModel->find('all',array("params.id" => "$member"));
+        $aRes = $oModel->find('all',array("params.member_id" => "$member"));
         return count($aRes);
     }
 
@@ -72,7 +72,7 @@ class RollupShell extends AppShell {
         $this->out("Cleaning previous rollups");
         $this->out('Results before: '.$this->mongoResults($member));
         $oModel = new Model(false, 'cache', 'mongodb');
-        $oModel->deleteAll(array("params.id" => "$member"));
+        $oModel->deleteAll(array("params.member_id" => "$member"));
         $this->out('Results after: '.$this->mongoResults($member));
         $this->out("Cleaned");
         $this->out("");
