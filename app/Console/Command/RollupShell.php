@@ -60,7 +60,11 @@ class RollupShell extends AppShell {
     private function clean($member) {
         $this->out("Cleaning previous rollups");
         $oModel = new Model(false, 'cache', 'mongodb');
+        $aRes = $oModel->find('all',array("params.id" => "$member"));
+        $this->out('Results before: '.count($aRes));
         $oModel->deleteAll(array("params.id" => "$member"));
+        $aRes = $oModel->find('all',array("params.id" => "$member"));
+        $this->out('Results after: '.count($aRes));
         $this->out("Cleaned");
     }
 
