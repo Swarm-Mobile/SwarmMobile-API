@@ -1,6 +1,6 @@
 <?php
 
-require_once(__DIR__.'/../../Controller/ApiController.php');
+require_once(__DIR__ . '/../../Controller/ApiController.php');
 App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
@@ -8,12 +8,31 @@ App::uses('Model', 'Model');
 class RollupShell extends AppShell {
 
     private function setEnvironment() {
-        $htaccess = file_get_contents(__DIR__.'/../../../.htaccess');
+        $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
         $pattern = '/.*SetEnv server_location "(.*)"/';
         if (preg_match_all($pattern, $htaccess, $matches)) {
             putenv('server_location=' . $matches[1][0]);
             $_SERVER['server_location'] = $matches[1][0];
         }
+    }
+    
+    public function getFirstRegisterDate($member){
+        $sSQL = "SELECT m_field_id_20 FROM exp_member_data WHERE member_id = $member";   
+        $oModel = new Model(false, $table, 'ee');
+        $result = $oDb->query($sSQL);                
+        $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
+        
+        $sSQL = <<<SQL
+SELECT 
+    DATE(time_login) as first_date
+FROM sessions 
+WHERE network_id = $ap_id  
+ORDER BY time_login DESC  
+LIMIT 1
+SQL;
+        $oModel = new Model(false, 'sessions', 'swarmdata');
+        $result = $oDb->query($sSQL);                
+        return $result[0][$table]['first_date'];
     }
 
     public function main() {
@@ -30,21 +49,25 @@ class RollupShell extends AppShell {
         } else {
             $members = explode(',', $this->params['member_id']);
         }
-        $start_date     = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
-        $end_date       = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
-        $rebuild        = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
-        $rebuild_text   = ($rebuild) ? 'YES' : 'NO';
+        $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
+        $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->out("Rebuild                  : $rebuild_text");
-        $this->out("Start Date               : $start_date");
-        $this->out("End Date                 : $end_date");
+        if (!$rebuild) {
+            $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
+            $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
+            $this->out("Start Date               : $start_date");
+            $this->out("End Date                 : $end_date");
+        }
         $this->out("Members to process (ID's): " . implode(' ', $members));
         $this->out("");
         foreach ($members as $member) {
             $this->out("Processing member : $member");
-            $this->out("");            
+            $this->out("");
             $this->out("Start             : " . date('H:i:s'));
             if ($rebuild) {
-                $this->clean($member);
+                $start_date = $this->getFirstRegisterDate();
+                $end_date = date('Y-m-d');
+                $this->clean($member, $start_date, $end_date);
             }
             $member = trim($member);
             $oAPI = new APIController();
@@ -55,27 +78,27 @@ class RollupShell extends AppShell {
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->out('Requests cached   : '.$this->mongoResults($member));
-            $this->out("");            
+            $this->out('Requests cached   : ' . $this->mongoResults($member));
+            $this->out("");
             $this->out("End               : " . date('H:i:s'));
-            $this->out("");            
+            $this->out("");
         }
         $this->out("Done!");
     }
-    
-    private function mongoResults($member){
+
+    private function mongoResults($member) {
         $oModel = new Model(false, 'cache', 'mongodb');
-        $aRes = $oModel->find('all',array("params.member_id" => "$member"));
+        $aRes = $oModel->find('all', array("params.member_id" => "$member"));
         return count($aRes);
     }
 
     private function clean($member) {
         $this->out("");
         $this->out("Cleaning previous rollups");
-        $this->out('Results before: '.$this->mongoResults($member));
+        $this->out('Results before: ' . $this->mongoResults($member));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array("params.member_id" => "$member"));
-        $this->out('Results after: '.$this->mongoResults($member));
+        $this->out('Results after: ' . $this->mongoResults($member));
         $this->out("Cleaned");
         $this->out("");
     }
