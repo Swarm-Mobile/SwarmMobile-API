@@ -18,10 +18,9 @@ class RollupShell extends AppShell {
     
     public function getFirstRegisterDate($member){
         $sSQL = "SELECT m_field_id_20 FROM exp_member_data WHERE member_id = $member";   
-        $oModel = new Model(false, $table, 'ee');
+        $oModel = new Model(false, 'exp_member_data', 'ee');
         $result = $oDb->query($sSQL);                
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
-        
         $sSQL = <<<SQL
 SELECT 
     DATE(time_login) as first_date
@@ -31,6 +30,7 @@ ORDER BY time_login DESC
 LIMIT 1
 SQL;
         $oModel = new Model(false, 'sessions', 'swarmdata');
+        $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);                
         return $result[0][$table]['first_date'];
     }
@@ -65,7 +65,7 @@ SQL;
             $this->out("");
             $this->out("Start             : " . date('H:i:s'));
             if ($rebuild) {
-                $start_date = $this->getFirstRegisterDate();
+                $start_date = $this->getFirstRegisterDate($member);
                 $end_date = date('Y-m-d');
                 $this->clean($member, $start_date, $end_date);
             }
