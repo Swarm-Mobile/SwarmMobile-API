@@ -41,6 +41,7 @@ class RollupShell extends AppShell {
         $this->out("");
         foreach ($members as $member) {
             $this->out("Processing member : $member");
+            $this->out("");            
             $this->out("Start             : " . date('H:i:s'));
             if ($rebuild) {
                 $this->clean($member);
@@ -55,6 +56,7 @@ class RollupShell extends AppShell {
                 'end_date' => $end_date
             ));
             $this->out('Requests cached   : '.$this->mongoResults($member));
+            $this->out("");            
             $this->out("End               : " . date('H:i:s'));
             $this->out("");            
         }
