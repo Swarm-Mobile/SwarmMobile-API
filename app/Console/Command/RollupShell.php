@@ -33,7 +33,7 @@ SQL;
         $oModel = new Model(false, 'sessions', 'swarmdata');
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);                
-        return $result[0][$table]['first_date'];
+        return $result[0]['sessions']['first_date'];
     }
 
     public function main() {
