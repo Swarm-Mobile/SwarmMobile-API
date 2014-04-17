@@ -140,7 +140,7 @@ FROM (
 	    DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'),'%Y-%m-%d' ) AS date,
 	    DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'), '%k') AS hour
 	    FROM invoices i
-	INNER JOIN invoice_lines il ON i.invoice_id = il.invoice_id
+	LEFT JOIN invoice_lines il ON i.invoice_id = il.invoice_id
 	WHERE i.store_id= $lightspeed_id
 	    AND i.completed 
 	    AND i.total != 0 
@@ -151,6 +151,7 @@ FROM (
 ) t2
 GROUP BY date ASC, hour ASC             
 SQL;
+            var_dump($sSQL);
             $aRes = $oDb->fetchAll($sSQL);            
             return $aRes;
         }
