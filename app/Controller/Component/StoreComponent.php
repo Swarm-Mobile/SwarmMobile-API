@@ -151,7 +151,6 @@ FROM (
 ) t2
 GROUP BY date ASC, hour ASC             
 SQL;
-            var_dump($sSQL);
             $aRes = $oDb->fetchAll($sSQL);            
             return $aRes;
         }
