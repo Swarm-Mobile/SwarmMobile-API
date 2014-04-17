@@ -45,13 +45,13 @@ class APIController extends AppController {
     }
 
     public function __construct($request = null, $response = null) {
-        parent::__construct($request, $response);
         if (isset($_GET['norollups'])) {
-            $this->rollups = !(int) $_GET['norollups'];
+            $this->rollups = !$_GET['norollups'];
         }
         if (isset($_GET['nocache'])) {
-            $this->cache = !(int) $_GET['nocache'];
+            $this->cache = !$_GET['nocache'];
         }
+        parent::__construct($request, $response);
     }
 
     public function index() {
