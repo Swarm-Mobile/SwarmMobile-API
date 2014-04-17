@@ -7,7 +7,17 @@ App::uses('Model', 'Model');
 
 class RollupShell extends AppShell {
 
+    private function setEnvironment() {
+        $htaccess = file_get_contents(__DIR__.'/../.htaccess');
+        $pattern = '/.*SetEnv server_location "(.*)"/';
+        if (preg_match_all($pattern, $htaccess, $matches)) {
+            putenv('server_location=' . $matches[1][0]);
+            $_SERVER['server_location'] = $matches[1][0];
+        }
+    }
+
     public function main() {
+        $this->setEnvironment();
         if ($this->params['member_id'] == 'all' || empty($this->params['all'])) {
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = "SELECT member_id FROM exp_members WHERE group_id = 6";
@@ -22,7 +32,7 @@ class RollupShell extends AppShell {
         $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
         $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
-        $rebuild_text = ($rebuild)?'YES':'NO';
+        $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->out("\nRebuild : $rebuild_text");
         $this->out("\nMembers to process :" . implode(' ', $members));
         $this->out("\nStart Date: $start_date");
