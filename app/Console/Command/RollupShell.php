@@ -19,6 +19,7 @@ class RollupShell extends AppShell {
     public function getFirstRegisterDate($member){
         $sSQL = "SELECT m_field_id_20 FROM exp_member_data WHERE member_id = $member";   
         $oModel = new Model(false, 'exp_member_data', 'ee');
+        $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);                
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
         $sSQL = <<<SQL
