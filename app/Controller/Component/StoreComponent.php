@@ -357,7 +357,7 @@ SQL;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $ap_id);
             $aByDate = $this->dwellByDate($start_date, $end_date, $timezone, $ap_id);
-            return $this->averagify($this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x'),$data);
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
     
