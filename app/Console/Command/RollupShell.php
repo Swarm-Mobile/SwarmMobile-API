@@ -61,12 +61,12 @@ class RollupShell extends AppShell {
             'help' => "Member ID's to rebuild"
         ));
         $parser->addOption('start_date', array(
-            'short' => 'sd',
+            'short' => 's',
             'default' => date('Y-m-d', time() - 7 * 24 * 3600),
             'help' => 'Start Date of the rollup'
         ));
         $parser->addOption('end_date', array(
-            'short' => 'sd',
+            'short' => 'e',
             'default' => date('Y-m-d'),
             'help' => 'End Date of the rollup'
         ));
