@@ -22,13 +22,12 @@ class CleanCacheShell extends AppShell {
     public function main() {
         $minutes = (!isset($this->params['grace_time'])) ? 5 : $this->params['grace_time'];
         $seconds = $minutes * 60;
-        $this->out("\n Grace Time: $minutes'");
+        $this->out("Grace Time: $minutes'");
         $cache_folder = ROOT . DS . 'app' . DS . 'tmp' . DS . 'cache' . DS . 'api_calls' . DS;
         if (file_exists($cache_folder)) {
             $this->clean($cache_folder, $seconds);
         }
-
-        $this->out("\nDone!");
+        $this->out("Done!");
     }
 
     public function getOptionParser() {

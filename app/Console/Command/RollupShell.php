@@ -1,7 +1,7 @@
 <?php
 
-App::uses('ApiController', 'Controller');
-App::uses('ApiComponent', 'Controller/Component');
+App::uses('APIController', 'Controller');
+App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
@@ -34,14 +34,14 @@ class RollupShell extends AppShell {
         $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
-        $this->out("\nRebuild : $rebuild_text");
-        $this->out("\nMembers to process :" . implode(' ', $members));
-        $this->out("\nStart Date: $start_date");
-        $this->out("\nEnd Date  : $end_date");
-        $this->out("\n");
+        $this->out("Rebuild : $rebuild_text");
+        $this->out("Members to process (ID's):" . implode(' ', $members));
+        $this->out("Start Date: $start_date");
+        $this->out("End Date  : $end_date");
+        $this->out("");
         foreach ($members as $member) {
-            $this->out("\nProcessing member :$member");
-            $this->out("\nStart : " . date('H:i:s'));
+            $this->out("Processing member :$member");
+            $this->out("Start : " . date('H:i:s'));
             if ($rebuild) {
                 $this->clean($member);
             }
@@ -52,16 +52,16 @@ class RollupShell extends AppShell {
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->out("\nEnd :" . date('H:i:s'));
+            $this->out("End :" . date('H:i:s'));
         }
-        $this->out("\nDone!");
+        $this->out("Done!");
     }
 
     private function clean($member) {
-        $this->out("\nCleaning previous rollups");
+        $this->out("Cleaning previous rollups");
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array("params.id" => "$member"));
-        $this->out("\nCleaned");
+        $this->out("Cleaned");
     }
 
     public function getOptionParser() {
