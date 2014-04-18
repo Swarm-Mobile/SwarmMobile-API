@@ -61,7 +61,7 @@ class APIController extends AppController {
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: GET");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
-        header("Access-Control-Max-Age: 1");
+        header("Access-Control-Max-Age: 1728000");
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
