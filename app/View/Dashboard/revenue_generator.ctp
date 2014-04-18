@@ -1,1 +1,0 @@
-revenue_generator

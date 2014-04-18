@@ -1,0 +1,28 @@
+.loginArea {
+    color: white;
+}
+.logoDiv {
+    margin: 50px auto;
+    display: block;
+    background: url(../img/circle-logo.png) center center no-repeat;
+    width: 237px;
+    height: 236px;
+}
+.form-group {
+    margin-bottom: 25px;
+}
+.form-control {
+    height: 44px;
+}
+body, #wrapper{
+    background-color: #34495e;
+}
+@media only screen and (max-width : 480px) {
+    /* Styles */
+    .logoDiv {
+        margin: 30px auto;
+        background-size: 118px 118px;
+        width: 118px;
+        height: 118px;
+    }
+}

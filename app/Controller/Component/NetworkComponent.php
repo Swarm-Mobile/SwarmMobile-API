@@ -62,6 +62,8 @@ SELECT
 FROM `ws_user_profile`
 WHERE storeId= $member_id  
   AND emailId != 'Guest'    
+  AND emailId != ''
+  AND emailId IS NOT NULL 
   AND time BETWEEN '$start_date' AND '$end_date'
 GROUP BY hour
 SQL;
