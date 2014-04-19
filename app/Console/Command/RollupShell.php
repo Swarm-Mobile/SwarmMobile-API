@@ -100,11 +100,17 @@ SQL;
         $oModel = new Model(false, 'cache', 'mongodb');
         if($start_date){            
             $aRes = $oModel->find('all', array(
-                "params.member_id" => "$member",
-                "params.start_date" => "$start_date",
+                'conditions'=>array(
+                    "params.member_id" => "$member",
+                    "params.start_date" => "$start_date",
+                )
             ));            
         } else {
-            $aRes = $oModel->find('all', array("params.member_id" => "$member"));            
+            $aRes = $oModel->find('all', array(
+                'conditions' =>array(
+                    "params.member_id" => "$member"
+                )
+            ));            
         }
         return count($aRes);
     }
@@ -121,8 +127,8 @@ SQL;
     }
 
     private function cleanDay($member, $date) {
-        $this->out("Cleaning rollups for date: $date");        
         $this->out('Results before: ' . $this->mongoResults($member, $date));
+        $this->out("Cleaning rollups for date: $date");        
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
@@ -136,17 +142,17 @@ SQL;
             $this->cleanAll($member);
         } else {
             $this->out("");
+            $this->out('Results before: ' . $this->mongoResults($member));
             $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
-            $date = $start_date;
-            $this->out('Results before: ' . $this->mongoResults($member));
+            $date = $start_date;            
             do {
                 $this->cleanDay($member, $date);
                 $start_date = new DateTime($date);
                 date_add($start_date, date_interval_create_from_date_string('1 days'));
                 $date = date_format($start_date, 'Y-m-d');
-            } while ($start_date <= $end);
+            } while ($start_date <= $end);            
             $this->out('Results after: ' . $this->mongoResults($member));
             $this->out("Cleaned");
             $this->out("");
