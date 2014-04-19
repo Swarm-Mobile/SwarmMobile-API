@@ -132,12 +132,14 @@ SQL;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
             $date = $start_date;
+            $this->out('Results before: ' . $this->mongoResults($member));
             do {
                 $this->cleanDay($member, $date);
                 $start_date = new DateTime($date);
                 date_add($start_date, date_interval_create_from_date_string('1 days'));
                 $date = date_format($start_date, 'Y-m-d');
             } while ($start_date <= $end);
+            $this->out('Results after: ' . $this->mongoResults($member));
             $this->out("");
         }
     }
