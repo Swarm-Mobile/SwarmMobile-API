@@ -155,6 +155,7 @@ SQL;
                 $date = date_format($start_date, 'Y-m-d');
             } while ($start_date <= $end);            
             $this->out('Results after: ' . $this->mongoResults($member));
+            $this->out("");
             $this->out("Cleaned");
             $this->out("");
         }
