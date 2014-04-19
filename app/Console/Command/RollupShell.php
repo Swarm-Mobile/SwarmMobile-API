@@ -127,8 +127,9 @@ SQL;
     }
 
     private function cleanDay($member, $date) {
-        $this->out('Results before: ' . $this->mongoResults($member, $date));
+        $this->out("");
         $this->out("Cleaning rollups for date: $date");        
+        $this->out('Results before: ' . $this->mongoResults($member, $date));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
