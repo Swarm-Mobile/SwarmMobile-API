@@ -15,24 +15,29 @@ class RollupShell extends AppShell {
             $_SERVER['server_location'] = $matches[1][0];
         }
     }
-    
-    public function getFirstRegisterDate($member){
-        $sSQL = "SELECT m_field_id_20 FROM exp_member_data WHERE member_id = $member";   
+
+    public function getFirstRegisterDate($member) {
+        $sSQL = "SELECT m_field_id_20 FROM exp_member_data WHERE member_id = $member";
         $oModel = new Model(false, 'exp_member_data', 'ee');
         $oDb = $oModel->getDataSource();
-        $result = $oDb->query($sSQL);                
+        $result = $oDb->query($sSQL);
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
-        $sSQL = <<<SQL
+        $aTables = array('sessions_archive', 'sessions');
+        foreach ($aTables as $table) {
+            $sSQL = <<<SQL
 SELECT DATE(time_login) as first_date
-FROM sessions 
+FROM $table 
 WHERE network_id = $ap_id  
 ORDER BY time_login ASC  
 LIMIT 1
 SQL;
-        $oModel = new Model(false, 'sessions', 'swarmdata');
-        $oDb = $oModel->getDataSource();
-        $result = $oDb->query($sSQL);                
-        return $result[0][0]['first_date'];
+            $oModel = new Model(false, 'sessions', 'swarmdata');
+            $oDb = $oModel->getDataSource();
+            $result = $oDb->query($sSQL);
+            if (!empty($result)) {
+                return $result[0][0]['first_date'];
+            }
+        }
     }
 
     public function main() {
@@ -50,6 +55,7 @@ SQL;
             $members = explode(',', $this->params['member_id']);
         }
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
+        $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->out("Rebuild                  : $rebuild_text");
         if (!$rebuild) {
@@ -69,6 +75,8 @@ SQL;
                 $end_date = date('Y-m-d');
                 $this->out("Start Date        : $start_date");
                 $this->out("End Date          : $end_date");
+                $this->clean($member);
+            } else if ($override) {
                 $this->clean($member, $start_date, $end_date);
             }
             $member = trim($member);
@@ -94,7 +102,7 @@ SQL;
         return count($aRes);
     }
 
-    private function clean($member) {
+    private function cleanAll($member) {
         $this->out("");
         $this->out("Cleaning previous rollups");
         $this->out('Results before: ' . $this->mongoResults($member));
@@ -103,6 +111,35 @@ SQL;
         $this->out('Results after: ' . $this->mongoResults($member));
         $this->out("Cleaned");
         $this->out("");
+    }
+
+    private function cleanDay($member, $date) {
+        $this->out("");
+        $this->out("Cleaning rollups for date: $date");        
+        $oModel = new Model(false, 'cache', 'mongodb');
+        $oModel->deleteAll(array(
+            "params.member_id" => "$member",
+            "params.start_date" => "$date"
+        ));        
+        $this->out("Cleaned");
+        $this->out("");
+    }
+
+    private function clean($member, $start_date = false, $end_date = false) {
+        if ($start_date === false && $end_date === false) {
+            $this->cleanAll($member);
+        } else {
+            $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
+            $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
+            $end = new DateTime($end_date);
+            $date = $start_date;
+            do {
+                $start_date = new DateTime($date);
+                date_add($start_date, date_interval_create_from_date_string('1 days'));
+                $date = date_format($start_date, 'Y-m-d');
+                $this->cleanDay($member, $date);
+            } while ($start_date <= $end);
+        }
     }
 
     public function getOptionParser() {
@@ -114,7 +151,7 @@ SQL;
         ));
         $parser->addOption('start_date', array(
             'short' => 's',
-            'default' => date('Y-m-d', time() - 7 * 24 * 3600),
+            'default' => date('Y-m-d', time() - 3 * 24 * 3600),
             'help' => 'Start Date of the rollup'
         ));
         $parser->addOption('end_date', array(
@@ -122,10 +159,15 @@ SQL;
             'default' => date('Y-m-d'),
             'help' => 'End Date of the rollup'
         ));
+        $parser->addOption('override', array(
+            'short' => 'o',
+            'default' => false,
+            'help' => 'Delete the interval info and builds it again'
+        ));
         $parser->addOption('rebuild', array(
             'short' => 'r',
             'default' => false,
-            'help' => 'Delete the current info and builds it again'
+            'help' => 'Delete all the HISTORICAL mongodb info and rebuilds it again'
         ));
         return $parser;
     }
