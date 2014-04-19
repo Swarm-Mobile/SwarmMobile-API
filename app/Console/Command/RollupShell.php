@@ -133,10 +133,10 @@ SQL;
             $end = new DateTime($end_date);
             $date = $start_date;
             do {
-                $start_date = new DateTime($date);
-                $date = date_format($start_date, 'Y-m-d');
                 $this->cleanDay($member, $date);
+                $start_date = new DateTime($date);
                 date_add($start_date, date_interval_create_from_date_string('1 days'));
+                $date = date_format($start_date, 'Y-m-d');
             } while ($start_date <= $end);
             $this->out("");
         }
