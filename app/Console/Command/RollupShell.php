@@ -96,9 +96,16 @@ SQL;
         $this->out("Done!");
     }
 
-    private function mongoResults($member) {
+    private function mongoResults($member, $start_date = false) {
         $oModel = new Model(false, 'cache', 'mongodb');
-        $aRes = $oModel->find('all', array("params.member_id" => "$member"));
+        if($start_date){            
+            $aRes = $oModel->find('all', array(
+                "params.member_id" => "$member",
+                "params.start_date" => "$start_date",
+            ));            
+        } else {
+            $aRes = $oModel->find('all', array("params.member_id" => "$member"));            
+        }
         return count($aRes);
     }
 
@@ -115,12 +122,13 @@ SQL;
 
     private function cleanDay($member, $date) {
         $this->out("Cleaning rollups for date: $date");        
+        $this->out('Results before: ' . $this->mongoResults($member, $date));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
             "params.start_date" => "$date"
         ));        
-        $this->out("Cleaned");
+        $this->out('Results after: ' . $this->mongoResults($member, $date));
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
@@ -140,6 +148,7 @@ SQL;
                 $date = date_format($start_date, 'Y-m-d');
             } while ($start_date <= $end);
             $this->out('Results after: ' . $this->mongoResults($member));
+            $this->out("Cleaned");
             $this->out("");
         }
     }
