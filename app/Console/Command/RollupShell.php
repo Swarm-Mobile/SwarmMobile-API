@@ -114,7 +114,6 @@ SQL;
     }
 
     private function cleanDay($member, $date) {
-        $this->out("");
         $this->out("Cleaning rollups for date: $date");        
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
@@ -122,13 +121,13 @@ SQL;
             "params.start_date" => "$date"
         ));        
         $this->out("Cleaned");
-        $this->out("");
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
         if ($start_date === false && $end_date === false) {
             $this->cleanAll($member);
         } else {
+            $this->out("");
             $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
@@ -139,6 +138,7 @@ SQL;
                 $date = date_format($start_date, 'Y-m-d');
                 $this->cleanDay($member, $date);
             } while ($start_date <= $end);
+            $this->out("");
         }
     }
 
