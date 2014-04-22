@@ -21,6 +21,7 @@ class MemberComponent extends APIComponent {
         }
         return $tmp;
     }
+
     public function accessPoint($params) {
         $rules = array('member_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -37,6 +38,7 @@ class MemberComponent extends APIComponent {
         }
         return $tmp;
     }
+
     public function data($params) {
         $rules = array('member_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -102,15 +104,16 @@ SQL;
         }
         return $tmp;
     }
+
     public function settings($params) {
         //TODO
     }
-	
-	public static function verify($params) {
-		$rules = array('member_id' => array('required', 'int'), 'uuid' => array('required'));
-        $this->validate($params, $rules);
+
+    public static function verify($params) {
+        $rules = array('member_id' => array('required', 'int'), 'uuid' => array('required'));
+        self::validate($params, $rules);
         $member_id = $params['member_id'];
-		$uuid = $params['uuid'];
+        $uuid = $params['uuid'];
         $table = 'exp_member_data';
         $oModel = new Model(false, $table, 'ee');
         $oDb = $oModel->getDataSource();
@@ -118,9 +121,10 @@ SQL;
         $bind = array(':uuid' => $uuid);
         $result = $oDb->fetch($sSQL, $bind);
         if ($result[$table]['member_id'] === $member_id) {
-        	return true;
+            return true;
         }
 
-		return false;
-	}
+        return false;
+    }
+
 }

@@ -4,7 +4,11 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('RollupShell', 'Console/Command');
 
 class RollupComponent extends APIComponent {
-    public function make($params) {        
+    public function make($params) {
+        $user = $this->api->authenticate($params['access_token']);        
+        if($user['id'] != 10){
+            throw new APIException(401, 'invalid_grant', "Permission denied");
+        }
         $rules = array(
             'action' => array('required'),
             'member_id' => array('required', 'int'),
@@ -21,9 +25,9 @@ class RollupComponent extends APIComponent {
         $oRollup->params['override']    = $params['action'] == 'override';
         $oRollup->params['rebuild']     = $params['action'] == 'rebuild';
         ob_start();
-        $oRollup->main();
+        $oRollup->main(false);
         $result = ob_get_contents();
         ob_end_clean();
-        return json_encode(array('output'=>$result));        
+        return array('output'=>  nl2br($result));
     }
 }

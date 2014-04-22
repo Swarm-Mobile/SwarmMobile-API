@@ -7,6 +7,8 @@ App::uses('Model', 'Model');
 
 class RollupShell extends AppShell {
 
+    private $console = true;
+
     private function setEnvironment() {
         $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
         $pattern = '/.*SetEnv server_location "(.*)"/';
@@ -40,7 +42,15 @@ SQL;
         }
     }
 
-    public function main() {
+    private function output($text) {
+        $this->out($text);
+        if (!$this->console) {
+            echo $text . "\n";
+        }
+    }
+
+    public function main($console = true) {
+        $this->console = $console;
         $this->setEnvironment();
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
         if ($member_id == 'all') {
@@ -57,107 +67,104 @@ SQL;
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
-        $this->out("Rebuild                  : $rebuild_text");
+        $this->output("Full Rebuild                  : $rebuild_text");
         if (!$rebuild) {
             $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
             $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
-            $this->out("Start Date               : $start_date");
-            $this->out("End Date                 : $end_date");
+            $this->output("Start Date               : $start_date");
+            $this->output("End Date                 : $end_date");
         }
-        $this->out("Members to process (ID's): " . implode(' ', $members));
-        $this->out("");
+        $this->output("Members to process (ID's): " . implode(' ', $members));
+        $this->output("---------------------------------------------");
+        $oAPI = new APIController();
+        $oAPI->cache = false;
+        $oAPI->rollups = true;        
         foreach ($members as $member) {
-            $this->out("Processing member : $member");
-            $this->out("");
-            $this->out("Start             : " . date('H:i:s'));
+            $this->output("Processing member : $member");
+            $this->output("");
+            $this->output("Start             : " . date('H:i:s'));
             if ($rebuild) {
                 $start_date = $this->getFirstRegisterDate($member);
                 $end_date = date('Y-m-d');
-                $this->out("Start Date        : $start_date");
-                $this->out("End Date          : $end_date");
+                $this->output("Start Date        : $start_date");
+                $this->output("End Date          : $end_date");
                 $this->clean($member);
             } else if ($override) {
                 $this->clean($member, $start_date, $end_date);
             }
             $member = trim($member);
-            $oAPI = new APIController();
-            $oAPI->cache = true;
-            $oAPI->rollups = true;
+            $this->output("Rebuilding rollups");
+            $this->output('Elements cached before: ' . $this->mongoResults($member, $start_date));
             $result = $oAPI->internalCall('store', 'totals', array(
                 'member_id' => $member,
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->out('Requests cached   : ' . $this->mongoResults($member));
-            $this->out("");
-            $this->out("End               : " . date('H:i:s'));
-            $this->out("");
+            $this->output('Elements cached after: ' . $this->mongoResults($member, $start_date));
+            $this->output("---------------------------------------------");
+            $this->output("End               : " . date('H:i:s'));
+            $this->output("");
         }
-        $this->out("Done!");
+        $this->output("Done!");
     }
 
     private function mongoResults($member, $start_date = false) {
         $oModel = new Model(false, 'cache', 'mongodb');
-        if($start_date){            
+        if ($start_date) {
             $aRes = $oModel->find('all', array(
-                'conditions'=>array(
+                'conditions' => array(
                     "params.member_id" => "$member",
                     "params.start_date" => "$start_date",
                 )
-            ));            
+            ));
         } else {
             $aRes = $oModel->find('all', array(
-                'conditions' =>array(
+                'conditions' => array(
                     "params.member_id" => "$member"
                 )
-            ));            
+            ));
         }
         return count($aRes);
     }
 
     private function cleanAll($member) {
-        $this->out("");
-        $this->out("Cleaning previous rollups");
-        $this->out('Results before: ' . $this->mongoResults($member));
+        $this->output("---------------------------------------------");
+        $this->output("Cleaning previous rollups");
+        $this->output('Global elements cached before: ' . $this->mongoResults($member));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array("params.member_id" => "$member"));
-        $this->out('Results after: ' . $this->mongoResults($member));
-        $this->out("Cleaned");
-        $this->out("");
+        $this->output('Global elements cached after: ' . $this->mongoResults($member));
+        $this->output("Cleaned");
+        $this->output("---------------------------------------------");
     }
 
     private function cleanDay($member, $date) {
-        $this->out("");
-        $this->out("Cleaning rollups for date: $date");        
-        $this->out('Results before: ' . $this->mongoResults($member, $date));
+        $this->output("Cleaning rollups for date: $date");
+        $this->output('Elements cached before: ' . $this->mongoResults($member, $date));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
             "params.start_date" => "$date"
-        ));        
-        $this->out('Results after: ' . $this->mongoResults($member, $date));
+        ));
+        $this->output('Elements cached after: ' . $this->mongoResults($member, $date));
+        $this->output("---------------------------------------------");
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
         if ($start_date === false && $end_date === false) {
             $this->cleanAll($member);
         } else {
-            $this->out("");
-            $this->out('Results before: ' . $this->mongoResults($member));
             $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
-            $date = $start_date;            
+            $date = $start_date;
+            $this->output("---------------------------------------------");
             do {
                 $this->cleanDay($member, $date);
                 $start_date = new DateTime($date);
                 date_add($start_date, date_interval_create_from_date_string('1 days'));
                 $date = date_format($start_date, 'Y-m-d');
-            } while ($start_date <= $end);            
-            $this->out('Results after: ' . $this->mongoResults($member));
-            $this->out("");
-            $this->out("Cleaned");
-            $this->out("");
+            } while ($start_date <= $end);
         }
     }
 

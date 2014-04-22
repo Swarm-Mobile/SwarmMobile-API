@@ -9,6 +9,7 @@ App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('StoreComponent', 'Controller/Component');
+App::uses('RollupComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
@@ -16,8 +17,8 @@ class APIController extends AppController {
     public $cache_time_exceptions = array();
     public $uses = array();
     public $debug = true;
-    public $cache = false;
-    public $rollups = false;
+    public $cache = true;
+    public $rollups = true;
     public $user = array('id_user' => 0, 'username' => '');
     public $endpoint = '';
     public $request_start = 0;
@@ -58,9 +59,6 @@ class APIController extends AppController {
                     $this->cache = !$_GET['nocache'];
                 }
             }
-        } else {
-            $this->rollups = false;
-            $this->cache = false;
         }
     }
 
@@ -85,9 +83,6 @@ class APIController extends AppController {
             }
 
             $path = func_get_args();
-            unset($params['access_token']);
-            unset($params['norollups']);
-            unset($params['nocache']);
             $this->params = $params;
             if (!isset($path[1])) {
                 $path[1] = '';
@@ -115,6 +110,9 @@ class APIController extends AppController {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
         }
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
         return true;
     }
 
@@ -124,22 +122,18 @@ class APIController extends AppController {
         }
         $this->cache = false;
         $this->rollups = false;
-        if (!MemberComponent::verify(array($param['member_id'], $param['uuid']))) {
-            throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-        }
         return true;
     }
 
     public function internalCall($component, $method, $params) {
         $classname = ucfirst($component) . 'Component';
-        if (class_exists($classname)) {
-            $oComponent = new $classname(new ComponentCollection());
+        if (class_exists($classname)) {            
+            $oComponent = new $classname($this->cache, $this->rollups);
             if (method_exists($oComponent, $method)) {
                 $result = $this->getPreviousResult($component, $method, $params);
                 if (!$result) {
                     $result = $oComponent->$method($params);
-                    if ($this->cache)
-                        $this->cache($component, $method, $params, $result);
+                    $this->cache($component, $method, $params, $result);
                 }
                 return $result;
             }
@@ -149,15 +143,14 @@ class APIController extends AppController {
     }
 
     private function getPreviousResult($component, $method, $params) {
-        if (!$this->cache) {
-            return false;
-        }
-        $filename = $this->getCacheFilePath($component, $method, $params);
-        if (file_exists($filename)) {
-            $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-            if (time() - filemtime($filename) <= $cache_time) {
-                include $filename;
-                return $result;
+        if ($this->cache) {
+            $filename = $this->getCacheFilePath($component, $method, $params);
+            if (file_exists($filename)) {
+                $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
+                if (time() - filemtime($filename) <= $cache_time) {
+                    include $filename;
+                    return $result;
+                }
             }
         }
         if ($this->rollups) {
@@ -211,7 +204,7 @@ class APIController extends AppController {
         }
     }
 
-    private function authenticate($accessToken = '') {
+    public function authenticate($accessToken = '') {
         $oOAuth = new OAuthComponent(new ComponentCollection());
         $oOAuth->OAuth2->verifyAccessToken($accessToken);
         return $oOAuth->user();
@@ -224,16 +217,16 @@ class APIController extends AppController {
             $handle = fopen($cache_file, 'w+');
             fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
             fclose($handle);
-            if ($this->rollups) {
-                if (!$from_mongo) {
-                    $oModel = new Model(false, 'cache', 'mongodb');
-                    $result['params'] = array();
-                    foreach ($params as $k => $v) {
-                        $result['params'][$k] = $v;
-                    }
-                    $result['params']['endpoint'] = $component . '/' . $method;
-                    $oModel->save($result);
+        }
+        if ($this->rollups) {
+            if (!$from_mongo) {
+                $oModel = new Model(false, 'cache', 'mongodb');
+                $result['params'] = array();
+                foreach ($params as $k => $v) {
+                    $result['params'][$k] = $v;
                 }
+                $result['params']['endpoint'] = $component . '/' . $method;
+                $oModel->save($result);
             }
         }
     }
