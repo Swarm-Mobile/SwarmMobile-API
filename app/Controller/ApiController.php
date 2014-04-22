@@ -16,8 +16,8 @@ class APIController extends AppController {
     public $cache_time_exceptions = array();
     public $uses = array();
     public $debug = true;
-    public $cache = true;
-    public $rollups = true;
+    public $cache = false;
+    public $rollups = false;
     public $user = array('id_user' => 0, 'username' => '');
     public $endpoint = '';
     public $request_start = 0;
@@ -64,7 +64,7 @@ class APIController extends AppController {
         $this->microtime = microtime(true);
         $this->request_start = date('Y-m-d H:i:s');
         header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: GET, POST");
+        header("Access-Control-Allow-Methods: POST, GET");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
         header("Access-Control-Max-Age: 1728000");
         header("Content-Type: application/json");
