@@ -45,18 +45,23 @@ class APIController extends AppController {
     }
 
     public function __construct($request = null, $response = null) {
-        if ($this->request->is('post')) {
+        parent::__construct($request, $response);
+        if (!empty($this->request)) {
+            if ($request->is('post')) {
+                $this->rollups = false;
+                $this->cache = false;
+            } elseif ($this->request->is('get')) {
+                if (isset($_GET['norollups'])) {
+                    $this->rollups = !$_GET['norollups'];
+                }
+                if (isset($_GET['nocache'])) {
+                    $this->cache = !$_GET['nocache'];
+                }
+            }
+        } else {
             $this->rollups = false;
             $this->cache = false;
-        } elseif ($this->request->is('get')) {
-            if (isset($_GET['norollups'])) {
-                $this->rollups = !$_GET['norollups'];
-            }
-            if (isset($_GET['nocache'])) {
-                $this->cache = !$_GET['nocache'];
-            }
         }
-        parent::__construct($request, $response);
     }
 
     public function index() {
@@ -122,7 +127,6 @@ class APIController extends AppController {
         if (!MemberComponent::verify(array($param['member_id'], $param['uuid']))) {
             throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
         }
-
         return true;
     }
 
