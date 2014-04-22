@@ -70,13 +70,13 @@ class APIController extends AppController {
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
-            	$params = $_GET;
-				$this->processGET();
+                $params = $_GET;
+                $this->processGET($params);
             } elseif ($this->request->is('post')) {
-            	$params = $_POST;
-				$this->processPOST($params);
+                $params = $_POST;
+                $this->processPOST($params);
             } else {
-            	throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
+                throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
             }
 
             $path = func_get_args();
@@ -107,25 +107,24 @@ class APIController extends AppController {
     }
 
     public function processGET($params = array()) {
-    	if (!$this->debug) {
-    		$this->user = $this->authenticate($params['access_token']);
+        if (!$this->debug) {
+            $this->user = $this->authenticate($params['access_token']);
         }
-		return true; 
+        return true;
     }
 
-	public function processPOST($params = array()) {
-		if (!$this->debug) {
-    		$this->user = $this->authenticate($params['access_token']);
+    public function processPOST($params = array()) {
+        if (!$this->debug) {
+            $this->user = $this->authenticate($params['access_token']);
         }
-		$this->cache   = false;
-		$this->rollups = false;
-		if (!MemberComponent::verify(array($param['member_id'], $param['uuid']))) {
-			throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-		}
+        $this->cache = false;
+        $this->rollups = false;
+        if (!MemberComponent::verify(array($param['member_id'], $param['uuid']))) {
+            throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+        }
 
-		return true;
-		
-	}
+        return true;
+    }
 
     public function internalCall($component, $method, $params) {
         $classname = ucfirst($component) . 'Component';
@@ -135,7 +134,8 @@ class APIController extends AppController {
                 $result = $this->getPreviousResult($component, $method, $params);
                 if (!$result) {
                     $result = $oComponent->$method($params);
-                    if ($this->cache) $this->cache($component, $method, $params, $result);
+                    if ($this->cache)
+                        $this->cache($component, $method, $params, $result);
                 }
                 return $result;
             }
@@ -207,12 +207,11 @@ class APIController extends AppController {
         }
     }
 
-
-	private function authenticate($accessToken = '') {
-		$oOAuth = new OAuthComponent(new ComponentCollection());
+    private function authenticate($accessToken = '') {
+        $oOAuth = new OAuthComponent(new ComponentCollection());
         $oOAuth->OAuth2->verifyAccessToken($accessToken);
         return $oOAuth->user();
-	}
+    }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
         if ($this->cache) {
@@ -238,6 +237,7 @@ class APIController extends AppController {
 }
 
 class APIException extends Exception {
+
     public $error_no;
     public $error;
     public $description;

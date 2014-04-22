@@ -4,7 +4,7 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('RollupShell', 'Console/Command');
 
 class RollupComponent extends APIComponent {
-    public function make($params) {
+    public function make($params) {        
         $rules = array(
             'action' => array('required'),
             'member_id' => array('required', 'int'),
