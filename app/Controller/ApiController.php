@@ -45,6 +45,21 @@ class APIController extends AppController {
     }
 
     public function __construct($request = null, $response = null) {
+        if ($this->request->is('post')) {
+            $this->rollups = false;
+            $this->cache = false;
+        } elseif ($this->request->is('get')) {
+            if (isset($_GET['norollups'])) {
+                $this->rollups = !$_GET['norollups'];
+            }
+            if (isset($_GET['nocache'])) {
+                $this->cache = !$_GET['nocache'];
+            }
+        }
+        parent::__construct($request, $response);
+    }
+
+    public function __construct($request = null, $response = null) {
         if (isset($_GET['norollups'])) {
             $this->rollups = !$_GET['norollups'];
         }
@@ -59,32 +74,33 @@ class APIController extends AppController {
         $this->microtime = microtime(true);
         $this->request_start = date('Y-m-d H:i:s');
         header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: GET");
+        header("Access-Control-Allow-Methods: GET, POST");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
         header("Access-Control-Max-Age: 1728000");
         header("Content-Type: application/json");
         try {
             if ($this->request->is('get')) {
-                $params = $_GET;
-                if (!$this->debug) {
-                    $oOAuth = new OAuthComponent(new ComponentCollection());
-                    $oOAuth->OAuth2->verifyAccessToken($params['access_token']);
-                    $this->user = $oOAuth->user();
-                }
-                $path = func_get_args();
-                unset($params['access_token']);
-                unset($params['norollups']);
-                unset($params['nocache']);
-                $this->params = $params;
-                if (!isset($path[1])) {
-                    $path[1] = '';
-                }
-                $this->endpoint = $path[0] . '/' . $path[1];
-                echo json_encode($this->internalCall($path[0], $path[1], $params));
-                $this->call_log();
-                exit();
+            	$params = $_GET;
+				$this->processGET();
+            } elseif ($this->request->is('post')) {
+            	$params = $_POST;
+				$this->processPOST($params);
+            } else {
+            	throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
             }
-            throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
+
+            $path = func_get_args();
+            unset($params['access_token']);
+            unset($params['norollups']);
+            unset($params['nocache']);
+            $this->params = $params;
+            if (!isset($path[1])) {
+                $path[1] = '';
+            }
+            $this->endpoint = $path[0] . '/' . $path[1];
+            echo json_encode($this->internalCall($path[0], $path[1], $params));
+            $this->call_log();
+            exit();
         } catch (OAuth2AuthenticateException $e) {
             $this->response_code = $e->getCode();
             $this->response_message = $e->getMessage();
@@ -100,6 +116,27 @@ class APIController extends AppController {
         }
     }
 
+    public function processGET($params = array()) {
+    	if (!$this->debug) {
+    		$this->user = $this->authenticate($params['access_token']);
+        }
+		return true; 
+    }
+
+	public function processPOST($params = array()) {
+		if (!$this->debug) {
+    		$this->user = $this->authenticate($params['access_token']);
+        }
+		$this->cache   = false;
+		$this->rollups = false;
+		if (!MemberComponent::verify(array($param['member_id'], $param['uuid']))) {
+			throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+		}
+
+		return true;
+		
+	}
+
     public function internalCall($component, $method, $params) {
         $classname = ucfirst($component) . 'Component';
         if (class_exists($classname)) {
@@ -108,7 +145,7 @@ class APIController extends AppController {
                 $result = $this->getPreviousResult($component, $method, $params);
                 if (!$result) {
                     $result = $oComponent->$method($params);
-                    $this->cache($component, $method, $params, $result);
+                    if ($this->cache) $this->cache($component, $method, $params, $result);
                 }
                 return $result;
             }
@@ -180,6 +217,13 @@ class APIController extends AppController {
         }
     }
 
+
+	private function authenticate($accessToken = '') {
+		$oOAuth = new OAuthComponent(new ComponentCollection());
+        $oOAuth->OAuth2->verifyAccessToken($accessToken);
+        return $oOAuth->user();
+	}
+
     private function cache($component, $method, $params, $result, $from_mongo = false) {
         if ($this->cache) {
             $this->createCacheFolders($component, $method);
@@ -204,7 +248,6 @@ class APIController extends AppController {
 }
 
 class APIException extends Exception {
-
     public $error_no;
     public $error;
     public $description;

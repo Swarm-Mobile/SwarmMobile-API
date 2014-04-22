@@ -105,5 +105,22 @@ SQL;
     public function settings($params) {
         //TODO
     }
+	
+	public static function verify($params) {
+		$rules = array('member_id' => array('required', 'int'), 'uuid' => array('required'));
+        $this->validate($params, $rules);
+        $member_id = $params['member_id'];
+		$uuid = $params['uuid'];
+        $table = 'exp_member_data';
+        $oModel = new Model(false, $table, 'ee');
+        $oDb = $oModel->getDataSource();
+        $sSQL = "SELECT member_id FROM $table WHERE m_field_id_128 = :uuid";
+        $bind = array(':uuid' => $uuid);
+        $result = $oDb->fetch($sSQL, $bind);
+        if ($result[$table]['member_id'] === $member_id) {
+        	return true;
+        }
 
+		return false;
+	}
 }
