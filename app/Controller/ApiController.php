@@ -59,16 +59,6 @@ class APIController extends AppController {
         parent::__construct($request, $response);
     }
 
-    public function __construct($request = null, $response = null) {
-        if (isset($_GET['norollups'])) {
-            $this->rollups = !$_GET['norollups'];
-        }
-        if (isset($_GET['nocache'])) {
-            $this->cache = !$_GET['nocache'];
-        }
-        parent::__construct($request, $response);
-    }
-
     public function index() {
         set_time_limit(3600);
         $this->microtime = microtime(true);
