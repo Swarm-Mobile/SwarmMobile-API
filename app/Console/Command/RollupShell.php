@@ -92,19 +92,21 @@ SQL;
                 $end_date = date('Y-m-d');
                 $this->output("Start Date        : $start_date");
                 $this->output("End Date          : $end_date");
+                $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                 $this->clean($member, $start_date, $end_date);
             } else if ($override) {
+                $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                 $this->clean($member, $start_date, $end_date);
             }
             $member = trim($member);
+            $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
             $this->output("Rebuilding rollups");
-            $this->output('Elements cached before: ' . $this->mongoResults($member, $start_date));
             $result = $oAPI->internalCall('store', 'totals', array(
                 'member_id' => $member,
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->output('Elements cached after: ' . $this->mongoResults($member));
+            $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
             $this->output("End               : " . date('H:i:s'));
             $this->output("");
