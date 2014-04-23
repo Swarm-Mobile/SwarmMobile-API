@@ -24,6 +24,7 @@ class RollupShell extends AppShell {
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
+        $ap_id = (empty($ap_id))?0:$ap_id;
         $aTables = array('sessions_archive', 'sessions');
         foreach ($aTables as $table) {
             $sSQL = <<<SQL
