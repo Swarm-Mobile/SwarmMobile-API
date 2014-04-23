@@ -160,6 +160,52 @@ class DATABASE_CONFIG {
             'prefix' => '',
         )
     );
+	public $intjinesh = array(
+        'mongodb' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'API',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
+        'oauth' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'oauth',
+            'prefix' => '',
+        ),
+        'ee' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'ee_jinesh',
+            'prefix' => '',
+        ),
+        'pos' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'pos_int',
+            'prefix' => '',
+        ),
+        'swarmdata' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'swarmdata_int',
+            'prefix' => '',
+        )
+    );
     public $live = array(
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',

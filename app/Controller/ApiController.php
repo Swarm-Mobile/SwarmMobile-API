@@ -124,9 +124,6 @@ class APIController extends AppController {
         }
         $this->cache = false;
         $this->rollups = false;
-        if (!MemberComponent::verify(array($param['member_id'], $param['uuid']))) {
-            throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-        }
         return true;
     }
 

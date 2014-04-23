@@ -8,7 +8,10 @@ switch ($subdomain) {
 	case 'intapi':
 	case 'devapi':
 	case 'newapi':
-		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));                
+		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));
+	case 'jineshapi':
+		Router::connect('/api/*'	, array('controller' => 'api'	, 'action' => 'index'));
+		break;          
 	default:
 		Router::connect('/api/*'	, array('controller' => 'api'	, 'action' => 'index'));	
 		break;
