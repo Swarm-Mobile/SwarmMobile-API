@@ -66,7 +66,7 @@ SQL;
         } else {
             $members = explode(',', $this->params['member_id']);
         }
-        $tmp = array_chunk($members, count($members)/$parts[1]);
+        $tmp = array_chunk($members, ceil(count($members)/$parts[1]));
         $members = $tmp[$parts[0]];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
