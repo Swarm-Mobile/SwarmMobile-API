@@ -281,6 +281,7 @@ SQL;
     }
     
     private function dwellByHour($start_date, $end_date, $timezone, $ap_id) {
+        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $sSQL = <<<SQL
 SELECT
     x.hour,
@@ -315,12 +316,12 @@ LEFT JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $oModel = new Model(false, $table, 'swarmdata');
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
     private function dwellByDate($start_date, $end_date, $timezone, $ap_id) {
+        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
 FROM(
@@ -339,7 +340,6 @@ FROM(
     HAVING 18000 > dwell_time
 ) t2
 SQL;
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $oModel = new Model(false, $table, 'swarmdata');
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
@@ -365,6 +365,7 @@ SQL;
     }
     
     private function returningByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
+        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $sSQL = <<<SQL
 SELECT
     x.hour,
@@ -407,12 +408,12 @@ INNER JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $oModel = new Model(false, $table, 'swarmdata');
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
     private function returningByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
+        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $sSQL = <<<SQL
 SELECT  
     date(y.max_login) as date,
@@ -438,7 +439,6 @@ WHERE nml.first_logout IS NOT NULL
   AND y.max_login IS NOT NULL
 GROUP BY date       
 SQL;
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $oModel = new Model(false, $table, 'swarmdata');
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
@@ -466,6 +466,7 @@ SQL;
     }
     
     private function footTrafficByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
+        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $sSQL = <<<SQL
 SELECT 
     x.hour,
@@ -499,12 +500,12 @@ LEFT JOIN
 GROUP BY x.hour
 ORDER BY x.hour ASC
 SQL;
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $oModel = new Model(false, $table, 'swarmdata');
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
     }
     private function footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
+        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $sSQL = <<<SQL
 SELECT 
     DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,
@@ -519,7 +520,6 @@ WHERE (mac_address.status<>'noise')
  AND time_login BETWEEN '$start_date' AND '$end_date'  
 GROUP BY date
 SQL;
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
         $oModel = new Model(false, $table, 'swarmdata');
         $oDb = $oModel->getDataSource();
         return $oDb->fetchAll($sSQL);
