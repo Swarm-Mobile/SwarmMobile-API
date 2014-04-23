@@ -54,6 +54,7 @@ SQL;
         $this->console = $console;
         $this->setEnvironment();
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
+        $parts = explode('/', $this->params['parts']);
         if ($member_id == 'all') {
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = "SELECT member_id FROM exp_members WHERE group_id = 6";
@@ -65,6 +66,8 @@ SQL;
         } else {
             $members = explode(',', $this->params['member_id']);
         }
+        $tmp = array_chunk($members, count($members)/$parts[1]);
+        $members = $tmp[$parts[0]];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
@@ -195,6 +198,11 @@ SQL;
             'short' => 'r',
             'default' => false,
             'help' => 'Delete all the HISTORICAL mongodb info and rebuilds it again'
+        ));
+        $parse->addOption('part', array(
+            'short' => 'p',
+            'default' => '1,1',
+            'help'=> 'Slice of members that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
         ));
         return $parser;
     }
