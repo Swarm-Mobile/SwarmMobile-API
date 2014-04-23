@@ -377,7 +377,20 @@ SQL;
         return $result;
     }
 
-    public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
+	/**
+	 * Formats results array for use on the dashboard
+	 * @param $aRes Results array to format
+	 * @param $data Member data
+	 * @param $params Parameters that generated the results
+	 * @param $start_date
+	 * @param $end_date
+	 * @param $endpoint Which API function generated these results
+	 * @param $t1 The array index containing the value in the results array
+	 * @param $t2 The array index containing the dates in the results array.  Defaults to t1.
+	 * @param string $dbAlias The index within each row array with the value being counted.  Defaults to 'value'
+	 * @return array
+	 */
+	public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
         $cResult = array('data' => array('totals' => array('open' => 0, 'close' => 0, 'total' => 0)));
         foreach ($aRes as $oRow) {
             $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
