@@ -199,9 +199,9 @@ SQL;
             'default' => false,
             'help' => 'Delete all the HISTORICAL mongodb info and rebuilds it again'
         ));
-        $parse->addOption('part', array(
+        $parser->addOption('part', array(
             'short' => 'p',
-            'default' => '1,1',
+            'default' => '1/1',
             'help'=> 'Slice of members that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
         ));
         return $parser;
