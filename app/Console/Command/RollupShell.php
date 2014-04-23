@@ -132,26 +132,26 @@ SQL;
     }
 
     private function cleanAll($member) {
-        $this->output("---------------------------------------------");
-        $this->output("Cleaning previous rollups");
-        $this->output('Global elements cached before: ' . $this->mongoResults($member));
+        //$this->output("---------------------------------------------");
+        //$this->output("Cleaning previous rollups");
+        //$this->output('Global elements cached before: ' . $this->mongoResults($member));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array("params.member_id" => "$member"));
-        $this->output('Global elements cached after: ' . $this->mongoResults($member));
-        $this->output("Cleaned");
-        $this->output("---------------------------------------------");
+        //$this->output('Global elements cached after: ' . $this->mongoResults($member));
+        //$this->output("Cleaned");
+        //$this->output("---------------------------------------------");
     }
 
     private function cleanDay($member, $date) {
-        $this->output("Cleaning rollups for date: $date");
-        $this->output('Elements cached before: ' . $this->mongoResults($member, $date));
+        //$this->output("Cleaning rollups for date: $date");
+        //$this->output('Elements cached before: ' . $this->mongoResults($member, $date));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
             "params.start_date" => "$date"
         ));
-        $this->output('Elements cached after: ' . $this->mongoResults($member, $date));
-        $this->output("---------------------------------------------");
+        //$this->output('Elements cached after: ' . $this->mongoResults($member, $date));
+        //$this->output("---------------------------------------------");
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
