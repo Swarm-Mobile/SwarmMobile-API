@@ -16,12 +16,18 @@ class APIComponent {
         '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11',
         '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'
     );
+    public $cache = true;
+    public $rollups = true;
 
-    public function __construct() {
+    public function __construct($cache = true, $rollups = true) {
+        $this->cache = $cache;
+        $this->rollups = $rollups;
         $this->api = new APIController();
+        $this->api->cache = $this->cache;
+        $this->api->rollups = $this->rollups;          
     }
 
-    public function validate($params, $rules) {
+    public static function validate($params, $rules) {
         if (!empty($rules)) {
             foreach ($rules as $param => $validators) {
                 foreach ($validators as $validator) {

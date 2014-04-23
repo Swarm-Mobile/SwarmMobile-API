@@ -67,7 +67,7 @@ class StoreComponent extends APIComponent {
             return $this->iterativeCall('store', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            $ap_id = $data['data']['ap_id'];
+            $ap_id = (!empty($data['data']['ap_id']))?$data['data']['ap_id']:0;            
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
@@ -223,7 +223,7 @@ SQL;
         if ($params['start_date'] != $params['end_date']) {
             return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params),$data);
         } else {
-            $ap_id = $data['data']['ap_id'];
+            $ap_id = (!empty($data['data']['ap_id']))?$data['data']['ap_id']:0;            
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
@@ -356,7 +356,7 @@ SQL;
         if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeHourDateCall('store', __FUNCTION__, $params);
         } else {
-            $ap_id = $data['data']['ap_id'];
+            $ap_id = (!empty($data['data']['ap_id']))?$data['data']['ap_id']:0;            
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $ap_id);
@@ -455,7 +455,7 @@ SQL;
             return $this->iterativeCall('store', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            $ap_id = $data['data']['ap_id'];
+            $ap_id = (!empty($data['data']['ap_id']))?$data['data']['ap_id']:0;            
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
@@ -536,7 +536,7 @@ SQL;
             return $this->iterativeCall('store', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            $ap_id = $data['data']['ap_id'];
+            $ap_id = (!empty($data['data']['ap_id']))?$data['data']['ap_id']:0;            
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));

@@ -9,81 +9,88 @@ App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('StoreComponent', 'Controller/Component');
+App::uses('RollupComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
     public $uses = array();
-    
     public $debug = true;
     public $cache = true;
     public $rollups = true;
-    
-    public $user = array('id_user'=>0,'username'=>'');
+    public $user = array('id_user' => 0, 'username' => '');
     public $endpoint = '';
     public $request_start = 0;
-    public $request_end = 0;    
-    
+    public $request_end = 0;
     public $microtime = 0;
-    
     public $response_code = 200;
     public $response_message = 'OK';
-    public $params = array();    
+    public $params = array();
 
     private function call_log() {
         $this->request_end = date('Y-m-d H:i:s');
         $oModel = new Model(false, 'calls', 'mongodb');
         $call = array(
-            'id_user'=>$this->user['id_user'],
-            'username'=>$this->user['username'],
-            'endpoint'=>$this->endpoint,
-            'request_start'=>$this->request_start,
-            'request_end'=>$this->request_end,
-            'response_time'=>  microtime(true) - $this->microtime,
-            'response_code'=>$this->response_code,
-            'response_message'=>$this->response_message,
-            'params'=>$this->params            
+            'id_user' => $this->user['id_user'],
+            'username' => $this->user['username'],
+            'endpoint' => $this->endpoint,
+            'request_start' => $this->request_start,
+            'request_end' => $this->request_end,
+            'response_time' => microtime(true) - $this->microtime,
+            'response_code' => $this->response_code,
+            'response_message' => $this->response_message,
+            'params' => $this->params
         );
         $oModel->save($call);
     }
-    
-    public function index() {
-        set_time_limit(3600);
-        $this->microtime = microtime(true);
-        $this->request_start = date('Y-m-d H:i:s');
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: GET");
-        header("Access-Control-Allow-Headers: X-PINGOTHER");
-        header("Access-Control-Max-Age: 1728000");
-        header("Content-Type: application/json");
-        try {
-            if ($this->request->is('get')) {
-                if (!$this->debug) {
-                    $oOAuth = new OAuthComponent(new ComponentCollection());
-                    $oOAuth->OAuth2->verifyAccessToken($_GET['access_token']);
-                    $this->user = $oOAuth->user();
-                }
-                $path = func_get_args();
+
+    public function __construct($request = null, $response = null) {
+        parent::__construct($request, $response);
+        if (!empty($this->request)) {
+            if ($request->is('post')) {
+                $this->rollups = false;
+                $this->cache = false;
+            } elseif ($this->request->is('get')) {
                 if (isset($_GET['norollups'])) {
                     $this->rollups = !$_GET['norollups'];
                 }
                 if (isset($_GET['nocache'])) {
                     $this->cache = !$_GET['nocache'];
                 }
-                unset($_GET['access_token']);
-                unset($_GET['norollups']);
-                unset($_GET['nocache']);
-                $this->params = $_GET;
-                if(!isset($path[1])){
-                    $path[1] = '';
-                }
-                $this->endpoint = $path[0].'/'.$path[1];
-                echo json_encode($this->internalCall($path[0], $path[1], $_GET));
-                $this->call_log();
-                exit();
             }
-            throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
+        }
+    }
+
+    public function index() {
+        set_time_limit(3600);
+        $this->microtime = microtime(true);
+        $this->request_start = date('Y-m-d H:i:s');
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: POST, GET");
+        header("Access-Control-Allow-Headers: X-PINGOTHER");
+        header("Access-Control-Max-Age: 1728000");
+        header("Content-Type: application/json");
+        try {
+            if ($this->request->is('get')) {
+                $params = $_GET;
+                $this->processGET($params);
+            } elseif ($this->request->is('post')) {
+                $params = $_POST;
+                $this->processPOST($params);
+            } else {
+                throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
+            }
+
+            $path = func_get_args();
+            $this->params = $params;
+            if (!isset($path[1])) {
+                $path[1] = '';
+            }
+            $this->endpoint = $path[0] . '/' . $path[1];
+            echo json_encode($this->internalCall($path[0], $path[1], $params));
+            $this->call_log();
+            exit();
         } catch (OAuth2AuthenticateException $e) {
             $this->response_code = $e->getCode();
             $this->response_message = $e->getMessage();
@@ -99,10 +106,29 @@ class APIController extends AppController {
         }
     }
 
+    public function processGET($params = array()) {
+        if (!$this->debug) {
+            $this->user = $this->authenticate($params['access_token']);
+        }
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
+        return true;
+    }
+
+    public function processPOST($params = array()) {
+        if (!$this->debug) {
+            $this->user = $this->authenticate($params['access_token']);
+        }
+        $this->cache = false;
+        $this->rollups = false;
+        return true;
+    }
+
     public function internalCall($component, $method, $params) {
         $classname = ucfirst($component) . 'Component';
-        if (class_exists($classname)) {
-            $oComponent = new $classname(new ComponentCollection());
+        if (class_exists($classname)) {            
+            $oComponent = new $classname($this->cache, $this->rollups);
             if (method_exists($oComponent, $method)) {
                 $result = $this->getPreviousResult($component, $method, $params);
                 if (!$result) {
@@ -110,22 +136,21 @@ class APIController extends AppController {
                     $this->cache($component, $method, $params, $result);
                 }
                 return $result;
-            }            
+            }
             throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
         }
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
     }
 
     private function getPreviousResult($component, $method, $params) {
-        if (!$this->cache) {
-            return false;
-        }
-        $filename = $this->getCacheFilePath($component, $method, $params);
-        if (file_exists($filename)) {
-            $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-            if (time() - filemtime($filename) <= $cache_time) {
-                include $filename;
-                return $result;
+        if ($this->cache) {
+            $filename = $this->getCacheFilePath($component, $method, $params);
+            if (file_exists($filename)) {
+                $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
+                if (time() - filemtime($filename) <= $cache_time) {
+                    include $filename;
+                    return $result;
+                }
             }
         }
         if ($this->rollups) {
@@ -179,6 +204,12 @@ class APIController extends AppController {
         }
     }
 
+    public function authenticate($accessToken = '') {
+        $oOAuth = new OAuthComponent(new ComponentCollection());
+        $oOAuth->OAuth2->verifyAccessToken($accessToken);
+        return $oOAuth->user();
+    }
+
     private function cache($component, $method, $params, $result, $from_mongo = false) {
         if ($this->cache) {
             $this->createCacheFolders($component, $method);
@@ -186,16 +217,16 @@ class APIController extends AppController {
             $handle = fopen($cache_file, 'w+');
             fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
             fclose($handle);
-            if ($this->rollups) {
-                if (!$from_mongo) {
-                    $oModel = new Model(false, 'cache', 'mongodb');
-                    $result['params'] = array();
-                    foreach ($params as $k => $v) {
-                        $result['params'][$k] = $v;
-                    }
-                    $result['params']['endpoint'] = $component . '/' . $method;
-                    $oModel->save($result);
+        }
+        if ($this->rollups) {
+            if (!$from_mongo) {
+                $oModel = new Model(false, 'cache', 'mongodb');
+                $result['params'] = array();
+                foreach ($params as $k => $v) {
+                    $result['params'][$k] = $v;
                 }
+                $result['params']['endpoint'] = $component . '/' . $method;
+                $oModel->save($result);
             }
         }
     }
