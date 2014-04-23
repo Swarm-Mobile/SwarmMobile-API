@@ -54,7 +54,7 @@ SQL;
         $this->console = $console;
         $this->setEnvironment();
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
-        $parts = explode('/', $this->params['parts']);
+        $parts = explode('/', $this->params['part']);
         if ($member_id == 'all') {
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = "SELECT member_id FROM exp_members WHERE group_id = 6";
@@ -65,9 +65,9 @@ SQL;
             }
         } else {
             $members = explode(',', $this->params['member_id']);
-        }
+        }        
         $tmp = array_chunk($members, ceil(count($members)/$parts[1]));
-        $members = $tmp[$parts[0]];
+        $members = $tmp[$parts[0]-1];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
@@ -104,7 +104,7 @@ SQL;
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ));
-            $this->output('Elements cached after: ' . $this->mongoResults($member, $start_date));
+            $this->output('Elements cached after: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
             $this->output("End               : " . date('H:i:s'));
             $this->output("");
