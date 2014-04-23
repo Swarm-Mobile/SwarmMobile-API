@@ -73,6 +73,8 @@ SELECT
     m_field_id_56 as country,
     m_field_id_57 as nightclub_hours,
     m_field_id_58 as traffic_factor,
+    m_field_id_104 as no_rollups,
+    m_field_id_105 as no_cache,
     m_field_id_106 as nightclub_hours_location,
     m_field_id_123 as transactions_while_closed
 FROM $table  
