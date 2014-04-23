@@ -18,15 +18,36 @@ class APIComponent {
     );
     public $cache = true;
     public $rollups = true;
+    
+    public $archive_start_date = false;
+    public $archive_end_date = false;
 
     public function __construct($cache = true, $rollups = true) {
         $this->cache = $cache;
         $this->rollups = $rollups;
         $this->api = new APIController();
         $this->api->cache = $this->cache;
-        $this->api->rollups = $this->rollups;          
+        $this->api->rollups = $this->rollups;
+        
+        $date = new DateTime(date('Y-m-01 00:00:00'));        
+        date_sub($date, date_interval_create_from_date_string('4 months'));        
+        $this->archive_end_date = date_format($date, 'Y-m-d');
+        date_sub($date, date_interval_create_from_date_string('8 months'));        
+        $this->archive_start_date = date_format($date, 'Y-m-d');
     }
 
+    public function archived($date){
+        $date = new DateTime($date);
+        $last_archive = new DateTime($this->archive_end_date);
+        return $date < $last_archive;
+    }
+    
+    public function stored($date){
+        $date = new DateTime($date);
+        $first_archive = new DateTime($this->archive_start_date);
+        return $date >= $first_archive;
+    }
+    
     public static function validate($params, $rules) {
         if (!empty($rules)) {
             foreach ($rules as $param => $validators) {

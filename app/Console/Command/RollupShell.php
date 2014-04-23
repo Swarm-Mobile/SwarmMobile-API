@@ -88,7 +88,7 @@ SQL;
                 $end_date = date('Y-m-d');
                 $this->output("Start Date        : $start_date");
                 $this->output("End Date          : $end_date");
-                $this->clean($member);
+                $this->clean($member, $start_date, $end_date);
             } else if ($override) {
                 $this->clean($member, $start_date, $end_date);
             }
