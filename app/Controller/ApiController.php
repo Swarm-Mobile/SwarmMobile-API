@@ -211,6 +211,9 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
         if (!empty($result)) {
             if(
                 isset($params['start_date']) && 
