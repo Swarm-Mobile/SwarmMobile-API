@@ -23,7 +23,7 @@ class NetworkComponent extends APIComponent {
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
 SELECT 
-    DISTINCT COUNT(logins.mac_id) as value, 
+    COUNT(DISTINCT logins.mac_id) as value, 
     DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
     DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
 FROM `logins` 
@@ -56,7 +56,7 @@ SQL;
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
 SELECT 
-    COUNT(emailId) as value, 
+    COUNT(DISTINCT emailId) as value, 
     DATE_FORMAT(convert_tz(time,'GMT', '$timezone'), '%Y-%m-%d') AS date,
     DATE_FORMAT(convert_tz(time,'GMT', '$timezone'), '%k') AS hour
 FROM `ws_user_profile`
