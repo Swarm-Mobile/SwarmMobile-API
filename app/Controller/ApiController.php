@@ -127,7 +127,7 @@ class APIController extends AppController {
 
     public function internalCall($component, $method, $params) {
         $classname = ucfirst($component) . 'Component';
-        if (class_exists($classname)) {            
+        if (class_exists($classname)) {
             $oComponent = new $classname($this->cache, $this->rollups);
             if (method_exists($oComponent, $method)) {
                 $result = $this->getPreviousResult($component, $method, $params);
@@ -211,22 +211,31 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if ($this->cache) {
-            $this->createCacheFolders($component, $method);
-            $cache_file = $this->getCacheFilePath($component, $method, $params);
-            $handle = fopen($cache_file, 'w+');
-            fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-            fclose($handle);
-        }
-        if ($this->rollups) {
-            if (!$from_mongo) {
-                $oModel = new Model(false, 'cache', 'mongodb');
-                $result['params'] = array();
-                foreach ($params as $k => $v) {
-                    $result['params'][$k] = $v;
+        if (!empty($result)) {
+            if(
+                isset($params['start_date']) && 
+                isset($params['end_date']) && 
+                $params['start_date'] == $params['end_date']
+            ) {
+                return;
+            }
+            if ($this->cache) {
+                $this->createCacheFolders($component, $method);
+                $cache_file = $this->getCacheFilePath($component, $method, $params);
+                $handle = fopen($cache_file, 'w+');
+                fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+                fclose($handle);
+            }
+            if ($this->rollups) {
+                if (!$from_mongo) {
+                    $oModel = new Model(false, 'cache', 'mongodb');
+                    $result['params'] = array();
+                    foreach ($params as $k => $v) {
+                        $result['params'][$k] = $v;
+                    }
+                    $result['params']['endpoint'] = $component . '/' . $method;
+                    $oModel->save($result);
                 }
-                $result['params']['endpoint'] = $component . '/' . $method;
-                $oModel->save($result);
             }
         }
     }
