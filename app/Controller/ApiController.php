@@ -215,7 +215,7 @@ class APIController extends AppController {
             if(
                 isset($params['start_date']) && 
                 isset($params['end_date']) && 
-                $params['start_date'] == $params['end_date']
+                $params['start_date'] != $params['end_date']
             ) {
                 return;
             }
