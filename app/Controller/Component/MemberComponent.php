@@ -125,6 +125,7 @@ SQL;
         $fields = $this->getMemberFields();
 
         foreach ($params as $key => $val) {
+        	if ($key == 'photo_filename') continue;
             if ($key == 'email' || $key == 'screen_name') {
                 $updateMem[$key] = $val;
             } elseif (array_key_exists($key, $fields)) {
@@ -196,11 +197,16 @@ SQL;
         $oModel = new Model(false, $table, 'ee');
         $oDb = $oModel->getDataSource();
         $sSQL = <<<SQL
-SELECT 
+SELECT
+    m_field_id_4 as name,
     m_field_id_5 as address,
     m_field_id_7 as city,
+    m_field_id_8 as state,
+    m_field_id_9 as zip,
     m_field_id_56 as country,
     m_field_id_48 as industry,
+    m_field_id_49 as currency,
+    m_field_id_95 as phone,
     m_field_id_125 as receive_daily,
     m_field_id_126 as receive_weekly,
     m_field_id_127 as receive_monthly,
@@ -230,6 +236,7 @@ SELECT
     m_field_id_69 as estimated_daily_foot_traffic,
     m_field_id_51 as network_provider,
     m_field_id_72 as guest_wifi,
+    m_field_id_70 as pos_provider,
     m_field_id_123 as transactions_while_closed
 FROM $table  
 WHERE member_id = :member_id
@@ -245,7 +252,7 @@ SQL;
             $table = 'exp_members';
             $oModel = new Model(false, $table, 'ee');
             $oDb = $oModel->getDataSource();
-            $sSQL = "SELECT screen_name, email FROM exp_members WHERE username=:username";
+            $sSQL = "SELECT screen_name, email, photo_filename, photo_width, photo_height FROM exp_members WHERE username=:username";
             $bind = array('username' => $username);
             $result2 = $oDb->fetchAll($sSQL, $bind);
             foreach ($result2[0][$table] as $k => $v) {
