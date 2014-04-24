@@ -110,9 +110,6 @@ class APIController extends AppController {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
         }
-        unset($params['access_token']);
-        unset($params['norollups']);
-        unset($params['nocache']);
         return true;
     }
 
@@ -126,6 +123,9 @@ class APIController extends AppController {
     }
 
     public function internalCall($component, $method, $params) {
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
         $classname = ucfirst($component) . 'Component';
         if (class_exists($classname)) {
             $oComponent = new $classname($this->cache, $this->rollups);
@@ -211,9 +211,6 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        unset($params['access_token']);
-        unset($params['norollups']);
-        unset($params['nocache']);
         if (!empty($result)) {
             if(
                 isset($params['start_date']) && 
