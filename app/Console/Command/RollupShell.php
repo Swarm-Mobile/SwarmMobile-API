@@ -78,12 +78,13 @@ SQL;
             $this->output("Start Date               : $start_date");
             $this->output("End Date                 : $end_date");
         }
-        $this->output("Members to process (ID's): " . implode(' ', $members));
+        $this->output("Members to process (ID's)     : " . implode(' ', $members));
         $this->output("---------------------------------------------");
         $oAPI = new APIController();
         $oAPI->cache = false;
         $oAPI->rollups = true;        
         foreach ($members as $member) {
+            $this->output("");
             $this->output("Processing member : $member");
             $this->output("");
             $this->output("Start             : " . date('H:i:s'));
@@ -92,6 +93,8 @@ SQL;
                 $end_date = date('Y-m-d');
                 $this->output("Start Date        : $start_date");
                 $this->output("End Date          : $end_date");
+                $this->output("");
+                $this->output("---------------------------------------------");
                 $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                 $this->clean($member, $start_date, $end_date);
             } else if ($override) {
@@ -163,8 +166,7 @@ SQL;
             $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
-            $date = $start_date;
-            $this->output("---------------------------------------------");
+            $date = $start_date;            
             do {
                 $this->cleanDay($member, $date);
                 $start_date = new DateTime($date);
