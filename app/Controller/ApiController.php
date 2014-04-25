@@ -144,6 +144,7 @@ class APIController extends AppController {
 
     private function getPreviousResult($component, $method, $params) {
         if ($this->cache) {
+            /*
             $filename = $this->getCacheFilePath($component, $method, $params);
             if (file_exists($filename)) {
                 $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
@@ -152,6 +153,7 @@ class APIController extends AppController {
                     return $result;
                 }
             }
+            */             
         }
         if ($this->rollups) {
             $oModel = new Model(false, 'cache', 'mongodb');
@@ -160,7 +162,6 @@ class APIController extends AppController {
                 $conditions['params.' . $k] = $v;
             }
             $conditions['params.endpoint'] = $component . '/' . $method;
-
             $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
             if (isset($aRes['Model'])) {
                 unset($aRes['Model']['id']);
@@ -219,22 +220,32 @@ class APIController extends AppController {
             ) {
                 return;
             }
-            if ($this->cache) {
+            if ($this->cache) {           
+                /*
                 $this->createCacheFolders($component, $method);
                 $cache_file = $this->getCacheFilePath($component, $method, $params);
                 $handle = fopen($cache_file, 'w+');
                 fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-                fclose($handle);
+                fclose($handle);                 
+                */
             }
             if ($this->rollups) {
                 if (!$from_mongo) {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
+                    $conditions = array();
                     foreach ($params as $k => $v) {
                         $result['params'][$k] = $v;
+                        $conditions['params.' . $k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
-                    $oModel->save($result);
+                    $conditions['params.endpoint'] = $component . '/' . $method;                    
+                    $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
+                    if(empty($aRes)){
+                        $oModel->save($result);                        
+                    } else {
+                        throw new APIException(500, 'duplicated_cache', "This request is already cached");
+                    }
                 }
             }
         }
