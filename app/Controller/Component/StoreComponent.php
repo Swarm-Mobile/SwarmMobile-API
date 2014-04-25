@@ -100,6 +100,64 @@ SQL;
             return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
+
+	/**
+	 * API Method to load traffic data from door sensors
+	 * @param $params Array containing member_id, start_date and end_date
+	 * @return array Array of results formatted for display in the dashboard
+	 */
+	public function sensorTraffic($params){
+		// Set validation rules and validate parameters
+		$rules = array(
+			'member_id'=> array('required','int'),
+			'start_date'=>array('required', 'date'),
+			'end_date'=>array('required','date')
+		);
+		$this->validate($params, $rules);
+
+		// Pass method and parameters to iteration function if the dates are different
+		if($params['start_date'] != $params['end_date']){
+			return $this->iterativeCall('store',__FUNCTION__, $params);
+		}
+
+		// Get member data for member id including member's timezone and traffic factor
+		$member_id = $params['member_id'];
+		$data = $this->api->internalCall('member', 'data', array('member_id'=>$member_id));
+		$timezone = $data['data']['timezone'];
+		$factor = $data['data']['traffic_factor'];
+		$factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+
+		// apply timezone to dates entered and query for sensor detections
+		list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+		$table = 'sensor_sessions';
+		$oModel = new Model(false, $table, 'swarmdata');
+		$oDb = $oModel->getDataSource();
+		$sSQL = <<<SQL
+SELECT
+	ROUND(COUNT(*)*$factor) AS detect_count,
+	DATE_FORMAT(convert_tz(ts,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+	DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k:00') AS hour
+FROM sensor_sessions
+WHERE
+	member_id=$member_id AND
+	ts BETWEEN '$start_date' AND '$end_date'
+GROUP BY date ASC, hour ASC
+SQL;
+		$aRes = $oDb->fetchAll($sSQL);
+
+		// Loop through results and divide by 2 to account for customers entering and then leaving the store.
+		// The exception is 1 for cases where there is one customer currently in the store
+		// TODO: migrate this logic to the MySQL query with CEIL(ROUND(COUNT(*)(*$factor)/2) as detect count
+		foreach($aRes[0] as $key=>$row){
+			$dCount = intval($row['detect_count']);
+			$dCount = ($dCount === 1) ? $dCount : intval($dCount / 2);
+			$aRes[0][$key]['detect_count'] = $dCount;
+		}
+
+		// return formatted result
+		return $this->format($aRes, $data, $params, $start_date, $end_date,'/store/'.__FUNCTION__,0,0, 'detect_count');
+
+	}
     
     public function purchaseInfo($params) {
         $rules = array(

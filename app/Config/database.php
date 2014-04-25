@@ -253,14 +253,61 @@ class DATABASE_CONFIG {
         )
     );
 
-    function __construct() {
-        $env = getenv('server_location');
-        $dbs = array('ee', 'swarmdata', 'pos', 'mongodb', 'oauth');
-        $env = ((!empty($env) && isset($this->$env)) ? $env : 'local');
-        foreach ($dbs as $dbname) {
-            $this->$dbname = $this->{$env}[$dbname];
-        }
-        $this->default = $this->{$env}['ee'];
-    }
+	public $dev_yaron = array(
+		'mongodb' => array(
+			'datasource' => 'Mongodb.MongodbSource',
+			'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+			'database' => 'API',
+			'port' => 27017,
+			'prefix' => '',
+			'persistent' => 'true'
+		),
+		'oauth' => array(
+			'datasource' => 'Database/Mysql',
+			'persistent' => false,
+			'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+			'login' => 'swarmdev',
+			'password' => 'dev2DaMax',
+			'database' => 'oauth',
+			'prefix' => '',
+		),
+		'ee' => array(
+			'datasource' => 'Database/Mysql',
+			'persistent' => false,
+			'host' => 'localhost',
+			'login' => 'swarm_admin',
+			'password' => 'TH9DrAqe4rAsta',
+			'database' => 'swarm_dev_db3',
+			'prefix' => '',
+		),
+		'pos' => array(
+			'datasource' => 'Database/Mysql',
+			'persistent' => false,
+			'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+			'login' => 'swarmdev',
+			'password' => 'dev2DaMax',
+			'database' => 'pos_int',
+			'prefix' => '',
+		),
+		'swarmdata' => array(
+			'datasource' => 'Database/Mysql',
+			'persistent' => false,
+			'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+			'login' => 'swarmdev',
+			'password' => 'dev2DaMax',
+			'database' => 'swarmdata_int',
+			'prefix' => '',
+		)
+	);
+
+	function __construct() {
+		$env = getenv('server_location');
+		$dbs = array('ee', 'swarmdata', 'pos', 'mongodb', 'oauth');
+		$env = ((!empty($env) && isset($this->$env)) ? $env : 'local');
+		foreach ($dbs as $dbname) {
+			$this->$dbname = $this->{$env}[$dbname];
+		}
+		$this->default = $this->{$env}['ee'];
+	}
 
 }
