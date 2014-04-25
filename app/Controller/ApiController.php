@@ -143,17 +143,20 @@ class APIController extends AppController {
     }
 
     private function getPreviousResult($component, $method, $params) {
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
         if ($this->cache) {
             /*
-            $filename = $this->getCacheFilePath($component, $method, $params);
-            if (file_exists($filename)) {
-                $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-                if (time() - filemtime($filename) <= $cache_time) {
-                    include $filename;
-                    return $result;
-                }
-            }
-            */             
+              $filename = $this->getCacheFilePath($component, $method, $params);
+              if (file_exists($filename)) {
+              $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
+              if (time() - filemtime($filename) <= $cache_time) {
+              include $filename;
+              return $result;
+              }
+              }
+             */
         }
         if ($this->rollups) {
             $oModel = new Model(false, 'cache', 'mongodb');
@@ -213,21 +216,24 @@ class APIController extends AppController {
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
         if (!empty($result)) {
-            if(
-                isset($params['start_date']) && 
-                isset($params['end_date']) && 
-                $params['start_date'] != $params['end_date']
+            unset($params['access_token']);
+            unset($params['norollups']);
+            unset($params['nocache']);
+            if (
+                    isset($params['start_date']) &&
+                    isset($params['end_date']) &&
+                    $params['start_date'] != $params['end_date']
             ) {
                 return;
             }
-            if ($this->cache) {           
+            if ($this->cache) {
                 /*
-                $this->createCacheFolders($component, $method);
-                $cache_file = $this->getCacheFilePath($component, $method, $params);
-                $handle = fopen($cache_file, 'w+');
-                fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-                fclose($handle);                 
-                */
+                  $this->createCacheFolders($component, $method);
+                  $cache_file = $this->getCacheFilePath($component, $method, $params);
+                  $handle = fopen($cache_file, 'w+');
+                  fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+                  fclose($handle);
+                 */
             }
             if ($this->rollups) {
                 if (!$from_mongo) {
@@ -239,10 +245,10 @@ class APIController extends AppController {
                         $conditions['params.' . $k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params.endpoint'] = $component . '/' . $method;                    
+                    $conditions['params.endpoint'] = $component . '/' . $method;
                     $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
-                    if(empty($aRes)){
-                        $oModel->save($result);                        
+                    if (empty($aRes)) {
+                        $oModel->save($result);
                     } else {
                         throw new APIException(500, 'duplicated_cache', "This request is already cached");
                     }
