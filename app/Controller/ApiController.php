@@ -250,7 +250,7 @@ class APIController extends AppController {
                     if (empty($aRes)) {
                         $oModel->save($result);
                     } else {
-                        throw new APIException(500, 'duplicated_cache', "This request is already cached");
+                        //throw new APIException(500, 'duplicated_cache', "This request is already cached");
                     }
                 }
             }
