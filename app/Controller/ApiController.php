@@ -131,7 +131,7 @@ class APIController extends AppController {
             $oComponent = new $classname($this->cache, $this->rollups);
             if (method_exists($oComponent, $method)) {
                 $result = $this->getPreviousResult($component, $method, $params);
-                if (!$result) {
+                if ($result === false) {
                     $result = $oComponent->$method($params);
                     $this->cache($component, $method, $params, $result);
                 }
