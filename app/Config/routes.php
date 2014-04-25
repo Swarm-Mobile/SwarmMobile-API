@@ -1,7 +1,11 @@
 <?php
 
 CakePlugin::routes();
-Router::connect('/'		, array('controller' => 'test'	, 'action' => 'index'));
+Router::connect('/'                 , array('controller' => 'pages', 'action' => 'display', 'home'));
+Router::connect('/pages/*'          , array('controller' => 'pages', 'action' => 'display'));
+Router::connect('/users/:action'    , array('controller' => 'expMembers'));
+Router::connect('/admin/:action'    , array('controller' => 'expMembers'));
+Router::connect('/members/:action'  , array('controller' => 'expMembers'));
 $subdomain = strstr($_SERVER['HTTP_HOST'], '.', true);
 switch ($subdomain) {
 	case 'api':
@@ -9,15 +13,10 @@ switch ($subdomain) {
 	case 'devapi':
 	case 'newapi':
 		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));
+                break;
 	case 'jineshapi':
-		Router::connect('/api/*'	, array('controller' => 'api'	, 'action' => 'index'));
-		break;          
 	default:
-		Router::connect('/api/*'	, array('controller' => 'api'	, 'action' => 'index'));	
+		Router::connect('/api/*'	, array('controller' => 'api'	, 'action' => 'index'));                                     
 		break;
 }
-/**
- * Load the CakePHP default routes. Only remove this if you do not want to use
- * the built-in default routes.
- */
 require CAKE . 'Config' . DS . 'routes.php';

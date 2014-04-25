@@ -1,6 +1,5 @@
 <?php
 $this->Html->css('bootstrap.3.min', null, array('inline' => false));
-$this->Html->css('daterangepicker-bs3', null, array('inline' => false));
 $this->Html->css('dashboard', null, array('inline' => false));
 $this->Html->css('login', null, array('inline' => false));
 $this->Html->script('bootstrap.3.min', array('inline' => false));

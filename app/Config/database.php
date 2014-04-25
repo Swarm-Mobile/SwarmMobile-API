@@ -115,10 +115,18 @@ class DATABASE_CONFIG {
         )
     );
     public $int = array(
+//        'mongodb' => array(
+//            'datasource' => 'Mongodb.MongodbSource',
+//            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+//            'database' => 'API',
+//            'port' => 27017,
+//            'prefix' => '',
+//            'persistent' => 'true'
+//        ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
-            'database' => 'API',
+            'host' => 'localhost',
+            'database' => 'local',
             'port' => 27017,
             'prefix' => '',
             'persistent' => 'true'
