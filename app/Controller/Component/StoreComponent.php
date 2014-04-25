@@ -44,6 +44,7 @@ class StoreComponent extends APIComponent {
             array('store', 'conversionRate'),
             array('store', 'avgTicket'),
             array('store', 'itemsPerTransaction'),
+            array('store', 'totalItems')
         );
         foreach ($calls as $call) {
             $tmp = $this->api->internalCall($call[0], $call[1], $params);
@@ -209,6 +210,19 @@ SQL;
         $aRes1 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
         $aRes2 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
         return $this->calculate($aRes1, $aRes2, true);
+    }
+    public function totalItems($params) {
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+        $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
+        $timezone = $data['data']['timezone'];
+        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+        return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
     }
     
     public function windowConversion($params) {
