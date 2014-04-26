@@ -215,7 +215,7 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if (!empty($result) && isset($params['endpoint']) && $params['endpoint'] !== 'member/data') {
+        if (!empty($result) && $component.'/'.$method != 'member/data') {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
@@ -245,7 +245,7 @@ class APIController extends AppController {
                         $conditions['params.' . $k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params.endpoint'] = $component . '/' . $method;
+                    $conditions['params.endpoint'] = $component . '/' . $method;                    
                     $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
                     if (empty($aRes)) {
                         $oModel->save($result);

@@ -211,7 +211,7 @@ class DATABASE_CONFIG {
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-54-219-74-242.us-west-1.compute.amazonaws.com',
             'login' => 'mongouser',
-            'password' => 'Swarm@p!',
+            'password' => 'Swarmap!',
             'database' => 'API',
             'port' => 27017,
             'prefix' => '',
