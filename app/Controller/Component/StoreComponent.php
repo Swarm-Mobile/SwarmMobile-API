@@ -73,7 +73,7 @@ class StoreComponent extends APIComponent {
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+            $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
             $oModel = new Model(false, $table, 'swarmdata');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
@@ -299,7 +299,7 @@ SQL;
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+            $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
             $oModel = new Model(false, $table, 'swarmdata');
             $oDb = $oModel->getDataSource();
             $aTmp = array(
@@ -353,7 +353,7 @@ SQL;
     }
     
     private function dwellByHour($start_date, $end_date, $timezone, $ap_id) {
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
         $sSQL = <<<SQL
 SELECT
     x.hour,
@@ -371,9 +371,9 @@ FROM(
 ) x
 LEFT JOIN (
 	SELECT 
-		DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
+           DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
 	   ses1.mac_id,
-		(MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
+	   (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
 	FROM $table as ses1
 	INNER JOIN mac_address 
 		ON ses1.mac_id = mac_address.id
@@ -393,7 +393,7 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
     private function dwellByDate($start_date, $end_date, $timezone, $ap_id) {
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
 FROM(
@@ -437,7 +437,7 @@ SQL;
     }
     
     private function returningByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
         $sSQL = <<<SQL
 SELECT
     x.hour,
@@ -485,7 +485,7 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
     private function returningByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
         $sSQL = <<<SQL
 SELECT  
     date(y.max_login) as date,
@@ -538,7 +538,7 @@ SQL;
     }
     
     private function footTrafficByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
         $sSQL = <<<SQL
 SELECT 
     x.hour,
@@ -577,7 +577,7 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
     private function footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = ($this->archived($start_date))?'sessions_archive':'sessions';
+        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
         $sSQL = <<<SQL
 SELECT 
     DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,

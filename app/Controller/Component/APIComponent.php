@@ -18,7 +18,6 @@ class APIComponent {
     );
     public $cache = true;
     public $rollups = true;
-    
     public $archive_start_date = false;
     public $archive_end_date = false;
 
@@ -28,26 +27,26 @@ class APIComponent {
         $this->api = new APIController();
         $this->api->cache = $this->cache;
         $this->api->rollups = $this->rollups;
-        
-        $date = new DateTime(date('Y-m-01 00:00:00'));        
-        date_sub($date, date_interval_create_from_date_string('4 months'));        
+
+        $date = new DateTime(date('Y-m-01 00:00:00'));
+        date_sub($date, date_interval_create_from_date_string('4 months'));
         $this->archive_end_date = date_format($date, 'Y-m-d');
-        date_sub($date, date_interval_create_from_date_string('8 months'));        
+        date_sub($date, date_interval_create_from_date_string('8 months'));
         $this->archive_start_date = date_format($date, 'Y-m-d');
     }
 
-    public function archived($date){
+    public function archived($date) {
         $date = new DateTime($date);
         $last_archive = new DateTime($this->archive_end_date);
         return $date < $last_archive;
     }
-    
-    public function stored($date){
+
+    public function stored($date) {
         $date = new DateTime($date);
         $first_archive = new DateTime($this->archive_start_date);
         return $date >= $first_archive;
     }
-    
+
     public static function validate($params, $rules) {
         if (!empty($rules)) {
             foreach ($rules as $param => $validators) {
@@ -398,20 +397,20 @@ SQL;
         return $result;
     }
 
-	/**
-	 * Formats results array for use on the dashboard
-	 * @param $aRes Results array to format
-	 * @param $data Member data
-	 * @param $params Parameters that generated the results
-	 * @param $start_date
-	 * @param $end_date
-	 * @param $endpoint Which API function generated these results
-	 * @param $t1 The array index containing the value in the results array
-	 * @param $t2 The array index containing the dates in the results array.  Defaults to t1.
-	 * @param string $dbAlias The index within each row array with the value being counted.  Defaults to 'value'
-	 * @return array
-	 */
-	public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
+    /**
+     * Formats results array for use on the dashboard
+     * @param $aRes Results array to format
+     * @param $data Member data
+     * @param $params Parameters that generated the results
+     * @param $start_date
+     * @param $end_date
+     * @param $endpoint Which API function generated these results
+     * @param $t1 The array index containing the value in the results array
+     * @param $t2 The array index containing the dates in the results array.  Defaults to t1.
+     * @param string $dbAlias The index within each row array with the value being counted.  Defaults to 'value'
+     * @return array
+     */
+    public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
         $cResult = array('data' => array('totals' => array('open' => 0, 'close' => 0, 'total' => 0)));
         foreach ($aRes as $oRow) {
             $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
@@ -534,4 +533,20 @@ SQL;
         return $result;
     }
 
+    public function getSessionsTableName($start_date, $end_date, $ap_id) {
+        $tmp_table = 'sessions_' . $ap_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);               
+        $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
+        $sSQL = <<<SQL
+CREATE TEMPORARY TABLE IF NOT EXISTS $tmp_table AS ( 
+    SELECT mac_id, time_login, time_logout        
+    FROM $table   
+    WHERE network_id = $ap_id
+      AND time_login BETWEEN '$start_date' AND '$end_date'
+)                
+SQL;
+        $oModel = new Model(false, $table, 'swarmdata');
+        $oDb = $oModel->getDataSource(); 
+        $oDb->query($sSQL);
+        return $tmp_table;
+    }
 }
