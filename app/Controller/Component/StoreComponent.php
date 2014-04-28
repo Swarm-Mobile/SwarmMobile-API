@@ -1,5 +1,6 @@
 <?php
 
+App::uses('DBComponent', 'Controller/Component');
 App::uses('APIComponent', 'Controller/Component');
 
 class StoreComponent extends APIComponent {
@@ -57,7 +58,7 @@ class StoreComponent extends APIComponent {
         return $result;
     }
     
-    public function walkbys($params) {
+    public function walkbys($params) {        
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -74,8 +75,7 @@ class StoreComponent extends APIComponent {
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
-            $oModel = new Model(false, $table, 'swarmdata');
-            $oDb = $oModel->getDataSource();
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
 SELECT 
     ROUND(COUNT(walkbys)*$factor) as value, 
@@ -83,17 +83,17 @@ SELECT
     date
 FROM(
     SELECT 
-        DISTINCT $table.mac_id as walkbys,        
+        DISTINCT ses1.mac_id as walkbys,        
         DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
         DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
-    FROM $table
+    FROM sessions.$table ses1
     INNER JOIN mac_address 
-        ON $table.mac_id = mac_address.id
+        ON ses1.mac_id = mac_address.id
     WHERE ( status !='noise' AND NOISE is false) 
       AND (network_id= $ap_id) 
       AND (sessionid='passerby') 
       AND time_login BETWEEN '$start_date' AND '$end_date'
-    GROUP BY $table.mac_id
+    GROUP BY ses1.mac_id
 ) as t2 GROUP BY date ASC, hour ASC             
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
@@ -130,8 +130,7 @@ SQL;
             // apply timezone to dates entered and query for sensor detections
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'sensor_sessions';
-            $oModel = new Model(false, $table, 'swarmdata');
-            $oDb = $oModel->getDataSource();
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
 SELECT
     ROUND(COUNT(*)*$factor) AS detect_count,
@@ -180,9 +179,7 @@ SQL;
             $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
-            $oModel = new Model(false, $table, 'pos');
-            $oDb = $oModel->getDataSource();
-
+            $oDb = DBComponent::getInstance($table, 'pos');
             $sSQL = <<<SQL
 SELECT 
 	COUNT(*) as transactions,
@@ -300,8 +297,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
-            $oModel = new Model(false, $table, 'swarmdata');
-            $oDb = $oModel->getDataSource();
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $aTmp = array(
                 'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
                 'walkbys' => array("'passerby'")
@@ -318,7 +314,7 @@ FROM(
         DISTINCT ses1.mac_id as value, 
         DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%k') AS hour,
 	DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%Y-%m-%d') AS date	        
-    FROM $table ses1
+    FROM sessions.$table ses1
     WHERE sessionid IN ($aStates)
       AND time_logout IS NOT NULL
       AND (network_id= $ap_id) 
@@ -374,7 +370,7 @@ LEFT JOIN (
            DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
 	   ses1.mac_id,
 	   (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
-	FROM $table as ses1
+	FROM sessions.$table as ses1
 	INNER JOIN mac_address 
 		ON ses1.mac_id = mac_address.id
 	WHERE status !='noise' 
@@ -388,8 +384,7 @@ LEFT JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource();
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
     private function dwellByDate($start_date, $end_date, $timezone, $ap_id) {
@@ -400,7 +395,7 @@ FROM(
     SELECT 
        ses1.mac_id,
        (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
-    FROM $table as ses1
+    FROM sessions.$table as ses1
     INNER JOIN mac_address 
             ON ses1.mac_id = mac_address.id
     WHERE status !='noise' 
@@ -412,8 +407,7 @@ FROM(
     HAVING 18000 > dwell_time
 ) t2
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource();
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
     public function dwell($params) {
@@ -460,7 +454,7 @@ INNER JOIN (
         DISTINCT ses1.mac_id as unique_mac,(CONVERT_TZ(time_login,'GMT','$timezone')) as max_login,
         DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
         DATE_FORMAT((CONVERT_TZ(time_logout,'GMT','$timezone')),'%H') as logout
-      FROM $table  ses1
+      FROM sessions.$table  ses1
       INNER JOIN mac_address 
         ON ses1.mac_id = mac_address.id
       WHERE (mac_address.status<>'noise') 
@@ -480,8 +474,7 @@ INNER JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource();
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
     private function returningByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
@@ -494,7 +487,7 @@ FROM (
     SELECT 
 	DISTINCT ses1.mac_id as unique_mac,
 	date((CONVERT_TZ(time_login,'GMT','$timezone'))) as max_login 
-    FROM $table  ses1
+    FROM sessions.$table  ses1
     INNER JOIN mac_address 
 	ON ses1.mac_id = mac_address.id
     WHERE (mac_address.status<>'noise')
@@ -511,8 +504,7 @@ WHERE nml.first_logout IS NOT NULL
   AND y.max_login IS NOT NULL
 GROUP BY date       
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource();
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
     public function returning($params) {
@@ -559,7 +551,7 @@ LEFT JOIN
     SELECT 
     	ses1.mac_id,DATE_FORMAT(MIN(convert_tz(time_login,'GMT','$timezone')), '%H') AS walk_in,
     	DATE_FORMAT(max(convert_tz(time_logout,'GMT','$timezone')),'%H') AS walk_out
-   	FROM $table ses1
+   	FROM sessions.$table ses1
     INNER JOIN mac_address 
     	ON ses1.mac_id = mac_address.id
     WHERE (mac_address.status<>'noise') 
@@ -572,8 +564,7 @@ LEFT JOIN
 GROUP BY x.hour
 ORDER BY x.hour ASC
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource();
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
     private function footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
@@ -582,7 +573,7 @@ SQL;
 SELECT 
     DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,
     ROUND(COUNT(DISTINCT ses1.mac_id)*$factor) as value 
-FROM $table ses1
+FROM sessions.$table ses1
 INNER JOIN mac_address 
     ON ses1.mac_id = mac_address.id
 WHERE (mac_address.status<>'noise')
@@ -592,8 +583,7 @@ WHERE (mac_address.status<>'noise')
  AND time_login BETWEEN '$start_date' AND '$end_date'  
 GROUP BY date
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource();
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
     public function footTraffic($params) {

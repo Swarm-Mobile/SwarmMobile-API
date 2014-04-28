@@ -533,20 +533,28 @@ SQL;
         return $result;
     }
 
-    public function getSessionsTableName($start_date, $end_date, $ap_id) {
-        $tmp_table = 'sessions_' . $ap_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);               
+    public function getSessionsTableName($start_time, $end_time, $ap_id) {
+        $start_date = substr($start_time, 0, 10);
+        $end_date = substr($end_time, 0, 10);
+        $tmp_table = 'sessions_' . $ap_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $dbname = $oDb->config['database'];
         $sSQL = <<<SQL
-CREATE TEMPORARY TABLE IF NOT EXISTS $tmp_table AS ( 
-    SELECT mac_id, time_login, time_logout        
-    FROM $table   
+CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS ( 
+    SELECT 
+        mac_id, 
+        time_login, 
+        time_logout, 
+        network_id, 
+        sessionid        
+    FROM $dbname.$table   
     WHERE network_id = $ap_id
-      AND time_login BETWEEN '$start_date' AND '$end_date'
+      AND time_login BETWEEN '$start_time' AND '$end_time'
 )                
 SQL;
-        $oModel = new Model(false, $table, 'swarmdata');
-        $oDb = $oModel->getDataSource(); 
         $oDb->query($sSQL);
         return $tmp_table;
     }
+
 }
