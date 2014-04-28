@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__ . '/../../Controller/ApiController.php');
+require_once(__DIR__ . '/../../Controller/Component/DBComponent.php');
 App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
@@ -144,13 +145,13 @@ SQL;
         $sSQL = <<<SQL
 SELECT TABLE_NAME
 FROM INFORMATION_SCHEMA.TABLES 
-WHERE TABLE_NAME LIKE 'sessions_$member_%'
+WHERE TABLE_NAME LIKE 'sessions_{$member}_%'
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-        foreach($aRes as $oRow){
-            var_dump($aRes);
-            die();
-            $oDb->query("DROP TABLE IF EXISTS sessions.{$oRow[0]['TABLE_NAME']}");
+        var_dump($aRes);
+        die();
+        foreach($aRes as $oRow){           
+            $oDb->query("DROP TABLE IF EXISTS sessions.{$oRow['TABLES']['TABLE_NAME']}");
         }
     }
     
