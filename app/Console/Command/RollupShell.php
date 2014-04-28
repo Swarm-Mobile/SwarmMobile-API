@@ -88,6 +88,7 @@ SQL;
             $this->output("Processing member : $member");
             $this->output("");
             $this->output("Start             : " . date('H:i:s'));
+            $this->dropTemporaryTables($member);
             if ($rebuild) {
                 $start_date = $this->getFirstRegisterDate($member);
                 $end_date = date('Y-m-d');
@@ -111,6 +112,7 @@ SQL;
             ));
             $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
+            $this->dropTemporaryTables($member);
             $this->output("End               : " . date('H:i:s'));
             $this->output("");
         }
@@ -136,17 +138,22 @@ SQL;
         return count($aRes);
     }
 
-    private function cleanAll($member) {
-        //$this->output("---------------------------------------------");
-        //$this->output("Cleaning previous rollups");
-        //$this->output('Global elements cached before: ' . $this->mongoResults($member));
-        $oModel = new Model(false, 'cache', 'mongodb');
-        $oModel->deleteAll(array("params.member_id" => "$member"));
-        //$this->output('Global elements cached after: ' . $this->mongoResults($member));
-        //$this->output("Cleaned");
-        //$this->output("---------------------------------------------");
+    private function dropTemporaryTables($member){
+        $this->output("Dropping temporary tables");
+        $oDb = DBComponent::getInstance('sessions', 'swarmdata');
+        $sSQL = <<<SQL
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES 
+WHERE TABLE_NAME LIKE 'sessions_$member_%'
+SQL;
+        $aRes = $oDb->fetchAll($sSQL);
+        foreach($aRes as $oRow){
+            var_dump($aRes);
+            die();
+            $oDb->query("DROP TABLE IF EXISTS sessions.{$oRow[0]['TABLE_NAME']}");
+        }
     }
-
+    
     private function cleanDay($member, $date) {
         //$this->output("Cleaning rollups for date: $date");
         //$this->output('Elements cached before: ' . $this->mongoResults($member, $date));

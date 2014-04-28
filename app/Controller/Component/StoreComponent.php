@@ -74,7 +74,7 @@ class StoreComponent extends APIComponent {
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+            $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
             $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
 SELECT 
@@ -296,7 +296,7 @@ SQL;
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+            $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
             $oDb = DBComponent::getInstance($table, 'swarmdata');
             $aTmp = array(
                 'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
@@ -348,8 +348,8 @@ SQL;
         return $result;
     }
     
-    private function dwellByHour($start_date, $end_date, $timezone, $ap_id) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+    private function dwellByHour($start_date, $end_date, $timezone, $member_id, $ap_id) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT
     x.hour,
@@ -387,8 +387,8 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
-    private function dwellByDate($start_date, $end_date, $timezone, $ap_id) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+    private function dwellByDate($start_date, $end_date, $timezone, $member_id, $ap_id) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
 FROM(
@@ -424,14 +424,14 @@ SQL;
             $ap_id = (!empty($data['data']['ap_id']))?$data['data']['ap_id']:0;            
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $ap_id);
-            $aByDate = $this->dwellByDate($start_date, $end_date, $timezone, $ap_id);
+            $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
+            $aByDate = $this->dwellByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
     
-    private function returningByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+    private function returningByHour($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT
     x.hour,
@@ -477,8 +477,8 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
-    private function returningByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+    private function returningByDate($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT  
     date(y.max_login) as date,
@@ -523,14 +523,14 @@ SQL;
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $ap_id, $factor);
-            $aByDate = $this->returningByDate($start_date, $end_date, $timezone, $ap_id, $factor);
+            $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->returningByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
     
-    private function footTrafficByHour($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+    private function footTrafficByHour($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT 
     x.hour,
@@ -567,8 +567,8 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
-    private function footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $ap_id);
+    private function footTrafficByDate($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT 
     DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,
@@ -602,8 +602,8 @@ SQL;
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $ap_id, $factor);
-            $aByDate = $this->footTrafficByDate($start_date, $end_date, $timezone, $ap_id, $factor);
+            $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->footTrafficByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
         }
     }

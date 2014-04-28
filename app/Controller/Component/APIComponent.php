@@ -535,10 +535,10 @@ SQL;
         return $result;
     }
 
-    public function getSessionsTableName($start_time, $end_time, $ap_id) {
+    public function getSessionsTableName($start_time, $end_time, $member_id, $ap_id) {
         $start_date = substr($start_time, 0, 10);
         $end_date = substr($end_time, 0, 10);
-        $tmp_table = 'sessions_' . $ap_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
+        $tmp_table = 'sessions_' . $member_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         $dbname = $oDb->config['database'];
