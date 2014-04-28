@@ -1,5 +1,7 @@
 <?php
 
+App::uses('DBComponent', 'Controller/Component');
+
 class APIComponent {
 
     public $api;
