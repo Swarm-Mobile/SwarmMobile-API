@@ -148,8 +148,6 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME LIKE 'sessions_{$member}_%'
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-        var_dump($aRes);
-        die();
         foreach($aRes as $oRow){           
             $oDb->query("DROP TABLE IF EXISTS sessions.{$oRow['TABLES']['TABLE_NAME']}");
         }
