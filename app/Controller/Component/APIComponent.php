@@ -1,6 +1,6 @@
 <?php
 
-App::uses('DBComponent', 'Controller/Component');
+require_once 'DBComponent.php';
 
 class APIComponent {
 
