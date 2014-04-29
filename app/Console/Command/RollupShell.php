@@ -106,11 +106,16 @@ SQL;
             $member = trim($member);
             $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
             $this->output("Rebuilding rollups");
-            $result = $oAPI->internalCall('store', 'totals', array(
-                'member_id' => $member,
-                'start_date' => $start_date,
-                'end_date' => $end_date
-            ));
+            try{
+               $result = $oAPI->internalCall('store', 'totals', array(
+                    'member_id' => $member,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ));
+            } catch (Exception $e) {
+                //Do nothing
+                $this->output('Something goes wrong rebuilding');
+            }           
             $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
             $this->dropTemporaryTables($member);
