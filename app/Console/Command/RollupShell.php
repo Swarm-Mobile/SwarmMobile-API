@@ -25,7 +25,7 @@ class RollupShell extends AppShell {
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
-        $ap_id = (empty($ap_id))?0:$ap_id;
+        $ap_id = (empty($ap_id)) ? 0 : $ap_id;
         $aTables = array('sessions_archive', 'sessions');
         foreach ($aTables as $table) {
             $sSQL = <<<SQL
@@ -66,9 +66,9 @@ SQL;
             }
         } else {
             $members = explode(',', $this->params['member_id']);
-        }        
-        $tmp = array_chunk($members, ceil(count($members)/$parts[1]));
-        $members = $tmp[$parts[0]-1];
+        }
+        $tmp = array_chunk($members, ceil(count($members) / $parts[1]));
+        $members = $tmp[$parts[0] - 1];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
@@ -83,7 +83,7 @@ SQL;
         $this->output("---------------------------------------------");
         $oAPI = new APIController();
         $oAPI->cache = false;
-        $oAPI->rollups = true;        
+        $oAPI->rollups = true;
         foreach ($members as $member) {
             $this->output("");
             $this->output("Processing member : $member");
@@ -106,8 +106,8 @@ SQL;
             $member = trim($member);
             $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
             $this->output("Rebuilding rollups");
-            try{
-               $result = $oAPI->internalCall('store', 'totals', array(
+            try {
+                $result = $oAPI->internalCall('store', 'totals', array(
                     'member_id' => $member,
                     'start_date' => $start_date,
                     'end_date' => $end_date
@@ -115,7 +115,7 @@ SQL;
             } catch (Exception $e) {
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
-            }           
+            }
             $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
             $this->dropTemporaryTables($member);
@@ -144,30 +144,26 @@ SQL;
         return count($aRes);
     }
 
-    private function dropTemporaryTables($member){
+    private function dropTemporaryTables($member) {
         $this->output("Dropping temporary tables");
         $oDb = DBComponent::getInstance('sessions', 'swarmdata');
         $sSQL = <<<SQL
 SELECT TABLE_NAME
 FROM INFORMATION_SCHEMA.TABLES 
-WHERE TABLE_NAME LIKE 'sessions_{$member}_%'
+WHERE TABLE_NAME LIKE 'sessions\_{$member}\_%'
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-        foreach($aRes as $oRow){           
+        foreach ($aRes as $oRow) {
             $oDb->query("DROP TABLE IF EXISTS sessions.{$oRow['TABLES']['TABLE_NAME']}");
         }
     }
-    
+
     private function cleanDay($member, $date) {
-        //$this->output("Cleaning rollups for date: $date");
-        //$this->output('Elements cached before: ' . $this->mongoResults($member, $date));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
             "params.start_date" => "$date"
         ));
-        //$this->output('Elements cached after: ' . $this->mongoResults($member, $date));
-        //$this->output("---------------------------------------------");
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
@@ -177,7 +173,7 @@ SQL;
             $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
-            $date = $start_date;            
+            $date = $start_date;
             do {
                 $this->cleanDay($member, $date);
                 $start_date = new DateTime($date);
@@ -217,7 +213,7 @@ SQL;
         $parser->addOption('part', array(
             'short' => 'p',
             'default' => '1/1',
-            'help'=> 'Slice of members that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
+            'help' => 'Slice of members that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
         ));
         return $parser;
     }
