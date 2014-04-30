@@ -27,6 +27,7 @@ class APIController extends AppController {
     public $response_code = 200;
     public $response_message = 'OK';
     public $params = array();
+    public $helpers = array('Html', 'Session');
 
     private function call_log() {
         $this->request_end = date('Y-m-d H:i:s');
@@ -142,6 +143,33 @@ class APIController extends AppController {
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
     }
 
+    public function login() {
+    	if ($this->request->is('post')) {
+    		$this->Session->destroy('User');
+            if ($this->Auth->login()) {
+            	$res = array();
+                $res['member_id'] = $this->Session->read("Auth.User.member_id");
+                $res['username'] = $this->Session->read("Auth.User.username");
+                $res['uuid'] = $this->Session->read("Auth.User.uuid");
+				
+				echo json_encode($res);
+				$this->call_log();
+                exit();
+            }
+			
+			$e =  new APIException(401 , 'authentication_failed', 'Supplied credentials are invalid');
+			$this->response_code = $e->error_no;
+            $this->response_message = $e->error;
+            $this->call_log();
+            $e->_displayError();
+            return false;
+        }
+    }
+
+    public function admin() {
+    	
+    }
+    
     private function getPreviousResult($component, $method, $params) {
         unset($params['access_token']);
         unset($params['norollups']);
