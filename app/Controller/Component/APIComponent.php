@@ -557,12 +557,14 @@ CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS (
     LIMIT 250000
 );
 SQL;
-        $oDb->query($sSQL);
-        $oDb->query("CREATE INDEX mac_id_$suffix         ON sessions.$tmp_table (mac_id)");
-        $oDb->query("CREATE INDEX time_login_$suffix     ON sessions.$tmp_table (time_login)");
-        $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
-        $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
-        $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
+        $aRes = $oDb->execute($sSQL);
+        if(!empty($aRes)){
+            $oDb->query("CREATE INDEX mac_id_$suffix         ON sessions.$tmp_table (mac_id)");
+            $oDb->query("CREATE INDEX time_login_$suffix     ON sessions.$tmp_table (time_login)");
+            $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
+            $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
+            $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
+        }
         return $tmp_table;
     }
 }
