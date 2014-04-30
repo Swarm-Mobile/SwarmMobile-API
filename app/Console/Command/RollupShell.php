@@ -147,14 +147,11 @@ SQL;
     private function dropTemporaryTables($member) {
         $this->output("Dropping temporary tables");
         $oDb = DBComponent::getInstance('sessions', 'swarmdata');
-        $sSQL = <<<SQL
-SELECT TABLE_NAME
-FROM INFORMATION_SCHEMA.TABLES 
-WHERE TABLE_NAME LIKE 'sessions\_{$member}\_%'
-SQL;
+        $sSQL = "SHOW TABLES FROM sessions LIKE 'sessions\_{$member}\_%'";
         $aRes = $oDb->fetchAll($sSQL);
         foreach ($aRes as $oRow) {
-            $oDb->query("DROP TABLE IF EXISTS sessions.{$oRow['TABLES']['TABLE_NAME']}");
+			$table = array_pop($oRow['TABLE_NAMES']);
+            $oDb->query("DROP TABLE IF EXISTS sessions.$table");
         }
     }
 
