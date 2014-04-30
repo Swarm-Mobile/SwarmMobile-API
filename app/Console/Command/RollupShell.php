@@ -145,6 +145,7 @@ SQL;
     }
 
     private function dropTemporaryTables($member) {
+        $this->output("---------------------------------------------");
         $this->output("Dropping temporary tables");
         $oDb = DBComponent::getInstance('sessions', 'swarmdata');
         $sSQL = "SHOW TABLES FROM sessions LIKE 'sessions\_{$member}\_%'";
@@ -154,6 +155,7 @@ SQL;
             $oDb->query("DROP TABLE IF EXISTS sessions.$table");
         }
         $this->output("Temporary tables dropped");
+        $this->output("---------------------------------------------");
     }
 
     private function cleanDay($member, $date) {
