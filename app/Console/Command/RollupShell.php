@@ -151,7 +151,7 @@ SQL;
         $sSQL = "SHOW TABLES FROM sessions LIKE 'sessions\_{$member}\_%'";
         $aRes = $oDb->fetchAll($sSQL);
         foreach ($aRes as $oRow) {
-			$table = array_pop($oRow['TABLE_NAMES']);
+            $table = array_pop($oRow['TABLE_NAMES']);
             $oDb->query("DROP TABLE IF EXISTS sessions.$table");
         }
         $this->output("Temporary tables dropped");
