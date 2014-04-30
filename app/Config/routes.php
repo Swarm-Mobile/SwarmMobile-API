@@ -8,6 +8,8 @@ switch ($subdomain) {
 	case 'intapi':
 	case 'devapi':
 	case 'newapi':
+		Router::connect('/login'	, array('controller' => 'api', 'action' => 'login'));
+		Router::connect('/admin'	, array('controller' => 'api', 'action' => 'admin'));
 		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));
 	case 'jineshapi':
 		Router::connect('/api/login'	, array('controller' => 'api'	, 'action' => 'login'));
