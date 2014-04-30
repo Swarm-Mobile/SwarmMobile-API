@@ -22,11 +22,13 @@ class APIComponent {
     public $rollups = true;
     public $archive_start_date = false;
     public $archive_end_date = false;
+	public $request = false;
 
-    public function __construct($cache = true, $rollups = true) {
+    public function __construct($request = false, $cache = true, $rollups = true) {
         $this->cache = $cache;
         $this->rollups = $rollups;
         $this->api = new APIController();
+		$this->api->request = $request;
         $this->api->cache = $this->cache;
         $this->api->rollups = $this->rollups;
 
