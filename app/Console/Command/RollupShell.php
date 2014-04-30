@@ -153,6 +153,7 @@ SQL;
 			$table = array_pop($oRow['TABLE_NAMES']);
             $oDb->query("DROP TABLE IF EXISTS sessions.$table");
         }
+        $this->output("Temporary tables dropped");
     }
 
     private function cleanDay($member, $date) {
