@@ -567,8 +567,8 @@ SQL;
             $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
             $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
             $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
-            $count = $oDb->fetchAll("SELECT count(*) FROM sessions.$tmp_table");
-            $count = array_pop($count[0]);
+            $aRes = $oDb->fetchAll("SELECT count(*) as c FROM sessions.$tmp_table");
+            $count = $aRes[0][0]['c'];
             if($count >= 20000){
                 $sSQL = <<<SQL
 INSERT INTO sessions.incidences
