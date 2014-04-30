@@ -27,6 +27,7 @@ class APIController extends AppController {
     public $response_code = 200;
     public $response_message = 'OK';
     public $params = array();
+    public $helpers = array('Html', 'Session');
 
     private function call_log() {
         $this->request_end = date('Y-m-d H:i:s');
@@ -110,9 +111,6 @@ class APIController extends AppController {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
         }
-        unset($params['access_token']);
-        unset($params['norollups']);
-        unset($params['nocache']);
         return true;
     }
 
@@ -126,12 +124,15 @@ class APIController extends AppController {
     }
 
     public function internalCall($component, $method, $params) {
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
         $classname = ucfirst($component) . 'Component';
-        if (class_exists($classname)) {            
+        if (class_exists($classname)) {
             $oComponent = new $classname($this->cache, $this->rollups);
             if (method_exists($oComponent, $method)) {
                 $result = $this->getPreviousResult($component, $method, $params);
-                if (!$result) {
+                if ($result === false) {
                     $result = $oComponent->$method($params);
                     $this->cache($component, $method, $params, $result);
                 }
@@ -142,16 +143,48 @@ class APIController extends AppController {
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
     }
 
-    private function getPreviousResult($component, $method, $params) {
-        if ($this->cache) {
-            $filename = $this->getCacheFilePath($component, $method, $params);
-            if (file_exists($filename)) {
-                $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-                if (time() - filemtime($filename) <= $cache_time) {
-                    include $filename;
-                    return $result;
-                }
+    public function login() {
+    	if ($this->request->is('post')) {
+    		$this->Session->destroy('User');
+            if ($this->Auth->login()) {
+            	$res = array();
+                $res['member_id'] = $this->Session->read("Auth.User.member_id");
+                $res['username'] = $this->Session->read("Auth.User.username");
+                $res['uuid'] = $this->Session->read("Auth.User.uuid");
+				
+				echo json_encode($res);
+				$this->call_log();
+                exit();
             }
+			
+			$e =  new APIException(401 , 'authentication_failed', 'Supplied credentials are invalid');
+			$this->response_code = $e->error_no;
+            $this->response_message = $e->error;
+            $this->call_log();
+            $e->_displayError();
+            return false;
+        }
+    }
+
+    public function admin() {
+    	
+    }
+    
+    private function getPreviousResult($component, $method, $params) {
+        unset($params['access_token']);
+        unset($params['norollups']);
+        unset($params['nocache']);
+        if ($this->cache) {
+            /*
+              $filename = $this->getCacheFilePath($component, $method, $params);
+              if (file_exists($filename)) {
+              $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
+              if (time() - filemtime($filename) <= $cache_time) {
+              include $filename;
+              return $result;
+              }
+              }
+             */
         }
         if ($this->rollups) {
             $oModel = new Model(false, 'cache', 'mongodb');
@@ -160,7 +193,6 @@ class APIController extends AppController {
                 $conditions['params.' . $k] = $v;
             }
             $conditions['params.endpoint'] = $component . '/' . $method;
-
             $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
             if (isset($aRes['Model'])) {
                 unset($aRes['Model']['id']);
@@ -211,22 +243,44 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if ($this->cache) {
-            $this->createCacheFolders($component, $method);
-            $cache_file = $this->getCacheFilePath($component, $method, $params);
-            $handle = fopen($cache_file, 'w+');
-            fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-            fclose($handle);
-        }
-        if ($this->rollups) {
-            if (!$from_mongo) {
-                $oModel = new Model(false, 'cache', 'mongodb');
-                $result['params'] = array();
-                foreach ($params as $k => $v) {
-                    $result['params'][$k] = $v;
+        if (!empty($result) && $component.'/'.$method != 'member/data') {
+            unset($params['access_token']);
+            unset($params['norollups']);
+            unset($params['nocache']);
+            if (
+                    isset($params['start_date']) &&
+                    isset($params['end_date']) &&
+                    $params['start_date'] != $params['end_date']
+            ) {
+                return;
+            }
+            if ($this->cache) {
+                /*
+                  $this->createCacheFolders($component, $method);
+                  $cache_file = $this->getCacheFilePath($component, $method, $params);
+                  $handle = fopen($cache_file, 'w+');
+                  fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+                  fclose($handle);
+                 */
+            }
+            if ($this->rollups) {
+                if (!$from_mongo) {
+                    $oModel = new Model(false, 'cache', 'mongodb');
+                    $result['params'] = array();
+                    $conditions = array();
+                    foreach ($params as $k => $v) {
+                        $result['params'][$k] = $v;
+                        $conditions['params.' . $k] = $v;
+                    }
+                    $result['params']['endpoint'] = $component . '/' . $method;
+                    $conditions['params.endpoint'] = $component . '/' . $method;                    
+                    $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
+                    if (empty($aRes)) {
+                        $oModel->save($result);
+                    } else {
+                        //throw new APIException(500, 'duplicated_cache', "This request is already cached");
+                    }
                 }
-                $result['params']['endpoint'] = $component . '/' . $method;
-                $oModel->save($result);
             }
         }
     }

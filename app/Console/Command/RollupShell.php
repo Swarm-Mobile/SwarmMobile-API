@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__ . '/../../Controller/ApiController.php');
+require_once(__DIR__ . '/../../Controller/Component/DBComponent.php');
 App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
@@ -24,7 +25,7 @@ class RollupShell extends AppShell {
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);
         $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
-        $ap_id = (empty($ap_id))?0:$ap_id;
+        $ap_id = (empty($ap_id)) ? 0 : $ap_id;
         $aTables = array('sessions_archive', 'sessions');
         foreach ($aTables as $table) {
             $sSQL = <<<SQL
@@ -54,6 +55,7 @@ SQL;
         $this->console = $console;
         $this->setEnvironment();
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
+        $parts = explode('/', $this->params['part']);
         if ($member_id == 'all') {
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = "SELECT member_id FROM exp_members WHERE group_id = 6";
@@ -65,6 +67,8 @@ SQL;
         } else {
             $members = explode(',', $this->params['member_id']);
         }
+        $tmp = array_chunk($members, ceil(count($members) / $parts[1]));
+        $members = $tmp[$parts[0] - 1];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
@@ -75,34 +79,46 @@ SQL;
             $this->output("Start Date               : $start_date");
             $this->output("End Date                 : $end_date");
         }
-        $this->output("Members to process (ID's): " . implode(' ', $members));
+        $this->output("Members to process (ID's)     : " . implode(' ', $members));
         $this->output("---------------------------------------------");
         $oAPI = new APIController();
         $oAPI->cache = false;
-        $oAPI->rollups = true;        
+        $oAPI->rollups = true;
         foreach ($members as $member) {
+            $this->output("");
             $this->output("Processing member : $member");
             $this->output("");
             $this->output("Start             : " . date('H:i:s'));
+            $this->dropTemporaryTables($member);
             if ($rebuild) {
                 $start_date = $this->getFirstRegisterDate($member);
                 $end_date = date('Y-m-d');
                 $this->output("Start Date        : $start_date");
                 $this->output("End Date          : $end_date");
+                $this->output("");
+                $this->output("---------------------------------------------");
+                $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                 $this->clean($member, $start_date, $end_date);
             } else if ($override) {
+                $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                 $this->clean($member, $start_date, $end_date);
             }
             $member = trim($member);
+            $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
             $this->output("Rebuilding rollups");
-            $this->output('Elements cached before: ' . $this->mongoResults($member, $start_date));
-            $result = $oAPI->internalCall('store', 'totals', array(
-                'member_id' => $member,
-                'start_date' => $start_date,
-                'end_date' => $end_date
-            ));
-            $this->output('Elements cached after: ' . $this->mongoResults($member, $start_date));
+            try {
+                $result = $oAPI->internalCall('store', 'totals', array(
+                    'member_id' => $member,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ));
+            } catch (Exception $e) {
+                //Do nothing
+                $this->output('Something goes wrong rebuilding');
+            }
+            $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
+            $this->dropTemporaryTables($member);
             $this->output("End               : " . date('H:i:s'));
             $this->output("");
         }
@@ -128,27 +144,26 @@ SQL;
         return count($aRes);
     }
 
-    private function cleanAll($member) {
+    private function dropTemporaryTables($member) {
         $this->output("---------------------------------------------");
-        $this->output("Cleaning previous rollups");
-        $this->output('Global elements cached before: ' . $this->mongoResults($member));
-        $oModel = new Model(false, 'cache', 'mongodb');
-        $oModel->deleteAll(array("params.member_id" => "$member"));
-        $this->output('Global elements cached after: ' . $this->mongoResults($member));
-        $this->output("Cleaned");
+        $this->output("Dropping temporary tables");
+        $oDb = DBComponent::getInstance('sessions', 'swarmdata');
+        $sSQL = "SHOW TABLES FROM sessions LIKE 'sessions\_{$member}\_%'";
+        $aRes = $oDb->fetchAll($sSQL);
+        foreach ($aRes as $oRow) {
+            $table = array_pop($oRow['TABLE_NAMES']);
+            $oDb->query("DROP TABLE IF EXISTS sessions.$table");
+        }
+        $this->output("Temporary tables dropped");
         $this->output("---------------------------------------------");
     }
 
     private function cleanDay($member, $date) {
-        $this->output("Cleaning rollups for date: $date");
-        $this->output('Elements cached before: ' . $this->mongoResults($member, $date));
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
             "params.start_date" => "$date"
         ));
-        $this->output('Elements cached after: ' . $this->mongoResults($member, $date));
-        $this->output("---------------------------------------------");
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
@@ -159,7 +174,6 @@ SQL;
             $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
             $end = new DateTime($end_date);
             $date = $start_date;
-            $this->output("---------------------------------------------");
             do {
                 $this->cleanDay($member, $date);
                 $start_date = new DateTime($date);
@@ -195,6 +209,11 @@ SQL;
             'short' => 'r',
             'default' => false,
             'help' => 'Delete all the HISTORICAL mongodb info and rebuilds it again'
+        ));
+        $parser->addOption('part', array(
+            'short' => 'p',
+            'default' => '1/1',
+            'help' => 'Slice of members that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
         ));
         return $parser;
     }

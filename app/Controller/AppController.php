@@ -1,24 +1,40 @@
 <?php
-
 App::uses('Controller', 'Controller');
+App::uses('AuthComponent', 'Controller/Component');
 
 class AppController extends Controller {
 
 	public $components = array(
 		'DebugKit.Toolbar',
 		'Session',
-		'Auth' => array(
-			'loginRedirect' => array(
-				'controller' => 'pages',
-				'action' => 'display',
-				'home'
-			),
-			'logoutRedirect' => array(
-				'controller' => 'pages',
-				'action' => 'display',
-				'home'
-			)
-		)
+		'Auth'  => array(
+            AuthComponent::ALL  => array(
+                'userModel' => 'ExpMember',
+                'loginRedirect'     => array(
+                    'controller'    => 'users',
+                    'action'        => 'index'
+                ),
+                'logoutRedirect'    => array(
+                    'controller'    => 'members',
+                    'action'        => 'index',
+                    'home'
+                )  
+            ),
+            'authenticate'      => array(
+                'SwarmForm' =>  array ( 
+                    'userModel' => 'ExpMember',
+                    'loginRedirect'     => array(
+                        'controller'    => 'users',
+                        'action'        => 'index'
+                    ),
+                    'logoutRedirect'    => array(
+                        'controller'    => 'members',
+                        'action'        => 'index',
+                        'home'
+                    )
+                )
+            )
+        )
 	);
 	public $helpers = array(
 		'Form' => array(
@@ -26,7 +42,7 @@ class AppController extends Controller {
 		)
 	);
 	public function beforeFilter() {
-		$this->Auth->allow('index', 'display');
+		$this->Auth->allow('login', 'index');
 	}
 
 }

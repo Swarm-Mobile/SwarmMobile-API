@@ -160,7 +160,7 @@ class DATABASE_CONFIG {
             'prefix' => '',
         )
     );
-	public $intjinesh = array(
+    public $intjinesh = array(
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
@@ -209,7 +209,9 @@ class DATABASE_CONFIG {
     public $live = array(
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'host' => 'ec2-54-219-74-242.us-west-1.compute.amazonaws.com',
+            'login' => 'mongouser',
+            'password' => 'Swarmap!',
             'database' => 'API',
             'port' => 27017,
             'prefix' => '',
@@ -249,6 +251,52 @@ class DATABASE_CONFIG {
             'login' => 'swarmdata',
             'password' => '4Ha2Rap4ePHe',
             'database' => 'swarmdata',
+            'prefix' => '',
+        )
+    );
+    public $dev_yaron = array(
+        'mongodb' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'API',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
+        'oauth' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'oauth',
+            'prefix' => '',
+        ),
+        'ee' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'localhost',
+            'login' => 'swarm_admin',
+            'password' => 'TH9DrAqe4rAsta',
+            'database' => 'swarm_dev_db3',
+            'prefix' => '',
+        ),
+        'pos' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'pos_int',
+            'prefix' => '',
+        ),
+        'swarmdata' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdev',
+            'password' => 'dev2DaMax',
+            'database' => 'swarmdata_int',
             'prefix' => '',
         )
     );
