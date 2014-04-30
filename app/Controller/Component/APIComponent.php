@@ -556,14 +556,13 @@ CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS (
       AND time_login BETWEEN '$start_time' AND '$end_time'
     LIMIT 250000
 );
-CREATE INDEX mac_id_$suffix         ON $dbname.$table (mac_id(10));    
-CREATE INDEX time_login_$suffix     ON $dbname.$table (time_login(10));    
-CREATE INDEX time_logout_$suffix    ON $dbname.$table (time_logout(10));    
-CREATE INDEX network_id_$suffix     ON $dbname.$table (network_id(10));    
-CREATE INDEX sessionid_$suffix      ON $dbname.$table (sessionid(10));    
 SQL;
         $oDb->query($sSQL);
+        $oDb->query('CREATE INDEX mac_id_$suffix         ON $dbname.$table (mac_id)');
+        $oDb->query('CREATE INDEX time_login_$suffix     ON $dbname.$table (time_login)');
+        $oDb->query('CREATE INDEX time_logout_$suffix    ON $dbname.$table (time_logout)');
+        $oDb->query('CREATE INDEX network_id_$suffix     ON $dbname.$table (network_id)');
+        $oDb->query('CREATE INDEX sessionid_$suffix      ON $dbname.$table (sessionid)');
         return $tmp_table;
     }
-
 }
