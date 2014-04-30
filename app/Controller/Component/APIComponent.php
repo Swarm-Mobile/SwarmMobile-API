@@ -543,8 +543,7 @@ SQL;
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         $dbname = $oDb->config['database'];
-        $aRes = $oDb->fetchAll("SHOW TABLES FROM sessions LIKE '$tmp_table'");
-        var_dump($aRes);
+        $aRes = $oDb->fetchAll("SHOW TABLES FROM sessions LIKE '$tmp_table'");        
         if (empty($aRes)) {
             $sSQL = <<<SQL
 CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS ( 

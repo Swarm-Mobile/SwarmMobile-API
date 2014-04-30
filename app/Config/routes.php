@@ -1,7 +1,8 @@
 <?php
 
 CakePlugin::routes();
-Router::connect('/'		, array('controller' => 'test'	, 'action' => 'index'));
+Router::connect('/'         , array('controller' => 'pages', 'action' => 'display', 'home'));
+Router::connect('/pages/*'  , array('controller' => 'pages', 'action' => 'display'));
 $subdomain = strstr($_SERVER['HTTP_HOST'], '.', true);
 switch ($subdomain) {
 	case 'api':

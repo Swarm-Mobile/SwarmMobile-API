@@ -11,12 +11,12 @@ class AppController extends Controller {
             AuthComponent::ALL  => array(
                 'userModel' => 'ExpMember',
                 'loginRedirect'     => array(
-                    'controller'    => 'users',
-                    'action'        => 'index'
+                    'controller'    => 'api',
+                    'action'        => 'admin'
                 ),
                 'logoutRedirect'    => array(
-                    'controller'    => 'members',
-                    'action'        => 'index',
+                    'controller'    => 'pages',
+                    'action'        => 'display',
                     'home'
                 )  
             ),
@@ -24,12 +24,12 @@ class AppController extends Controller {
                 'SwarmForm' =>  array ( 
                     'userModel' => 'ExpMember',
                     'loginRedirect'     => array(
-                        'controller'    => 'users',
-                        'action'        => 'index'
+                        'controller'    => 'api',
+                        'action'        => 'admin'
                     ),
                     'logoutRedirect'    => array(
-                        'controller'    => 'members',
-                        'action'        => 'index',
+                        'controller'    => 'pages',
+                        'action'        => 'display',
                         'home'
                     )
                 )
@@ -42,7 +42,7 @@ class AppController extends Controller {
 		)
 	);
 	public function beforeFilter() {
-		$this->Auth->allow('login', 'index');
+		$this->Auth->allow('login', 'index', 'display');
 	}
 
 }
