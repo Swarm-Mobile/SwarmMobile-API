@@ -114,6 +114,7 @@ SQL;
      * @return 
      */
     public function updatePreferences($params) {
+    	if(!$this->api->request->is('post')) throw new APIException(401, 'invalid_grant', "Incorrect request method");
         $this->verify($params);
         $member_id = $params['member_id'];
         $username = $params['username'];

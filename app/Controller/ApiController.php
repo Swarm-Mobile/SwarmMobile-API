@@ -129,7 +129,7 @@ class APIController extends AppController {
         unset($params['nocache']);
         $classname = ucfirst($component) . 'Component';
         if (class_exists($classname)) {
-            $oComponent = new $classname($this->cache, $this->rollups);
+            $oComponent = new $classname($this->request, $this->cache, $this->rollups);
             if (method_exists($oComponent, $method)) {
                 $result = $this->getPreviousResult($component, $method, $params);
                 if ($result === false) {
