@@ -558,7 +558,7 @@ CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS (
     FROM $dbname.$table   
     WHERE network_id = $ap_id
       AND time_login BETWEEN '$start_time' AND '$end_time'
-    LIMIT 250000
+    LIMIT 20000
 );
 SQL;
             $aRes = $oDb->execute($sSQL);
@@ -567,6 +567,15 @@ SQL;
             $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
             $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
             $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
+            $count = $oDb->fetchColumn("SELECT count(*) FROM sessions.$tmp_table");
+            if($count >= 20000){
+                $sSQL = <<<SQL
+INSERT INTO sessions.incidences
+SET member_id = $member_id,
+    date = '$start_date'    
+SQL;
+                $oDb->query($sSQL);
+            }
         }
         return $tmp_table;
     }
