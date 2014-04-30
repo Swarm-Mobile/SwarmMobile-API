@@ -545,7 +545,9 @@ SQL;
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         $dbname = $oDb->config['database'];
-        $sSQL = <<<SQL
+        $aRes = $oDb->fetchAll("SHOW TABLES FROM sessions LIKE '$tmp_table'");        
+        if (empty($aRes)) {
+            $sSQL = <<<SQL
 CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS ( 
     SELECT 
         mac_id, 
@@ -559,8 +561,7 @@ CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS (
     LIMIT 250000
 );
 SQL;
-        $aRes = $oDb->execute($sSQL);
-        if(!empty($aRes)){
+            $aRes = $oDb->execute($sSQL);
             $oDb->query("CREATE INDEX mac_id_$suffix         ON sessions.$tmp_table (mac_id)");
             $oDb->query("CREATE INDEX time_login_$suffix     ON sessions.$tmp_table (time_login)");
             $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
@@ -569,4 +570,5 @@ SQL;
         }
         return $tmp_table;
     }
+
 }

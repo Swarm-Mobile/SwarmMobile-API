@@ -144,21 +144,20 @@ class APIController extends AppController {
     }
 
     public function login() {
-    	if ($this->request->is('post')) {
-    		$this->Session->destroy('User');
+        if ($this->request->is('post')) {
+            $this->Session->destroy('User');
             if ($this->Auth->login()) {
-            	$res = array();
+                $res = array();
                 $res['member_id'] = $this->Session->read("Auth.User.member_id");
                 $res['username'] = $this->Session->read("Auth.User.username");
                 $res['uuid'] = $this->Session->read("Auth.User.uuid");
-				
-				echo json_encode($res);
-				$this->call_log();
+
+                echo json_encode($res);
+                $this->call_log();
                 exit();
             }
-			
-			$e =  new APIException(401 , 'authentication_failed', 'Supplied credentials are invalid');
-			$this->response_code = $e->error_no;
+            $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+            $this->response_code = $e->error_no;
             $this->response_message = $e->error;
             $this->call_log();
             $e->_displayError();
@@ -167,9 +166,10 @@ class APIController extends AppController {
     }
 
     public function admin() {
-    	
+        echo 'Hi';
+        die();
     }
-    
+
     private function getPreviousResult($component, $method, $params) {
         unset($params['access_token']);
         unset($params['norollups']);
@@ -243,7 +243,7 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if (!empty($result) && $component.'/'.$method != 'member/data') {
+        if (!empty($result) && $component . '/' . $method != 'member/data') {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
@@ -273,7 +273,7 @@ class APIController extends AppController {
                         $conditions['params.' . $k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params.endpoint'] = $component . '/' . $method;                    
+                    $conditions['params.endpoint'] = $component . '/' . $method;
                     $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
                     if (empty($aRes)) {
                         $oModel->save($result);

@@ -1,13 +1,16 @@
 <?php
 
 CakePlugin::routes();
-Router::connect('/'		, array('controller' => 'test'	, 'action' => 'index'));
+Router::connect('/'         , array('controller' => 'pages', 'action' => 'display', 'home'));
+Router::connect('/pages/*'  , array('controller' => 'pages', 'action' => 'display'));
 $subdomain = strstr($_SERVER['HTTP_HOST'], '.', true);
 switch ($subdomain) {
 	case 'api':
 	case 'intapi':
 	case 'devapi':
 	case 'newapi':
+		Router::connect('/login'	, array('controller' => 'api', 'action' => 'login'));
+		Router::connect('/admin'	, array('controller' => 'api', 'action' => 'admin'));
 		Router::connect('/*'		, array('controller' => 'api', 'action' => 'index'));
 	case 'jineshapi':
 		Router::connect('/api/login'	, array('controller' => 'api'	, 'action' => 'login'));
