@@ -151,7 +151,6 @@ SQL;
         $aRes = $oDb->fetchAll($sSQL);
         foreach ($aRes as $oRow) {
 			$table = array_pop($oRow['TABLE_NAMES']);
-			$this->output("DROP TABLE IF EXISTS sessions.$table");
             $oDb->query("DROP TABLE IF EXISTS sessions.$table");
         }
     }
