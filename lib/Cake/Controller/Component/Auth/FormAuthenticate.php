@@ -46,11 +46,13 @@ class FormAuthenticate extends BaseAuthenticate {
  * @return boolean False if the fields have not been supplied. True if they exist.
  */
 	protected function _checkFields(CakeRequest $request, $model, $fields) {
-		if (empty($request->data[$model])) {
+		/*if (empty($request->data[$model])) {
+			//CakeLog::Write('debug', print_r($request));
 			return false;
-		}
+		}*/
+
 		foreach (array($fields['username'], $fields['password']) as $field) {
-			$value = $request->data($model . '.' . $field);
+			$value = $request->data($field);
 			if (empty($value) || !is_string($value)) {
 				return false;
 			}
@@ -68,16 +70,16 @@ class FormAuthenticate extends BaseAuthenticate {
  * @return mixed False on login failure. An array of User data on success.
  */
 	public function authenticate(CakeRequest $request, CakeResponse $response) {
+		
 		$userModel = $this->settings['userModel'];
-		list(, $model) = pluginSplit($userModel);
-
 		$fields = $this->settings['fields'];
-		if (!$this->_checkFields($request, $model, $fields)) {
+		if (!$this->_checkFields($request, $userModel, $fields)) {
 			return false;
 		}
+
 		return $this->_findUser(
-			$request->data[$model][$fields['username']],
-			$request->data[$model][$fields['password']]
+			$request->data[$fields['username']],
+			$request->data[$fields['password']]
 		);
 	}
 
