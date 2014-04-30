@@ -538,7 +538,8 @@ SQL;
     public function getSessionsTableName($start_time, $end_time, $member_id, $ap_id) {
         $start_date = substr($start_time, 0, 10);
         $end_date = substr($end_time, 0, 10);
-        $tmp_table = 'sessions_' . $member_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
+        $suffix = $member_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
+        $tmp_table = 'sessions_' . $suffix;
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
         $oDb = DBComponent::getInstance($table, 'swarmdata');
         $dbname = $oDb->config['database'];
@@ -553,7 +554,13 @@ CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS (
     FROM $dbname.$table   
     WHERE network_id = $ap_id
       AND time_login BETWEEN '$start_time' AND '$end_time'
-)                
+    LIMIT 250000
+);
+CREATE INDEX mac_id_$suffix         ON $dbname.$table (mac_id(10));    
+CREATE INDEX time_login_$suffix     ON $dbname.$table (time_login(10));    
+CREATE INDEX time_logout_$suffix    ON $dbname.$table (time_logout(10));    
+CREATE INDEX network_id_$suffix     ON $dbname.$table (network_id(10));    
+CREATE INDEX sessionid_$suffix      ON $dbname.$table (sessionid(10));    
 SQL;
         $oDb->query($sSQL);
         return $tmp_table;
