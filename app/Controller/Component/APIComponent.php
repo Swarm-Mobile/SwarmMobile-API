@@ -481,8 +481,8 @@ SQL;
         foreach ($aRes1['data']['breakdown'] as $date => $values) {
             foreach ($values['hours'] as $hour => $v) {
                 foreach ($v as $i => $j) {
-                    $a = $aRes1['data']['breakdown'][$date]['hours'][$hour][$i];
-                    $b = $aRes2['data']['breakdown'][$date]['hours'][$hour][$i];
+                    $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour][$i];
+                    $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour][$i];
                     $result['data']['breakdown'][$date]['hours'][$hour][$i] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
                     if ($result['data']['breakdown'][$date]['hours'][$hour][$i] > 100) {
                         $result['data']['breakdown'][$date]['hours'][$hour][$i] = 100;
@@ -567,7 +567,8 @@ SQL;
             $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
             $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
             $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
-            $count = $oDb->fetchColumn("SELECT count(*) FROM sessions.$tmp_table");
+            $count = $oDb->fetch("SELECT count(*) FROM sessions.$tmp_table");
+            $count = array_pop($count);
             if($count >= 20000){
                 $sSQL = <<<SQL
 INSERT INTO sessions.incidences
