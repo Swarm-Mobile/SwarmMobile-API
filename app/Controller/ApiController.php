@@ -143,25 +143,38 @@ class APIController extends AppController {
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
     }
 
+    public function logout() {
+        $this->Session->destroy('User');
+        header('Location: ' . Router::url('/login'));
+        exit();
+    }
+
     public function login() {
         if ($this->request->is('post')) {
             $this->Session->destroy('User');
             if ($this->Auth->login()) {
-                $res = array();
-                $res['member_id'] = $this->Session->read("Auth.User.member_id");
-                $res['username'] = $this->Session->read("Auth.User.username");
-                $res['uuid'] = $this->Session->read("Auth.User.uuid");
-
-                echo json_encode($res);
-                $this->call_log();
-                exit();
+                if (!isset($_POST['redirect'])) {
+                    $res = array();
+                    $res['member_id'] = $this->Session->read("Auth.User.member_id");
+                    $res['username'] = $this->Session->read("Auth.User.username");
+                    $res['uuid'] = $this->Session->read("Auth.User.uuid");
+                    echo json_encode($res);
+                    $this->call_log();
+                    exit();
+                } else {
+                    header('Location: ' . $_POST['redirect']);
+                    exit();
+                }
+            } else {
+                if (!isset($_POST['redirect'])) {
+                    $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+                    $this->response_code = $e->error_no;
+                    $this->response_message = $e->error;
+                    $this->call_log();
+                    $e->_displayError();
+                    return false;
+                }
             }
-            $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-            $this->response_code = $e->error_no;
-            $this->response_message = $e->error;
-            $this->call_log();
-            $e->_displayError();
-            return false;
         }
     }
 
