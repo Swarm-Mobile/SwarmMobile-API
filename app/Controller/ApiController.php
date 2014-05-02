@@ -143,6 +143,12 @@ class APIController extends AppController {
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
     }
 
+    public function logout() {
+        $this->Session->destroy('User');
+        header('Location: ' . Router::url('/login'));
+        exit();
+    }
+
     public function login() {
     	try {
 	        if ($this->request->is('post')) {
