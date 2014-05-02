@@ -1,7 +1,11 @@
 <?php
 
 App::uses('APIComponent', 'Controller/Component');
+App::uses('ValidatorComponent', 'Controller/Component');
 App::uses('Model', 'Model');
+App::import('helper', 'String');
+App::import('helper', 'FormValidate');
+App::uses('ExpMember', 'Model');
 
 class MemberComponent extends APIComponent {
 
@@ -277,9 +281,107 @@ SQL;
         }
         return $ret;
     }
+	
+	/**
+	 * Register a new user 
+	 * 
+	 * @param Array
+	 */
+    public function register($params = array()) {
+    	if(!$this->api->request->is('post')) throw new APIException(401, 'invalid_grant', "Incorrect request method");
+
+    	$this->ExpMember = ClassRegistry::init('ExpMember');
+    	$rules = array(
+    		'username' => array('required', array('minLength' => '4')),
+    		'password' => array('required', array('minLength' => '5')),
+    		'password_confirm' => array('required'),
+    		'email'  => array('required')
+		);
+
+		FormValidateHelper::validate($params, $rules);
+
+        if ($params['password'] != $params['password_confirm']) throw new APIException(501, 'invalid_params', "Passwords don't match");
+        $hashed_password = $this->ExpMember->hash_password($params['password']);
+		
+        $data['username'] = $params['username'];
+		$data['password'] = $hashed_password['password'];
+		$data['salt']     = $hashed_password['salt'];
+		$data['email']    = $params['email'];
+
+		if (empty($params['group_id']) || !is_numeric($params['group_id'])) {
+			$data['group_id'] = 6;
+		} else {
+			$data['group_id'] = (int) $params['group_id'];
+		}
+
+		if (!empty($params['screen_name'])) $data['screen_name'] = $params['screen_name'];
+
+		$data['unique_id']   = StringHelper::randomString('encrypt');
+		$data['crypt_key']	 = StringHelper::randomString('encrypt', 16);
+		$data['join_date']   = time();
+		$data['language']    = 'english';
+		$data['timezone']    = 'UM8';
+        $data['time_format'] = 'us';
+		$data['ip_address']  = $_SERVER['REMOTE_ADDR'];
+
+        // Reset for a new insert
+        $this->ExpMember->create();
+
+        // Check if email/username already exists
+ 		$memExists = $this->ExpMember->findByEmail($data['email']);
+		if ($memExists) throw new APIException(501, 'duplicate_entry', 'Email not available');
+
+		$memExists = $this->ExpMember->findByUsername($data['username']);
+		if ($memExists) throw new APIException(501, 'duplicate_entry', 'Username not available');
+		
+		// Insert a new record
+        if ($this->ExpMember->save($data, false)) {
+            $newMemId = $this->ExpMember->id;
+			CakeLog::Write('debug' , "Added a new Member: $newMemId");
+			$fields = array_keys($this->getMemberFields());
+			$memFields = array();
+            foreach($fields as $key) {
+            	if (!empty($params[$key])) {
+            		$memFields[$key] = $params[$key];
+            	}
+            }
+
+			$memFields['member_id'] = $newMemId;
+			$memFields['m_field_id_125'] = 'no';
+			$memFields['m_field_id_126'] = 'no';
+			$memFields['m_field_id_127'] = 'no';
+			$memFields['m_field_id_128'] = uniqid();
+			$this->insertDB('ee', 'exp_member_data', $memFields);
+			return array('success' => 'Member registration success');
+        } else {
+        	throw new APIException(500, 'registration_failed', 'Failed to save to database. Please try again');
+        }
+    }
+
+    public function insertDB($db, $table, $data) {
+        $oModel = new Model(false, $table, $db);
+        $oDb = $oModel->getDataSource();
+		
+		$binds = array();
+        $sSQL = "INSERT $table SET ";
+        $flag = false;
+        foreach ($data as $key => $val) {
+            if (!$flag) {
+                $sSQL .= $key . '= :' . $key;
+                $binds[':' . $key] = "$val";
+                $flag = true;
+            } else {
+                $sSQL .= ',' . $key . '= :' . $key;
+                $binds[':' . $key] = "$val";
+            }
+        }
+		
+		return ($oDb->query($sSQL, $binds)) ? true : false;
+    }
 
     /**
-     * Authenticate user using uuid 
+     * Authenticate user using uuid
+	 * 
      * @param Array
      * @return boolean
      */
@@ -305,5 +407,4 @@ SQL;
         }
         throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
     }
-
 }

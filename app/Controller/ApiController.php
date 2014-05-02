@@ -144,19 +144,25 @@ class APIController extends AppController {
     }
 
     public function login() {
-        if ($this->request->is('post')) {
-            $this->Session->destroy('User');
-            if ($this->Auth->login()) {
-                $res = array();
-                $res['member_id'] = $this->Session->read("Auth.User.member_id");
-                $res['username'] = $this->Session->read("Auth.User.username");
-                $res['uuid'] = $this->Session->read("Auth.User.uuid");
+    	try {
+	        if ($this->request->is('post')) {
+	            $this->Session->destroy('User');
+	            if ($this->Auth->login()) {
+	                $res = array();
+	                $res['member_id'] = $this->Session->read("Auth.User.member_id");
+	                $res['username'] = $this->Session->read("Auth.User.username");
+	                $res['uuid'] = $this->Session->read("Auth.User.uuid");
+	
+	                echo json_encode($res);
+	                $this->call_log();
+	                exit();
+	            }
+				throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
 
-                echo json_encode($res);
-                $this->call_log();
-                exit();
-            }
-            $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+	        } else {
+	        	throw new APIException(401, 'invalid_grant', "Incorrect request method");
+	        }
+	    } catch (APIException $e) {
             $this->response_code = $e->error_no;
             $this->response_message = $e->error;
             $this->call_log();

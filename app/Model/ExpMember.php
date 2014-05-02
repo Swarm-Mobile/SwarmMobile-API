@@ -67,7 +67,7 @@ class ExpMember extends AppModel {
 		return $member;
 	}
 	
-	private function hash_password($password, $salt = FALSE, $h_byte_size = FALSE) {
+	public function hash_password($password, $salt = FALSE, $h_byte_size = FALSE) {
         // Even for md5, collisions usually happen above 1024 bits, so
         // we artifically limit their password to reasonable size.
         if (!$password OR strlen($password) > 250) {
