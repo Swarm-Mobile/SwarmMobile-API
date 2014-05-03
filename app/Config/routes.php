@@ -1,11 +1,12 @@
 <?php
 
 CakePlugin::routes();
-Router::connect('/', array('controller' => 'pages', 'action' => 'display', 'home'));
-Router::connect('/request_client', array('controller' => 'api', 'action' => 'request_client'));
-Router::connect('/pages/*', array('controller' => 'pages', 'action' => 'display'));
-Router::connect('/users/:action', array('controller' => 'users'));
-Router::connect('/inbox/:action', array('controller' => 'inbox'));
+Router::connect('/'                 , array('controller' => 'pages' , 'action' => 'display', 'home'));
+Router::connect('/how_it_works'     , array('controller' => 'pages' , 'action' => 'display', 'how'));
+Router::connect('/request_client'   , array('controller' => 'api'   , 'action' => 'request_client'));
+Router::connect('/pages/*'          , array('controller' => 'pages' , 'action' => 'display'));
+Router::connect('/users/:action'    , array('controller' => 'users'));
+Router::connect('/inbox/:action'    , array('controller' => 'inbox'));
 $subdomain = strstr($_SERVER['HTTP_HOST'], '.', true);
 switch ($subdomain) {
     case 'api':

@@ -20,6 +20,7 @@
                     <ul class="dropdown-menu">
                         <li class="dropdown-header">API Management</li>
                         <li><a target="_blank" href="<?= Router::url('/')?>">Request Client</a></li>
+                        <li><a target="_blank" href="<?= Router::url('/how_it_works')?>">How it Works</a></li>
                         <li class="divider"></li>
                         <li class="dropdown-header">swarm-mobile.com</li>
                         <li><a target="_blank" href="http://www.swarm-mobile.com">/website</a></li>
