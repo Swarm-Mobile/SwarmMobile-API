@@ -1,73 +1,78 @@
 <?php
+
 App::uses('AppModel', 'Model');
+
 /**
  * ExpMember Model
  * 
  */
 class ExpMember extends AppModel {
+
+    var $useDbConfig = 'ee';
+
     /**
      * Primary key field
-	 * 
-	 * @var string
-	 */
-	 public $primaryKey = 'member_id';
+     * 
+     * @var string
+     */
+    public $primaryKey = 'member_id';
 
-   /**
-	* Display field
-	*
-	* @var string
-	*/
+    /**
+     * Display field
+     *
+     * @var string
+     */
     public $displayField = 'username';
- 
     private $hash_algos = array(
-	    128    => 'sha512',
-	    64     => 'sha256',
-	    40     => 'sha1',
-	    32     => 'md5'
+        128 => 'sha512',
+        64 => 'sha256',
+        40 => 'sha1',
+        32 => 'md5'
     );
-	
-	/**
-	 * Authenticate user
-	 * 
-	 * @var string
-	 * @var string
-	 * @return array
-	 */
-	public function authenticate($username, $password) {
-		$res = $this->find('first', array(
-            'conditions'  => array('username' => $username),
-            'fields'      => array('ExpMember.member_id', 'ExpMember.group_id', 'ExpMember.username',
-			    'ExpMember.password', 'ExpMember.salt', 'MemberData.m_field_id_28 as store_id', 'MemberData.m_field_id_128 as uuid'),
-			'joins'    => array(
-			    array(
-				    'table'  => 'exp_member_data',
-				    'alias'  => 'MemberData',
-				    'type'   => 'INNER',
-				    'conditions' => array(
-					    'MemberData.member_id = ExpMember.member_id'
-					)
-				)
-			)
-		));
-		
-		if (empty($res)) return false;
-		
-		$member = array_merge($res['ExpMember'], $res['MemberData']);
-		
-		$m_salt = $member['salt'];
-		$m_pass = $member['password'];
+
+    /**
+     * Authenticate user
+     * 
+     * @var string
+     * @var string
+     * @return array
+     */
+    public function authenticate($username, $password) {
+        $res = $this->find('first', array(
+            'conditions' => array('username' => $username),
+            'fields' => array('ExpMember.member_id', 'ExpMember.group_id', 'ExpMember.username',
+                'ExpMember.password', 'ExpMember.salt', 'MemberData.m_field_id_28 as store_id', 'MemberData.m_field_id_128 as uuid'),
+            'joins' => array(
+                array(
+                    'table' => 'exp_member_data',
+                    'alias' => 'MemberData',
+                    'type' => 'INNER',
+                    'conditions' => array(
+                        'MemberData.member_id = ExpMember.member_id'
+                    )
+                )
+            )
+        ));
+
+        if (empty($res))
+            return false;
+
+        $member = array_merge($res['ExpMember'], $res['MemberData']);
+
+        $m_salt = $member['salt'];
+        $m_pass = $member['password'];
         $h_byte_size = strlen($m_pass);
 
-		$hashed_pair = $this->hash_password($password, $m_salt, $h_byte_size);
-		if ($hashed_pair === FALSE OR $m_pass !== $hashed_pair['password']) {
-			return FALSE;
-		}
-		unset($member['salt']);
-		unset($member['password']);
-		return $member;
-	}
-	
-	private function hash_password($password, $salt = FALSE, $h_byte_size = FALSE) {
+        $hashed_pair = $this->hash_password($password, $m_salt, $h_byte_size);
+        if ($hashed_pair === FALSE OR $m_pass !== $hashed_pair['password']) {
+            return FALSE;
+        }
+        unset($member['salt']);
+        unset($member['password']);
+        return $member;
+    }
+
+    private function hash_password($password, $salt = FALSE, $h_byte_size = FALSE) {
         // Even for md5, collisions usually happen above 1024 bits, so
         // we artifically limit their password to reasonable size.
         if (!$password OR strlen($password) > 250) {
@@ -85,7 +90,7 @@ class ExpMember extends AppModel {
             // less secure. Nothing we can do but fail. Hard.
             die('Fatal Error: No matching hash algorithm.');
         }
-		
+
         // No salt? (not even blank), we'll regenerate
         if ($salt === FALSE) {
             $salt = '';
@@ -101,10 +106,11 @@ class ExpMember extends AppModel {
             // ignore it
             $salt = '';
         }
-		
+
         return array(
             'salt' => $salt,
             'password' => hash($this->hash_algos[$h_byte_size], $salt . $password)
         );
-	}
+    }
+
 }
