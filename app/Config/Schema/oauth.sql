@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `access_tokens` (
   `expires` int(11) NOT NULL,
   `scope` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`oauth_token`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `auth_codes` (
   `code` varchar(40) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `auth_codes` (
   `expires` int(11) NOT NULL,
   `scope` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`code`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `auth_codes` (`code`, `client_id`, `user_id`, `redirect_uri`, `expires`, `scope`) VALUES
 ('a7bfb29bf2d20e6c03f62da20e762a996f403776', 'NTMzOGY4ZTYxOGI1YTVi', 10, 'http://localhost/cake/pages/dump', 1396464098, '');
