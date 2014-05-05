@@ -121,6 +121,9 @@ SQL;
             $this->dropTemporaryTables($member);
             $this->output("End               : " . date('H:i:s'));
             $this->output("");
+            $handle = fopen(__DIR__.'/../../tmp/logs/rollup.log', 'a+');
+            fwrite($handle, $member."\n");
+            fclose($handle);
         }
         $this->output("Done!");
     }
