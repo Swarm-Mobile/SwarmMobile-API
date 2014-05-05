@@ -107,7 +107,7 @@ SQL;
             );
         }        
         $result['options'] = array(
-            'endpoint' => '/network/websites',
+            'endpoint' => '/network/emails',
             'member_id' => $params['member_id'],
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
