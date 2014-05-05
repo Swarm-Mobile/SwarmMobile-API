@@ -3,6 +3,7 @@
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('AppController', 'Controller');
 App::uses('Model', 'Model');
+App::uses('RequestModel', 'Model');
 
 //ONE for every component that extends from APIComponent
 App::uses('ConsumerComponent', 'Controller/Component');
@@ -13,9 +14,11 @@ App::uses('RollupComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
+    
+    
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
-    public $uses = array();
+    public $uses = array('Inbox');
     public $debug = true;
     public $cache = true;
     public $rollups = true;
@@ -29,40 +32,47 @@ class APIController extends AppController {
     public $params = array();
     public $helpers = array('Html', 'Session');
 
-    private function call_log() {
-        $this->request_end = date('Y-m-d H:i:s');
-        $oModel = new Model(false, 'calls', 'mongodb');
-        $call = array(
-            'id_user' => $this->user['id_user'],
-            'username' => $this->user['username'],
-            'endpoint' => $this->endpoint,
-            'request_start' => $this->request_start,
-            'request_end' => $this->request_end,
-            'response_time' => microtime(true) - $this->microtime,
-            'response_code' => $this->response_code,
-            'response_message' => $this->response_message,
-            'params' => $this->params
-        );
-        $oModel->save($call);
+    // Controller Actions
+    public function logout() {
+        $this->Session->destroy('User');
+        $this->redirect(Router::url('/login'));
     }
-
-    public function __construct($request = null, $response = null) {
-        parent::__construct($request, $response);
-        if (!empty($this->request)) {
-            if ($request->is('post')) {
-                $this->rollups = false;
-                $this->cache = false;
-            } elseif ($this->request->is('get')) {
-                if (isset($_GET['norollups'])) {
-                    $this->rollups = !$_GET['norollups'];
+    public function login() {
+        if ($this->request->is('post')) {
+            $this->Session->destroy('User');
+            $redirect = $this->request->data['redirect'];                       
+            if ($this->Auth->login()) {
+                if (empty($redirect)) {
+                    $res = array();
+                    $res['member_id'] = $this->Session->read("Auth.User.member_id");
+                    $res['username'] = $this->Session->read("Auth.User.username");
+                    $res['uuid'] = $this->Session->read("Auth.User.uuid");
+                    echo json_encode($res);
+                    $this->call_log();
+                    exit();
+                } else {
+                    $this->redirect($redirect);                                        
                 }
-                if (isset($_GET['nocache'])) {
-                    $this->cache = !$_GET['nocache'];
+            } else {
+                if (empty($redirect)) {
+                    $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+                    $this->response_code = $e->error_no;
+                    $this->response_message = $e->error;
+                    $this->call_log();
+                    $e->_displayError();
+                    return false;
                 }
             }
         }
     }
-
+    public function request_client(){
+       $data = array(
+           'username' => $this->data['username'],
+           'redirect_uri' => $this->data['redirect_uri'],
+           'description' => $this->data['description']
+       );
+       $this->Inbox->save($data);
+    }
     public function index() {
         set_time_limit(3600);
         $this->microtime = microtime(true);
@@ -107,13 +117,45 @@ class APIController extends AppController {
         }
     }
 
+    // Internal functions
+    private function call_log() {
+        $this->request_end = date('Y-m-d H:i:s');
+        $oModel = new Model(false, 'calls', 'mongodb');
+        $call = array(
+            'id_user' => $this->user['id_user'],
+            'username' => $this->user['username'],
+            'endpoint' => $this->endpoint,
+            'request_start' => $this->request_start,
+            'request_end' => $this->request_end,
+            'response_time' => microtime(true) - $this->microtime,
+            'response_code' => $this->response_code,
+            'response_message' => $this->response_message,
+            'params' => $this->params
+        );
+        $oModel->save($call);
+    }
+    public function __construct($request = null, $response = null) {
+        parent::__construct($request, $response);
+        if (!empty($this->request)) {
+            if ($request->is('post')) {
+                $this->rollups = false;
+                $this->cache = false;
+            } elseif ($this->request->is('get')) {
+                if (isset($_GET['norollups'])) {
+                    $this->rollups = !$_GET['norollups'];
+                }
+                if (isset($_GET['nocache'])) {
+                    $this->cache = !$_GET['nocache'];
+                }
+            }
+        }
+    }
     public function processGET($params = array()) {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
         }
         return true;
     }
-
     public function processPOST($params = array()) {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
@@ -122,7 +164,6 @@ class APIController extends AppController {
         $this->rollups = false;
         return true;
     }
-
     public function internalCall($component, $method, $params) {
         unset($params['access_token']);
         unset($params['norollups']);
@@ -141,45 +182,6 @@ class APIController extends AppController {
             throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
         }
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
-    }
-
-    public function logout() {
-        $this->Session->destroy('User');
-        header('Location: ' . Router::url('/login'));
-        exit();
-    }
-
-    public function login() {
-    	try {
-	        if ($this->request->is('post')) {
-	            $this->Session->destroy('User');
-	            if ($this->Auth->login()) {
-	                $res = array();
-	                $res['member_id'] = $this->Session->read("Auth.User.member_id");
-	                $res['username'] = $this->Session->read("Auth.User.username");
-	                $res['uuid'] = $this->Session->read("Auth.User.uuid");
-	
-	                echo json_encode($res);
-	                $this->call_log();
-	                exit();
-	            }
-				throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-
-	        } else {
-	        	throw new APIException(401, 'invalid_grant', "Incorrect request method");
-	        }
-	    } catch (APIException $e) {
-            $this->response_code = $e->error_no;
-            $this->response_message = $e->error;
-            $this->call_log();
-            $e->_displayError();
-            return false;
-        }
-    }
-
-    public function admin() {
-        echo 'Hi';
-        die();
     }
 
     private function getPreviousResult($component, $method, $params) {
@@ -217,7 +219,6 @@ class APIController extends AppController {
         }
         return false;
     }
-
     private function getCacheFilePath($component, $method, $params) {
         $component = strtolower($component);
         $method = strtolower($method);
@@ -228,7 +229,6 @@ class APIController extends AppController {
         }
         return $path . DS . md5($tmp) . '.cache';
     }
-
     private function createCacheFolders($component, $method) {
         $component = strtolower($component);
         $method = strtolower($method);
@@ -247,13 +247,11 @@ class APIController extends AppController {
             mkdir($path);
         }
     }
-
     public function authenticate($accessToken = '') {
         $oOAuth = new OAuthComponent(new ComponentCollection());
         $oOAuth->OAuth2->verifyAccessToken($accessToken);
         return $oOAuth->user();
     }
-
     private function cache($component, $method, $params, $result, $from_mongo = false) {
         if (!empty($result) && $component . '/' . $method != 'member/data') {
             unset($params['access_token']);

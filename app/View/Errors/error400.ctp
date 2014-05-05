@@ -13,8 +13,8 @@ $this->assign('title', 'Swarm Mobile - API Login');
                 <a href="<?= Router::url('/') ?>" class="logoDiv"></a>
             </div>
         </div>
-        <div class="row-fluid">
-            <div class="row-fluid" style="text-align:center">
+        <div class="row-fluid" style="text-align:center">
+            <div class="col-md-4 col-md-offset-4 loginArea">
                 <h2><?php echo $name; ?></h2>
                 <p class="error">
                     <strong><?php echo __d('cake', 'Error'); ?>: </strong>
