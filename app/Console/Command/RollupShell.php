@@ -115,6 +115,7 @@ SQL;
             } catch (Exception $e) {
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
+                continue;
             }
             $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
             $this->output("---------------------------------------------");
