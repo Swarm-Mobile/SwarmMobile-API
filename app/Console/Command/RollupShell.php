@@ -65,13 +65,13 @@ SQL;
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = <<<SQL
 SELECT e.member_id 
-FROM exp_members e
-INNER JOIN exp_member_data d
-    ON d.member_id = e.member_id
+FROM exp_members
+INNER JOIN exp_member_data
+    ON exp_member_data.member_id = exp_members.member_id
     AND m_field_id_20 IS NOT NULL
     AND m_field_id_20 != ''
     AND m_field_id_20 > 0
-    AND e.group_id = 6
+    AND exp_members.group_id = 6
 SQL;
             $aRes = $oModel->query($sSQL);
             $members = array();
