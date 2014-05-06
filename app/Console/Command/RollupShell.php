@@ -38,11 +38,15 @@ SQL;
             $oModel = new Model(false, 'sessions', 'swarmdata');
             $oDb = $oModel->getDataSource();
             $result = $oDb->query($sSQL);
+            if(empty($result)){
+                continue;
+            }
             $first_date = $result[0][0]['first_date'];
             $first_date = new DateTime($first_date);
             $swarm_born = new DateTime('2013-01-01');
             return ($first_date<$swarm_born)?'2013-01-01':$result[0][0]['first_date'];
         }
+        throw new Exception('No data on sessions registered for this store.');
     }
 
     private function output($text) {
@@ -116,6 +120,7 @@ SQL;
             } catch (Exception $e) {
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
+                $this->output($e->getMessage());
                 continue;
             }
             $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));

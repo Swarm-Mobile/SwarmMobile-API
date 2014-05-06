@@ -14,8 +14,6 @@ App::uses('RollupComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
-    
-    
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
     public $uses = array('Inbox');
