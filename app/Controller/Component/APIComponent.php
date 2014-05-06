@@ -78,7 +78,13 @@ class APIComponent {
                             }
                             break;
                         case 'date':
-                            //TODO:
+                            $date = new DateTime($params[$param]);
+                            $swarm_born = new DateTime('2013-01-01');
+                            if($date < $swarm_born){
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be a date greather than 2013-01-01."
+                                );
+                            }
                             break;
                         case 'datetime':
                             //TODO:

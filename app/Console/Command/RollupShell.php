@@ -38,9 +38,10 @@ SQL;
             $oModel = new Model(false, 'sessions', 'swarmdata');
             $oDb = $oModel->getDataSource();
             $result = $oDb->query($sSQL);
-            if (!empty($result)) {
-                return $result[0][0]['first_date'];
-            }
+            $first_date = $result[0][0]['first_date'];
+            $first_date = new DateTime($first_date);
+            $swarm_born = new DateTime('2013-01-01');
+            return ($first_date<$swarm_born)?'2013-01-01':$result[0][0]['first_date'];
         }
     }
 
@@ -122,8 +123,8 @@ SQL;
             $this->dropTemporaryTables($member);
             $this->output("End               : " . date('H:i:s'));
             $this->output("");
-            $handle = fopen(__DIR__.'/../../tmp/logs/rollup.log', 'a+');
-            fwrite($handle, $member."\n");
+            $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
+            fwrite($handle, $member . "\n");
             fclose($handle);
         }
         $this->output("Done!");
@@ -171,20 +172,16 @@ SQL;
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
-        if ($start_date === false && $end_date === false) {
-            $this->cleanAll($member);
-        } else {
-            $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
-            $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
-            $end = new DateTime($end_date);
-            $date = $start_date;
-            do {
-                $this->cleanDay($member, $date);
-                $start_date = new DateTime($date);
-                date_add($start_date, date_interval_create_from_date_string('1 days'));
-                $date = date_format($start_date, 'Y-m-d');
-            } while ($start_date <= $end);
-        }
+        $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
+        $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
+        $end = new DateTime($end_date);
+        $date = $start_date;
+        do {
+            $this->cleanDay($member, $date);
+            $start_date = new DateTime($date);
+            date_add($start_date, date_interval_create_from_date_string('1 days'));
+            $date = date_format($start_date, 'Y-m-d');
+        } while ($start_date <= $end);
     }
 
     public function getOptionParser() {
