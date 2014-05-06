@@ -64,7 +64,7 @@ SQL;
         if ($member_id == 'all') {
             $oModel = new Model(false, 'exp_members', 'ee');
             $sSQL = <<<SQL
-SELECT e.member_id 
+SELECT exp_members.member_id 
 FROM exp_members
 INNER JOIN exp_member_data
     ON exp_member_data.member_id = exp_members.member_id
