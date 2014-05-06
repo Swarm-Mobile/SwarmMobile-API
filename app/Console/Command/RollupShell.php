@@ -38,13 +38,13 @@ SQL;
             $oModel = new Model(false, 'sessions', 'swarmdata');
             $oDb = $oModel->getDataSource();
             $result = $oDb->query($sSQL);
-            if(empty($result)){
+            if (empty($result)) {
                 continue;
             }
             $first_date = $result[0][0]['first_date'];
             $first_date = new DateTime($first_date);
             $swarm_born = new DateTime('2013-01-01');
-            return ($first_date<$swarm_born)?'2013-01-01':$result[0][0]['first_date'];
+            return ($first_date < $swarm_born) ? '2013-01-01' : $result[0][0]['first_date'];
         }
         throw new Exception('No data on sessions registered for this store.');
     }
@@ -90,47 +90,48 @@ SQL;
         $oAPI->cache = false;
         $oAPI->rollups = true;
         foreach ($members as $member) {
-            $this->output("");
-            $this->output("Processing member : $member");
-            $this->output("");
-            $this->output("Start             : " . date('H:i:s'));
-            $this->dropTemporaryTables($member);
-            if ($rebuild) {
-                $start_date = $this->getFirstRegisterDate($member);
-                $end_date = date('Y-m-d');
-                $this->output("Start Date        : $start_date");
-                $this->output("End Date          : $end_date");
-                $this->output("");
-                $this->output("---------------------------------------------");
-                $this->output('Elements cached before clean: ' . $this->mongoResults($member));
-                $this->clean($member, $start_date, $end_date);
-            } else if ($override) {
-                $this->output('Elements cached before clean: ' . $this->mongoResults($member));
-                $this->clean($member, $start_date, $end_date);
-            }
-            $member = trim($member);
-            $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
-            $this->output("Rebuilding rollups");
             try {
+                $this->output("");
+                $this->output("Processing member : $member");
+                $this->output("");
+                $this->output("Start             : " . date('H:i:s'));
+                $this->dropTemporaryTables($member);
+                if ($rebuild) {
+                    $start_date = $this->getFirstRegisterDate($member);
+                    $end_date = date('Y-m-d');
+                    $this->output("Start Date        : $start_date");
+                    $this->output("End Date          : $end_date");
+                    $this->output("");
+                    $this->output("---------------------------------------------");
+                    $this->output('Elements cached before clean: ' . $this->mongoResults($member));
+                    $this->clean($member, $start_date, $end_date);
+                } else if ($override) {
+                    $this->output('Elements cached before clean: ' . $this->mongoResults($member));
+                    $this->clean($member, $start_date, $end_date);
+                }
+                $member = trim($member);
+                $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
+                $this->output("Rebuilding rollups");
                 $result = $oAPI->internalCall('store', 'totals', array(
                     'member_id' => $member,
                     'start_date' => $start_date,
                     'end_date' => $end_date
                 ));
+
+                $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
+                $this->output("---------------------------------------------");
+                $this->dropTemporaryTables($member);
+                $this->output("End               : " . date('H:i:s'));
+                $this->output("");
+                $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
+                fwrite($handle, $member . "\n");
+                fclose($handle);
             } catch (Exception $e) {
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
                 $this->output($e->getMessage());
                 continue;
             }
-            $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
-            $this->output("---------------------------------------------");
-            $this->dropTemporaryTables($member);
-            $this->output("End               : " . date('H:i:s'));
-            $this->output("");
-            $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-            fwrite($handle, $member . "\n");
-            fclose($handle);
         }
         $this->output("Done!");
     }
