@@ -63,7 +63,16 @@ SQL;
         $parts = explode('/', $this->params['part']);
         if ($member_id == 'all') {
             $oModel = new Model(false, 'exp_members', 'ee');
-            $sSQL = "SELECT member_id FROM exp_members WHERE group_id = 6";
+            $sSQL = <<<SQL
+SELECT e.member_id 
+FROM exp_members e
+INNER JOIN exp_member_data d
+    ON d.member_id = e.member_id
+    AND m_field_id_20 IS NOT NULL
+    AND m_field_id_20 != ''
+    AND m_field_id_20 > 0
+    AND e.group_id = 6
+SQL;
             $aRes = $oModel->query($sSQL);
             $members = array();
             foreach ($aRes as $oRow) {
