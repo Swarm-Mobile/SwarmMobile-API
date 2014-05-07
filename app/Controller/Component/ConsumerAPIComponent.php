@@ -2,48 +2,40 @@
 
 require_once 'DBComponent.php';
 
-class PersonComponent extends ConsumerAPIComponent{}
-class DeviceComponent extends ConsumerAPIComponent{}
-class VisitComponent extends ConsumerAPIComponent{}
-class PurchaseComponent extends ConsumerAPIComponent{}
-class ProductComponent extends ConsumerAPIComponent{}
-class LocationComponent extends ConsumerAPIComponent{}
-class BrandComponent extends ConsumerAPIComponent{}
-
 class ConsumerAPIComponent extends APIComponent{
     
     public $paths = array(
 		'Person' => array(
-			'Purchases' => array(),
-			'Products'  => array('Purchases'),
-			'Locations' => array('Purchases', 'Products'),
-			'Brands'    => array('Purchases', 'Products')
+			'Purchase' => array(),
+			'Product'  => array('Purchase'),
+			'Location' => array('Purchase', 'Product'),
+			'Brand'    => array('Purchase', 'Product')
 		),
-		'Purchases' => array(
-			'Products'  => array(),
-			'Locations' => array('Products'),
-			'Brands'    => array('Products'),
+		'Purchase' => array(
+			'Product'  => array(),
+			'Location' => array('Product'),
+			'Brand'    => array('Product'),
 		),
-		'Products'  => array (
-			'Locations'	=> array(),
-			'Brands'    => array(),
+		'Product'  => array (
+			'Location'	=> array(),
+			'Brand'    => array(),
 		),
-		'Brands'  => array(
-			'Person'    => array('Products', 'Purchases'),
-			'Products'  => array(''),
-			'Locations' => array('')
+		'Brand'  => array(
+			'Person'    => array('Product', 'Purchase'),
+			'Product'  => array(''),
+			'Location' => array('')
 		),
-		'Visits'  => array(
-			'Person'    => array()
+		'Visit'  => array(
+			'Person'    => array(),
+			'Device'   => array()
 		),
-		'Devices' => array(),
-		
-	
+		'Device' => array(
+			'Person'  => array()
+		),
 	);
     
     public function __call($name, $arguments) {
-        var_dump($name, $arguments);
-        throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
+        
     }
 
 }
