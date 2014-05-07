@@ -22,7 +22,11 @@ class APIComponent {
     public $rollups = true;
     public $archive_start_date = false;
     public $archive_end_date = false;
-	public $request = false;
+    public $request = false;
+    
+    public function __call($name, $arguments) {
+        throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
+    }
 
     public function __construct($request = false, $cache = true, $rollups = true) {
         $this->cache = $cache;
