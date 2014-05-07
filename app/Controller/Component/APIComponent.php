@@ -291,9 +291,9 @@ SQL;
     }
 
     public function fillBlanks($result, $data, $start_date, $end_date) {
-        $tmp = $result;
-        $start_date = new DateTime($start_date);
-        $end_date = new DateTime($end_date);
+        $tmp = $result;       
+        $start_date = new DateTime($start_date . ' 00:00:00');
+        $end_date = new DateTime($end_date . ' 23:59:59');
         while ($start_date <= $end_date) {
             $date = date_format($start_date, 'Y-m-d');
             foreach ($this->hours as $hour) {
@@ -346,7 +346,7 @@ SQL;
         return $i;
     }
 
-    public function hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
+    public function hourlyDailyFormat($aByDate, $aByHour, $data, $params, $endpoint, $t1, $t2, $dbAlias = 'value') {
         $cResult = array('data' => array('totals' => array('open' => 0, 'close' => 0, 'total' => 0)));
         $date = strtolower(date('Y-m-d', strtotime($start_date)));
         foreach ($aByHour as $oRow) {
@@ -382,7 +382,7 @@ SQL;
             'end_date' => $params['end_date'],
         );
         unset($cResult['breakdown']['data']['']);
-        $result = $this->fillBlanks($cResult, $data, $start_date, $end_date);
+        $result = $this->fillBlanks($cResult, $data, $params['start_date'], $params['end_date']);
         return $this->nightClubFormat($result, $data);
     }
 
@@ -420,7 +420,7 @@ SQL;
      * @param string $dbAlias The index within each row array with the value being counted.  Defaults to 'value'
      * @return array
      */
-    public function format($aRes, $data, $params, $start_date, $end_date, $endpoint, $t1, $t2, $dbAlias = 'value') {
+    public function format($aRes, $data, $params, $endpoint, $t1, $t2, $dbAlias = 'value') {
         $cResult = array('data' => array('totals' => array('open' => 0, 'close' => 0, 'total' => 0)));
         foreach ($aRes as $oRow) {
             $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
@@ -455,7 +455,7 @@ SQL;
             'end_date' => $params['end_date'],
         );
         unset($cResult['breakdown']['data']['']);
-        $result = $this->fillBlanks($cResult, $data, $start_date, $end_date);
+        $result = $this->fillBlanks($cResult, $data, $params['start_date'], $params['end_date']);
         return $this->nightClubFormat($result, $data);
     }
 

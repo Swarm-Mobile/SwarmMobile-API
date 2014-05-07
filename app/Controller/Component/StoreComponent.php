@@ -98,7 +98,7 @@ FROM(
 ) as t2 GROUP BY date ASC, hour ASC             
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
         }
     }
 
@@ -155,7 +155,7 @@ SQL;
         }
 
         // return formatted result
-        return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 0, 'detect_count');
+        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0, 'detect_count');
     }
 
     public function purchaseInfo($params) {
@@ -222,7 +222,7 @@ SQL;
         $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
         $timezone = $data['data']['timezone'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
+        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
     }
 
     public function revenue($params) {
@@ -236,7 +236,7 @@ SQL;
         $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
         $timezone = $data['data']['timezone'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
+        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
     }
 
     public function avgTicket($params) {
@@ -250,8 +250,8 @@ SQL;
         $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
         $timezone = $data['data']['timezone'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        $aRes1 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'revenue');
-        $aRes2 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
+        $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'revenue');
+        $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
         return $this->calculate($aRes1, $aRes2);
     }
 
@@ -266,8 +266,8 @@ SQL;
         $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
         $timezone = $data['data']['timezone'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        $aRes1 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
-        $aRes2 = $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
+        $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
+        $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
         return $this->calculate($aRes1, $aRes2, true);
     }
 
@@ -282,7 +282,7 @@ SQL;
         $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
         $timezone = $data['data']['timezone'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
+        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
     }
 
     public function windowConversion($params) {
@@ -328,7 +328,7 @@ FROM(
 GROUP BY date ASC, hour ASC
 SQL;
                 $$var = $oDb->fetchAll($sSQL);
-                $$var = $this->format($$var, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
+                $$var = $this->format($$var, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
             }
             $result = $this->percentify($footTraffic, $walkbys);
             $result['options'] = array(
@@ -434,7 +434,7 @@ SQL;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
             $aByDate = $this->dwellByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
-            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
 
@@ -535,7 +535,7 @@ SQL;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
             $aByDate = $this->returningByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
-            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
 
@@ -616,7 +616,7 @@ SQL;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
             $aByDate = $this->footTrafficByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
-            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 'x');
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
 

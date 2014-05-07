@@ -33,7 +33,7 @@ WHERE time_logout IS NOT NULL
 GROUP BY date ASC, hour ASC
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/network/' . __FUNCTION__, 0, 0);
+            return $this->format($aRes, $data, $params, '/network/' . __FUNCTION__, 0, 0);
         }
     }
 
@@ -68,7 +68,7 @@ WHERE storeId= $member_id
 GROUP BY hour
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/network/' . __FUNCTION__, 0, 0);
+            return $this->format($aRes, $data, $params, '/network/' . __FUNCTION__, 0, 0);
         }
     }
 
