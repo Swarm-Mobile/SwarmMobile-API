@@ -11,6 +11,7 @@ App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('StoreComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
+App::uses('AnalyticsComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
@@ -198,7 +199,7 @@ class APIController extends AppController {
               }
              */
         }
-        if ($this->rollups) {
+        if ($this->rollups && $component == 'store') {
             $oModel = new Model(false, 'cache', 'mongodb');
             $conditions = array();
             foreach ($params as $k => $v) {
@@ -272,7 +273,7 @@ class APIController extends AppController {
                  */
             }
             if ($this->rollups) {
-                if (!$from_mongo) {
+                if (!$from_mongo && $component == 'store') {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
                     $conditions = array();

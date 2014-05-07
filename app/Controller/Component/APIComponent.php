@@ -28,7 +28,7 @@ class APIComponent {
         $this->cache = $cache;
         $this->rollups = $rollups;
         $this->api = new APIController();
-		$this->api->request = $request;
+        $this->api->request = $request;
         $this->api->cache = $this->cache;
         $this->api->rollups = $this->rollups;
 
