@@ -348,9 +348,9 @@ SQL;
 
     public function hourlyDailyFormat($aByDate, $aByHour, $data, $params, $endpoint, $t1, $t2, $dbAlias = 'value') {
         $cResult = array('data' => array('totals' => array('open' => 0, 'close' => 0, 'total' => 0)));
-        $date = strtolower(date('Y-m-d', strtotime($start_date)));
+        $date = strtolower(date('Y-m-d', strtotime($params['start_date'])));
         foreach ($aByHour as $oRow) {
-            $weekday = strtolower(date('l', strtotime($start_date)));
+            $weekday = strtolower(date('l', strtotime($params['start_date'])));
             $hour = $oRow[$t2]['hour'];
             $cValue = $oRow[$t1][$dbAlias];
             if ($hour < 10) {
