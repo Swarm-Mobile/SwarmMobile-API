@@ -584,7 +584,6 @@ SQL;
 INSERT INTO sessions.incidences
 SET member_id   = $member_id,
     start_date  = '$start_date',    
-    end_date    = '$end_date',
     ts          = NOW()
 SQL;
                 $oDb->query($sSQL);
