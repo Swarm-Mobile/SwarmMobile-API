@@ -59,14 +59,10 @@ class ConsumerAPIComponent extends APIComponent {
         $oModel = new Model(false, $end, 'consumerAPI');                
         $conditions = array();
         foreach($params['filter'] as $k=>$v){            
-            $value      = (is_numeric($v))?$v:new MongoRegex("/$v/i");        
+            $value = (is_numeric($v))?$v:new MongoRegex("/$v/i");        
             $conditions[$k] = $value;            
         }        
-        $aRes = $oModel->find('all', array(
-                //'fields' => array('_id'),
-                'conditions' => $conditions
-            )
-        );
+        $aRes = $oModel->find('all', array('conditions' => $conditions));
         $result = array();
         foreach($aRes as $oRow){            
             $id = $oRow['Model']['id'];
@@ -75,8 +71,7 @@ class ConsumerAPIComponent extends APIComponent {
                 $cur = strtolower($collection);                
                 $oModel->setSource($cur); 
                 $conditions = array('_'.$prev => new MongoId($id));
-                $aCollectionRes = $oModel->find('all', array(
-                    //'fields' => array('_id'),
+                $aCollectionRes = $oModel->find('all', array(                    
                     'conditions' => $conditions
                 ));
                 $id = $aCollectionRes[0]['Model']['id'];
@@ -85,10 +80,7 @@ class ConsumerAPIComponent extends APIComponent {
             $id = $aCollectionRes[0]['Model']['_'.$start];
             $oModel->setSource($start);
             $conditions = array('_id' => new MongoId($id));
-            $tmp = $oModel->find('all', array(
-                    //'fields' => array('_id'),
-                    'conditions' => $conditions
-            ));            
+            $tmp = $oModel->find('all', array('conditions' => $conditions));            
             $result = array_merge($result, $tmp[0]['Model']);                        
         }        
         return $result;
