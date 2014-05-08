@@ -88,10 +88,8 @@ class ConsumerAPIComponent extends APIComponent{
             $id = $aCollectionRes[0]['Model']['_'.$start];
             $oModel->setSource($start);
             $conditions = array('_id' => new MongoId($id));
-            $tmp = $oModel->find('all', array('conditions' => $conditions));
-            foreach($tmp as $element){
-                $result[] = $tmp[0]['Model'];
-            }            
+            $tmp = $oModel->find('all', array('conditions' => $conditions));            
+            $result = array_merge($result, $tmp[0]['Model']);                        
         }        
         return $result;
     }
