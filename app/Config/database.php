@@ -67,8 +67,17 @@ class DATABASE_CONFIG {
     public $swarmdata = array();
     public $pos = array();
     public $mongodb = array();
+    public $consumerAPI = array();
     public $oauth = array();
     public $local = array(
+        'consumerAPI' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'Swarm_BI_POS',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
@@ -115,6 +124,14 @@ class DATABASE_CONFIG {
         )
     );
     public $int = array(
+        'consumerAPI' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'Swarm_BI_POS',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
@@ -161,6 +178,14 @@ class DATABASE_CONFIG {
         )
     );
     public $intjinesh = array(
+        'consumerAPI' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'Swarm_BI_POS',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
@@ -207,6 +232,14 @@ class DATABASE_CONFIG {
         )
     );
     public $live = array(
+        'consumerAPI' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'Swarm_BI_POS',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-54-219-74-242.us-west-1.compute.amazonaws.com',
@@ -255,6 +288,14 @@ class DATABASE_CONFIG {
         )
     );
     public $dev_yaron = array(
+        'consumerAPI' => array(
+            'datasource' => 'Mongodb.MongodbSource',
+            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'database' => 'Swarm_BI_POS',
+            'port' => 27017,
+            'prefix' => '',
+            'persistent' => 'true'
+        ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
@@ -303,7 +344,7 @@ class DATABASE_CONFIG {
 
     function __construct() {
         $env = getenv('server_location');
-        $dbs = array('ee', 'swarmdata', 'pos', 'mongodb', 'oauth');
+        $dbs = array('ee', 'swarmdata', 'pos', 'mongodb', 'oauth', 'consumerAPI');
         $env = ((!empty($env) && isset($this->$env)) ? $env : 'local');
         foreach ($dbs as $dbname) {
             $this->$dbname = $this->{$env}[$dbname];
