@@ -150,14 +150,18 @@ SQL;
         if ($start_date) {
             $aRes = $oModel->find('all', array(
                 'conditions' => array(
-                    "params.member_id" => "$member",
-                    "params.start_date" => "$start_date",
+                    "params"=> array(
+                        "member_id" => "$member",
+                        "start_date" => "$start_date",
+                    )                    
                 )
             ));
         } else {
             $aRes = $oModel->find('all', array(
                 'conditions' => array(
-                    "params.member_id" => "$member"
+                    "params" => array(
+                        "member_id" => "$member"
+                    )
                 )
             ));
         }
@@ -182,8 +186,10 @@ SQL;
     private function cleanDay($member, $date) {
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
-            "params.member_id" => "$member",
-            "params.start_date" => "$date"
+            "params" => array(
+                "member_id" => "$member",
+                "start_date" => "$date"                
+            )
         ));
     }
 

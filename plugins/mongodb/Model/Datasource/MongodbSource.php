@@ -527,6 +527,7 @@ class MongodbSource extends DboSource {
         $table = $this->fullTableName($Model);
 		try{
 			if ($this->_driverVersion >= '1.3.0') {
+                                //$this->_db->selectCollection($table)->setWriteConcern(0, 0);
 				$return = $this->_db
 					->selectCollection($table)
 					->insert($data, array('safe' => true));
