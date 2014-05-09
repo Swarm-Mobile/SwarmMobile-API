@@ -289,6 +289,7 @@ class APIController extends AppController {
                     $result['params'] = array();
                     $conditions = array("params"=>array());
                     foreach ($params as $k => $v) {
+                        $result['params'][$k] = $v;
                         $conditions['params'][$k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
