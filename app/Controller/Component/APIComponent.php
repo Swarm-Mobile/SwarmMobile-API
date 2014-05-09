@@ -553,43 +553,45 @@ SQL;
         $suffix = $member_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
         $tmp_table = 'sessions_' . $suffix;
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
-        $dbname = $oDb->config['database'];
-        $aRes = $oDb->fetchAll("SHOW TABLES FROM sessions LIKE '$tmp_table'");        
-        if (empty($aRes)) {
-            $sSQL = <<<SQL
-CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS ( 
-    SELECT 
-        mac_id, 
-        time_login, 
-        time_logout, 
-        network_id, 
-        sessionid        
-    FROM $dbname.$table   
-    WHERE network_id = $ap_id
-      AND time_login BETWEEN '$start_time' AND '$end_time'
-    LIMIT 20000
-);
-SQL;
-            $aRes = $oDb->execute($sSQL);
-            $oDb->query("CREATE INDEX mac_id_$suffix         ON sessions.$tmp_table (mac_id)");
-            $oDb->query("CREATE INDEX time_login_$suffix     ON sessions.$tmp_table (time_login)");
-            $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
-            $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
-            $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
-            $aRes = $oDb->fetchAll("SELECT count(*) as c FROM sessions.$tmp_table");
-            $count = $aRes[0][0]['c'];
-            if($count >= 20000){
-                $sSQL = <<<SQL
-INSERT INTO sessions.incidences
-SET member_id   = $member_id,
-    start_date  = '$start_date',    
-    ts          = NOW()
-SQL;
-                $oDb->query($sSQL);
-            }
-        }
-        return $tmp_table;
+        return $table;
+//        USE TEMPORARY TABLES        
+//        $oDb = DBComponent::getInstance($table, 'swarmdata');
+//        $dbname = $oDb->config['database'];
+//        $aRes = $oDb->fetchAll("SHOW TABLES FROM sessions LIKE '$tmp_table'");        
+//        if (empty($aRes)) {
+//            $sSQL = <<<SQL
+//CREATE TABLE IF NOT EXISTS sessions.$tmp_table AS ( 
+//    SELECT 
+//        mac_id, 
+//        time_login, 
+//        time_logout, 
+//        network_id, 
+//        sessionid        
+//    FROM $dbname.$table   
+//    WHERE network_id = $ap_id
+//      AND time_login BETWEEN '$start_time' AND '$end_time'
+//    LIMIT 20000
+//);
+//SQL;
+//            $aRes = $oDb->execute($sSQL);
+//            $oDb->query("CREATE INDEX mac_id_$suffix         ON sessions.$tmp_table (mac_id)");
+//            $oDb->query("CREATE INDEX time_login_$suffix     ON sessions.$tmp_table (time_login)");
+//            $oDb->query("CREATE INDEX time_logout_$suffix    ON sessions.$tmp_table (time_logout)");
+//            $oDb->query("CREATE INDEX network_id_$suffix     ON sessions.$tmp_table (network_id)");
+//            $oDb->query("CREATE INDEX sessionid_$suffix      ON sessions.$tmp_table (sessionid)");
+//            $aRes = $oDb->fetchAll("SELECT count(*) as c FROM sessions.$tmp_table");
+//            $count = $aRes[0][0]['c'];
+//            if($count >= 20000){
+//                $sSQL = <<<SQL
+//INSERT INTO sessions.incidences
+//SET member_id   = $member_id,
+//    start_date  = '$start_date',    
+//    ts          = NOW()
+//SQL;
+//                $oDb->query($sSQL);
+//            }
+//        }
+//        return $tmp_table;
     }
 
 }

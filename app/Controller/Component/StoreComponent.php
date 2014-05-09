@@ -76,7 +76,7 @@ class StoreComponent extends APIComponent {
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdata');
+            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
             $sSQL = <<<SQL
 SELECT 
     ROUND(COUNT(walkbys)*$factor) as value, 
@@ -87,7 +87,7 @@ FROM(
         DISTINCT ses1.mac_id as walkbys,        
         DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
         DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
-    FROM sessions.$table ses1
+    FROM $table ses1
     INNER JOIN mac_address 
         ON ses1.mac_id = mac_address.id
     WHERE ( status !='noise' AND NOISE is false) 
@@ -302,7 +302,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdata');
+            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
             $aTmp = array(
                 'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
                 'walkbys' => array("'passerby'")
@@ -319,7 +319,7 @@ FROM(
         DISTINCT ses1.mac_id as value, 
         DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%k') AS hour,
 	DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%Y-%m-%d') AS date	        
-    FROM sessions.$table ses1
+    FROM $table ses1
     WHERE sessionid IN ($aStates)
       AND time_logout IS NOT NULL
       AND (network_id= $ap_id) 
@@ -376,7 +376,7 @@ LEFT JOIN (
            DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
 	   ses1.mac_id,
 	   (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
-	FROM sessions.$table as ses1
+	FROM $table as ses1
 	INNER JOIN mac_address 
 		ON ses1.mac_id = mac_address.id
 	WHERE status !='noise' 
@@ -390,7 +390,7 @@ LEFT JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -402,7 +402,7 @@ FROM(
     SELECT 
        ses1.mac_id,
        (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
-    FROM sessions.$table as ses1
+    FROM $table as ses1
     INNER JOIN mac_address 
             ON ses1.mac_id = mac_address.id
     WHERE status !='noise' 
@@ -414,7 +414,7 @@ FROM(
     HAVING 18000 > dwell_time
 ) t2
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -462,7 +462,7 @@ INNER JOIN (
         DISTINCT ses1.mac_id as unique_mac,(CONVERT_TZ(time_login,'GMT','$timezone')) as max_login,
         DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
         DATE_FORMAT((CONVERT_TZ(time_logout,'GMT','$timezone')),'%H') as logout
-      FROM sessions.$table  ses1
+      FROM $table  ses1
       INNER JOIN mac_address 
         ON ses1.mac_id = mac_address.id
       WHERE (mac_address.status<>'noise') 
@@ -482,7 +482,7 @@ INNER JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -496,7 +496,7 @@ FROM (
     SELECT 
 	DISTINCT ses1.mac_id as unique_mac,
 	date((CONVERT_TZ(time_login,'GMT','$timezone'))) as max_login 
-    FROM sessions.$table  ses1
+    FROM $table  ses1
     INNER JOIN mac_address 
 	ON ses1.mac_id = mac_address.id
     WHERE (mac_address.status<>'noise')
@@ -513,7 +513,7 @@ WHERE nml.first_logout IS NOT NULL
   AND y.max_login IS NOT NULL
 GROUP BY date       
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -561,7 +561,7 @@ LEFT JOIN
     SELECT 
     	ses1.mac_id,DATE_FORMAT(MIN(convert_tz(time_login,'GMT','$timezone')), '%H') AS walk_in,
     	DATE_FORMAT(max(convert_tz(time_logout,'GMT','$timezone')),'%H') AS walk_out
-   	FROM sessions.$table ses1
+   	FROM $table ses1
     INNER JOIN mac_address 
     	ON ses1.mac_id = mac_address.id
     WHERE (mac_address.status<>'noise') 
@@ -574,7 +574,7 @@ LEFT JOIN
 GROUP BY x.hour
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -584,7 +584,7 @@ SQL;
 SELECT 
     DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,
     ROUND(COUNT(DISTINCT ses1.mac_id)*$factor) as value 
-FROM sessions.$table ses1
+FROM $table ses1
 INNER JOIN mac_address 
     ON ses1.mac_id = mac_address.id
 WHERE (mac_address.status<>'noise')
@@ -594,7 +594,7 @@ WHERE (mac_address.status<>'noise')
  AND time_login BETWEEN '$start_date' AND '$end_date'  
 GROUP BY date
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdata');
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 

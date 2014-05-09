@@ -65,6 +65,7 @@ class DATABASE_CONFIG {
     public $default = array();
     public $ee = array();
     public $swarmdata = array();
+    public $swarmdataRead = array();
     public $pos = array();
     public $mongodb = array();
     public $consumerAPI = array();
@@ -112,13 +113,22 @@ class DATABASE_CONFIG {
             'password' => '',
             'database' => 'pos_production',
             'prefix' => '',
-        ),
+        ),        
         'swarmdata' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => false,
             'host' => 'localhost',
             'login' => 'root',
             'password' => '',
+            'database' => 'swarmdata',
+            'prefix' => '',
+        ),
+        'swarmdataRead' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
             'database' => 'swarmdata',
             'prefix' => '',
         )
@@ -175,6 +185,15 @@ class DATABASE_CONFIG {
             'password' => 'dev2DaMax',
             'database' => 'swarmdata_int',
             'prefix' => '',
+        ),
+        'swarmdataRead' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
         )
     );
     public $intjinesh = array(
@@ -229,6 +248,15 @@ class DATABASE_CONFIG {
             'password' => 'dev2DaMax',
             'database' => 'swarmdata_int',
             'prefix' => '',
+        ),
+        'swarmdataRead' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
         )
     );
     public $live = array(
@@ -281,6 +309,15 @@ class DATABASE_CONFIG {
             'datasource' => 'Database/Mysql',
             'persistent' => false,
             'host' => 'swarmdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
+        ),
+        'swarmdataRead' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login' => 'swarmdata',
             'password' => '4Ha2Rap4ePHe',
             'database' => 'swarmdata',
@@ -339,12 +376,29 @@ class DATABASE_CONFIG {
             'password' => 'dev2DaMax',
             'database' => 'swarmdata_int',
             'prefix' => '',
+        ),
+        'swarmdataRead' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
         )
     );
 
     function __construct() {
         $env = getenv('server_location');
-        $dbs = array('ee', 'swarmdata', 'pos', 'mongodb', 'oauth', 'consumerAPI');
+        $dbs = array(
+            'ee', 
+            'swarmdata', 
+            'swarmdataRead', 
+            'pos', 
+            'mongodb', 
+            'oauth', 
+            'consumerAPI'
+        );
         $env = ((!empty($env) && isset($this->$env)) ? $env : 'local');
         foreach ($dbs as $dbname) {
             $this->$dbname = $this->{$env}[$dbname];
