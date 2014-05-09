@@ -208,11 +208,11 @@ class APIController extends AppController {
         }
         if ($this->rollups && $component == 'store') {
             $oModel = new Model(false, 'cache', 'mongodb');
-            $conditions = array();
+            $conditions = array("params"=>array());
             foreach ($params as $k => $v) {
-                $conditions['params.' . $k] = $v;
+                $conditions['params'][$k] = $v;
             }
-            $conditions['params.endpoint'] = $component . '/' . $method;
+            $conditions['params']['endpoint'] = $component . '/' . $method;
             $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
             if (isset($aRes['Model'])) {
                 unset($aRes['Model']['id']);
@@ -287,13 +287,12 @@ class APIController extends AppController {
                 if (!$from_mongo && $component == 'store') {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
-                    $conditions = array();
+                    $conditions = array("params"=>array());
                     foreach ($params as $k => $v) {
-                        $result['params'][$k] = $v;
-                        $conditions['params.' . $k] = $v;
+                        $conditions['params'][$k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params.endpoint'] = $component . '/' . $method;
+                    $conditions['params']['endpoint'] = $component . '/' . $method;
                     $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
                     if (empty($aRes)) {
                         $oModel->save($result);
