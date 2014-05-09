@@ -165,6 +165,7 @@ SQL;
     }
 
     private function dropTemporaryTables($member) {
+        return true;
         $this->output("---------------------------------------------");
         $this->output("Dropping temporary tables");
         $oDb = DBComponent::getInstance('sessions', 'swarmdata');
