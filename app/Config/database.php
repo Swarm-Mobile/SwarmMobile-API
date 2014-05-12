@@ -270,7 +270,7 @@ class DATABASE_CONFIG {
         ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-54-219-74-242.us-west-1.compute.amazonaws.com',
+            'host' => 'mongo.swarm-mobile.com',
             'login' => 'mongouser',
             'password' => 'Swarmap!',
             'database' => 'API',
@@ -281,9 +281,9 @@ class DATABASE_CONFIG {
         'oauth' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => false,
-            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
-            'login' => 'swarmdev',
-            'password' => 'dev2DaMax',
+            'host' => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'oauth_user',
+            'password' => 'dmdJ6ZRc',
             'database' => 'oauth',
             'prefix' => '',
         ),
