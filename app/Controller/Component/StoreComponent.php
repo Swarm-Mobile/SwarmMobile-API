@@ -202,7 +202,7 @@ FROM (
             $register_filter
             $outlet_filter
 	    AND i.ts BETWEEN '$start_date' AND '$end_date'
-	GROUP BY il.invoice_id
+	GROUP BY i.invoice_id
 ) t2
 GROUP BY date ASC, hour ASC             
 SQL;
