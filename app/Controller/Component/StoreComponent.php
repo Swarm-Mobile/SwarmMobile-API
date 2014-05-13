@@ -37,8 +37,7 @@ class StoreComponent extends APIComponent {
         $result = array();
         $calls = array(
             array('store', 'transactions'),
-            array('store', 'revenue'),
-            array('store', 'windowConversion'),
+            array('store', 'revenue'),           
             array('store', 'conversionRate'),
             array('store', 'avgTicket'),
             array('store', 'itemsPerTransaction'),

@@ -172,8 +172,7 @@ SQL;
         $oModel = new Model(false, 'cache', 'mongodb');
         $metrics = array(
             'transactions',
-            'revenue',
-            'windowConversion',
+            'revenue',            
             'conversionRate',
             'avgTicket',
             'itemsPerTransaction',
