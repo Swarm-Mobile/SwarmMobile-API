@@ -172,19 +172,17 @@ SQL;
         $oModel = new Model(false, 'cache', 'mongodb');
         $metrics = array(
             'transactions',
-            'revenue',
+            'revenue',            
             'conversionRate',
             'avgTicket',
             'itemsPerTransaction',
             'totalItems'
         );
         foreach ($metrics as $metric) {
-            $oModel->deleteAll(array("params" => array(
-                    "member_id" => "$member",
-                    "start_date" => "$date",
-                    "end_date" => "$date",
-                    "endpoint" => "store/$metric"
-                )
+            $oModel->deleteAll(array(
+                "params.member_id" => "$member",
+                "params.start_date" => "$date",
+                "params.endpoint" => "store/$metric"
             ));
         }
     }
