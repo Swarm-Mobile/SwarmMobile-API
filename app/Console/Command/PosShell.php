@@ -179,17 +179,17 @@ SQL;
             'avgTicket',
             'itemsPerTransaction',
             'totalItems'
-        );
-        foreach ($metrics as $metric) {
-            $oModel->deleteAll(array(
-                "params"=>array(
-                    "member_id" => "$member",
-                    "start_date" => "$date",
-                    "end_date" => "$date",
-                    "endpoint" => "store/$metric"                    
-                )
-            ));
+        );        
+        $matches = array();
+        foreach ($metrics as $metric) {            
+            $matches[] = array(
+                "member_id" => "$member",
+                "start_date" => "$date",
+                "end_date" => "$date",
+                "endpoint" => "store/$metric"                    
+            );
         }
+        $oModel->deleteAll(array("params"=>array('$in'=>array($matches))));
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
