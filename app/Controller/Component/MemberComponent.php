@@ -350,7 +350,7 @@ SQL;
 			$memFields['m_field_id_125'] = 'no';
 			$memFields['m_field_id_126'] = 'no';
 			$memFields['m_field_id_127'] = 'no';
-			$memFields['m_field_id_128'] = uniqid();
+			$memFields['m_field_id_129'] = uniqid();
 			$this->insertDB('ee', 'exp_member_data', $memFields);
 			return array('success' => 'Member registration success');
         } else {
@@ -398,7 +398,7 @@ SQL;
         $table = 'exp_member_data';
         $oModel = new Model(false, $table, 'ee');
         $oDb = $oModel->getDataSource();
-        $sSQL = "SELECT member_id FROM $table WHERE m_field_id_128 = :uuid";
+        $sSQL = "SELECT member_id FROM $table WHERE m_field_id_129 = :uuid";
         $bind = array(':uuid' => $uuid);
         $result = array();
         $result = $oDb->fetchAll($sSQL, $bind);

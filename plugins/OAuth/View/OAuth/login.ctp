@@ -21,9 +21,28 @@ $this->assign('title', 'Swarm Mobile - API Login');
                 foreach ($OAuthParams as $key => $value) {
                     echo $this->BootstrapForm->hidden(h($key), array('value' => h($value)));
                 }
-                echo $this->BootstrapForm->input('username');
-                echo $this->BootstrapForm->input('password');
+                //echo $this->BootstrapForm->input('username');
+                //echo $this->BootstrapForm->input('password');
                 ?>
+                <div class="form-group required">
+                    <label class="col-lg-2 control-label">Username</label>
+                    <div class="col-lg-10">
+                        <input name="username" 
+                               class="form-control" 
+                               type="text" 
+                               required="required">
+                    </div>
+                </div>
+                <div class="form-group required">
+                    <label class="col-lg-2 control-label">Password</label>
+                    <div class="col-lg-10">
+                        <input name="password" 
+                               class="form-control" 
+                               type="password" 
+                               id="UserPassword" 
+                               required="required">
+                    </div>
+                </div>
                 <button type="submit" class="btn btn-default pull-right caps" id="submitButton">Submit</button>
                 <?= $this->BootstrapForm->end(); ?>
             </div>

@@ -527,6 +527,7 @@ class MongodbSource extends DboSource {
         $table = $this->fullTableName($Model);
 		try{
 			if ($this->_driverVersion >= '1.3.0') {
+                                //$this->_db->selectCollection($table)->setWriteConcern(0, 0);
 				$return = $this->_db
 					->selectCollection($table)
 					->insert($data, array('safe' => true));
@@ -1262,9 +1263,7 @@ class MongodbSource extends DboSource {
 			$this->_prepareLogQuery($args[2]);
 		}
 
-		$return = $this->_db
-			->command($query);
-                var_dump($query);
+		$return = $this->_db->command($query);
 		if ($this->fullDebug) {
 			$this->logQuery("db.runCommand( :query )", 	compact('query'));
 		}

@@ -41,7 +41,7 @@ class ExpMember extends AppModel {
         $res = $this->find('first', array(
             'conditions' => array('username' => $username),
             'fields' => array('ExpMember.member_id', 'ExpMember.group_id', 'ExpMember.username',
-                'ExpMember.password', 'ExpMember.salt', 'MemberData.m_field_id_28 as store_id', 'MemberData.m_field_id_128 as uuid'),
+                'ExpMember.password', 'ExpMember.salt', 'MemberData.m_field_id_28 as store_id', 'MemberData.m_field_id_129 as uuid'),
             'joins' => array(
                 array(
                     'table' => 'exp_member_data',

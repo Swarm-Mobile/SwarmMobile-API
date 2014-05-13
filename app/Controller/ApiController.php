@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/Component/APIComponent.php';
+require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
+
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('AppController', 'Controller');
 App::uses('Model', 'Model');
@@ -11,6 +14,7 @@ App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('StoreComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
+App::uses('AnalyticsComponent', 'Controller/Component');
 
 class APIController extends AppController {
 
@@ -35,10 +39,11 @@ class APIController extends AppController {
         $this->Session->destroy('User');
         $this->redirect(Router::url('/login'));
     }
+
     public function login() {
         if ($this->request->is('post')) {
             $this->Session->destroy('User');
-            $redirect = $this->request->data['redirect'];                       
+            $redirect = $this->request->data['redirect'];
             if ($this->Auth->login()) {
                 if (empty($redirect)) {
                     $res = array();
@@ -49,7 +54,7 @@ class APIController extends AppController {
                     $this->call_log();
                     exit();
                 } else {
-                    $this->redirect($redirect);                                        
+                    $this->redirect($redirect);
                 }
             } else {
                 if (empty($redirect)) {
@@ -63,14 +68,16 @@ class APIController extends AppController {
             }
         }
     }
-    public function request_client(){
-       $data = array(
-           'username' => $this->data['username'],
-           'redirect_uri' => $this->data['redirect_uri'],
-           'description' => $this->data['description']
-       );
-       $this->Inbox->save($data);
+
+    public function request_client() {
+        $data = array(
+            'username' => $this->data['username'],
+            'redirect_uri' => $this->data['redirect_uri'],
+            'description' => $this->data['description']
+        );
+        $this->Inbox->save($data);
     }
+
     public function index() {
         set_time_limit(3600);
         $this->microtime = microtime(true);
@@ -132,6 +139,7 @@ class APIController extends AppController {
         );
         $oModel->save($call);
     }
+
     public function __construct($request = null, $response = null) {
         parent::__construct($request, $response);
         if (!empty($this->request)) {
@@ -148,12 +156,14 @@ class APIController extends AppController {
             }
         }
     }
+
     public function processGET($params = array()) {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
         }
         return true;
     }
+
     public function processPOST($params = array()) {
         if (!$this->debug) {
             $this->user = $this->authenticate($params['access_token']);
@@ -162,6 +172,7 @@ class APIController extends AppController {
         $this->rollups = false;
         return true;
     }
+
     public function internalCall($component, $method, $params) {
         unset($params['access_token']);
         unset($params['norollups']);
@@ -169,15 +180,12 @@ class APIController extends AppController {
         $classname = ucfirst($component) . 'Component';
         if (class_exists($classname)) {
             $oComponent = new $classname($this->request, $this->cache, $this->rollups);
-            if (method_exists($oComponent, $method)) {
-                $result = $this->getPreviousResult($component, $method, $params);
-                if ($result === false) {
-                    $result = $oComponent->$method($params);
-                    $this->cache($component, $method, $params, $result);
-                }
-                return $result;
+            $result = $this->getPreviousResult($component, $method, $params);
+            if ($result === false) {
+                $result = $oComponent->$method($params);
+                $this->cache($component, $method, $params, $result);
             }
-            throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
+            return $result;
         }
         throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
     }
@@ -198,13 +206,13 @@ class APIController extends AppController {
               }
              */
         }
-        if ($this->rollups) {
+        if ($this->rollups && $component == 'store') {
             $oModel = new Model(false, 'cache', 'mongodb');
-            $conditions = array();
+            $conditions = array("params"=>array());
             foreach ($params as $k => $v) {
-                $conditions['params.' . $k] = $v;
+                $conditions['params'][$k] = $v;
             }
-            $conditions['params.endpoint'] = $component . '/' . $method;
+            $conditions['params']['endpoint'] = $component . '/' . $method;
             $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
             if (isset($aRes['Model'])) {
                 unset($aRes['Model']['id']);
@@ -217,6 +225,7 @@ class APIController extends AppController {
         }
         return false;
     }
+
     private function getCacheFilePath($component, $method, $params) {
         $component = strtolower($component);
         $method = strtolower($method);
@@ -227,6 +236,7 @@ class APIController extends AppController {
         }
         return $path . DS . md5($tmp) . '.cache';
     }
+
     private function createCacheFolders($component, $method) {
         $component = strtolower($component);
         $method = strtolower($method);
@@ -245,11 +255,13 @@ class APIController extends AppController {
             mkdir($path);
         }
     }
+
     public function authenticate($accessToken = '') {
         $oOAuth = new OAuthComponent(new ComponentCollection());
         $oOAuth->OAuth2->verifyAccessToken($accessToken);
         return $oOAuth->user();
     }
+
     private function cache($component, $method, $params, $result, $from_mongo = false) {
         if (!empty($result) && $component . '/' . $method != 'member/data') {
             unset($params['access_token']);
@@ -272,16 +284,16 @@ class APIController extends AppController {
                  */
             }
             if ($this->rollups) {
-                if (!$from_mongo) {
+                if (!$from_mongo && $component == 'store') {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
-                    $conditions = array();
+                    $conditions = array("params"=>array());
                     foreach ($params as $k => $v) {
                         $result['params'][$k] = $v;
-                        $conditions['params.' . $k] = $v;
+                        $conditions['params'][$k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params.endpoint'] = $component . '/' . $method;
+                    $conditions['params']['endpoint'] = $component . '/' . $method;
                     $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
                     if (empty($aRes)) {
                         $oModel->save($result);

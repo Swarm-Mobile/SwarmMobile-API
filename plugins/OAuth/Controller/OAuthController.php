@@ -18,7 +18,7 @@ App::uses('OAuthAppController', 'OAuth.Controller');
  */
 class OAuthController extends OAuthAppController {
 
-	public $components = array('OAuth.OAuth', 'Auth', 'Session', 'Security');
+	public $components = array('OAuth.OAuth', 'Auth', 'Session', /*'Security'*/);
 
 	public $uses = array('Users');
 
@@ -172,7 +172,7 @@ class OAuthController extends OAuthAppController {
  *
  * @param string $type
  */
-	public function blackHole($type) {
+	public function blackHole($type) {           
 		$this->blackHoled = $type;
 
 		if ($type != 'auth') {

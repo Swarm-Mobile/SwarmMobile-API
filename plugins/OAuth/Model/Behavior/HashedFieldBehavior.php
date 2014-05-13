@@ -31,7 +31,9 @@ class HashedFieldBehavior extends ModelBehavior {
 		foreach ((array) $setting['fields'] as $field) {
 			if (array_key_exists($field, $Model->data[$Model->alias])) {
 				$data = $Model->data[$Model->alias][$field];
-				$Model->data[$Model->alias][$field] = Security::hash($data, null, true);
+                                if(empty($Model->data[$Model->alias][$field])){
+                                    $Model->data[$Model->alias][$field] = Security::hash($data, null, true);                                    
+                                }
 			}
 		}
 		return true;

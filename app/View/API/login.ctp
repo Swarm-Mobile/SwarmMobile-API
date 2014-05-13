@@ -15,7 +15,7 @@ $this->assign('title', 'Swarm Mobile - API Login');
         </div>
         <div class="row-fluid">
             <div class="col-md-4 col-md-offset-4 loginArea">
-                <form action="/login" class="form-horizontal" role="form" method="post" >
+                <form action="<?= Router::url('/login') ?>" class="form-horizontal" role="form" method="post" >
                     <div class="form-group required">
                         <label for="username" class="col-lg-2 control-label">Username</label>
                         <div class="col-lg-10">
