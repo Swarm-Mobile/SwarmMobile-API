@@ -294,7 +294,14 @@
  * 		'serialize' => true, //[optional]
  * 		'mask' => 0664, //[optional]
  *	));
- *
+*/
+    Cache::config('default', array(
+        'engine' => 'File',
+        'mask' => 0755,
+    ));
+/*
+ * 
+ * 
  * APC (http://pecl.php.net/package/APC)
  *
  * 	 Cache::config('default', array(
