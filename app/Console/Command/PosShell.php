@@ -6,7 +6,7 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
-class RollupShell extends AppShell {
+class PosShell extends AppShell {
 
     private $console = true;
 
@@ -103,7 +103,7 @@ SQL;
                 $this->output("");
                 $this->output("Processing member : $member");
                 $this->output("");
-                $this->output("Start             : " . date('H:i:s'));                
+                $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
                     $start_date = $this->getFirstRegisterDate($member);
                     $end_date = date('Y-m-d');
@@ -127,7 +127,7 @@ SQL;
                 ));
 
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
-                $this->output("---------------------------------------------");                
+                $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
                 $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
@@ -164,10 +164,22 @@ SQL;
 
     private function cleanDay($member, $date) {
         $oModel = new Model(false, 'cache', 'mongodb');
-        $oModel->deleteAll(array(
-            "params.member_id" => "$member",
-            "params.start_date" => "$date"
-        ));
+        $metrics = array(
+            'transactions',
+            'revenue',
+            'windowConversion',
+            'conversionRate',
+            'avgTicket',
+            'itemsPerTransaction',
+            'totalItems'
+        );
+        foreach ($metrics as $metric) {
+            $oModel->deleteAll(array(
+                "params.member_id" => "$member",
+                "params.start_date" => "$date",
+                "params.endpoint" => "store/$metric"
+            ));
+        }
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
