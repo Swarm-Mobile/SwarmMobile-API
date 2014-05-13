@@ -171,6 +171,8 @@ SQL;
     private function cleanDay($member, $date) {
         $oModel = new Model(false, 'cache', 'mongodb');
         $metrics = array(
+            'purchaseInfo',
+            'totals',
             'transactions',
             'revenue',            
             'conversionRate',
@@ -180,9 +182,12 @@ SQL;
         );
         foreach ($metrics as $metric) {
             $oModel->deleteAll(array(
-                "params.member_id" => "$member",
-                "params.start_date" => "$date",
-                "params.endpoint" => "store/$metric"
+                "params"=>array(
+                    "member_id" => "$member",
+                    "start_date" => "$date",
+                    "end_date" => "$date",
+                    "endpoint" => "store/$metric"                    
+                )
             ));
         }
     }
