@@ -189,7 +189,7 @@ SQL;
                 "endpoint" => "store/$metric"                    
             );
         }
-        $oModel->deleteAll(array("params"=>array('$in'=>array($matches))));
+        $oModel->deleteAll(array("params"=>array('$in'=>$matches)));
     }
 
     private function clean($member, $start_date = false, $end_date = false) {
