@@ -22,7 +22,7 @@ class APIController extends AppController {
     public $cache_time_exceptions = array();
     public $uses = array('Inbox');
     public $debug = true;
-    public $cache = true;
+    public $cache = false;
     public $rollups = true;
     public $user = array('id_user' => 0, 'username' => '');
     public $endpoint = '';

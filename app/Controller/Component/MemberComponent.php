@@ -121,12 +121,11 @@ SQL;
     	if(!$this->api->request->is('post')) throw new APIException(401, 'invalid_grant', "Incorrect request method");
         $this->verify($params);
         $member_id = $params['member_id'];
-        $username = $params['username'];
+
 
         $update = $updateMem = array();
         unset($params['uuid']);
         unset($params['member_id']);
-        unset($params['username']);
         $fields = $this->getMemberFields();
 
         foreach ($params as $key => $val) {
@@ -181,8 +180,8 @@ SQL;
                 }
             }
 
-            $sSQL .= ' WHERE username=:username';
-            $binds[':username'] = $username;
+            $sSQL .= ' WHERE member_id=:member_id';
+            $binds[':member_id'] = $member_id;
             $oDb->query($sSQL, $binds);
         }
         return array('success' => 'Data updated successfully');
@@ -197,7 +196,6 @@ SQL;
     public function getPreferences($params) {
         $this->verify($params);
         $member_id = $params['member_id'];
-        $username = $params['username'];
         $table = 'exp_member_data';
         $oModel = new Model(false, $table, 'ee');
         $oDb = $oModel->getDataSource();
@@ -242,7 +240,8 @@ SELECT
     m_field_id_51 as network_provider,
     m_field_id_72 as guest_wifi,
     m_field_id_70 as pos_provider,
-    m_field_id_123 as transactions_while_closed
+    m_field_id_123 as transactions_while_closed,
+    m_field_id_129 as goal_total_shoppers
 FROM $table  
 WHERE member_id = :member_id
 SQL;
@@ -253,17 +252,17 @@ SQL;
             $ret['data'][$k] = $v;
         }
 
-        if ($params['username']) {
-            $table = 'exp_members';
-            $oModel = new Model(false, $table, 'ee');
-            $oDb = $oModel->getDataSource();
-            $sSQL = "SELECT screen_name, email, photo_filename, photo_width, photo_height FROM exp_members WHERE username=:username";
-            $bind = array('username' => $username);
-            $result2 = $oDb->fetchAll($sSQL, $bind);
-            foreach ($result2[0][$table] as $k => $v) {
-                $ret['data'][$k] = $v;
-            }
-        }
+        // Pull in member variables from members table
+		$table = 'exp_members';
+		$oModel = new Model(false, $table, 'ee');
+		$oDb = $oModel->getDataSource();
+		$sSQL = "SELECT screen_name, email, photo_filename, photo_width, photo_height FROM exp_members WHERE member_id=:member_id";
+		$bind = array('member_id' => $member_id);
+		$result2 = $oDb->fetchAll($sSQL, $bind);
+		foreach ($result2[0][$table] as $k => $v) {
+			$ret['data'][$k] = $v;
+		}
+
 
         return $ret;
     }
@@ -350,7 +349,7 @@ SQL;
 			$memFields['m_field_id_125'] = 'no';
 			$memFields['m_field_id_126'] = 'no';
 			$memFields['m_field_id_127'] = 'no';
-			$memFields['m_field_id_129'] = uniqid();
+			$memFields['m_field_id_128'] = uniqid();
 			$this->insertDB('ee', 'exp_member_data', $memFields);
 			return array('success' => 'Member registration success');
         } else {
@@ -398,7 +397,7 @@ SQL;
         $table = 'exp_member_data';
         $oModel = new Model(false, $table, 'ee');
         $oDb = $oModel->getDataSource();
-        $sSQL = "SELECT member_id FROM $table WHERE m_field_id_129 = :uuid";
+        $sSQL = "SELECT member_id FROM $table WHERE m_field_id_128 = :uuid";
         $bind = array(':uuid' => $uuid);
         $result = array();
         $result = $oDb->fetchAll($sSQL, $bind);
