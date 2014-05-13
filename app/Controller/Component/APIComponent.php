@@ -174,6 +174,31 @@ SQL;
     public function outletFilter($data) {
         return (!empty($data['data']['outlet_filter'])) ? "outlet_id='{$data['data']['outlet_filter']}' AND" : '';
     }
+	
+	public function iterativeTotals($component, $method, $params){
+		$aResults = array();
+        if ($params['start_date'] != $params['end_date']) {
+            $end = new DateTime($params['end_date']);
+            $slave_params = $params;
+            do {
+                $slave_params['end_date'] = $slave_params['start_date'];
+                $result = $this->api->internalCall($component, $method, $slave_params);
+                $aResults[] = $result;
+                $new_start_date = new DateTime($slave_params['start_date']);
+                date_add($new_start_date, date_interval_create_from_date_string('1 days'));
+                $slave_params['start_date'] = date_format($new_start_date, 'Y-m-d');
+            } while ($new_start_date <= $end);
+            $result = array();
+            foreach ($aResults as $cResult) {
+                foreach ($cResult as $oRow) {
+					foreach ($oRow as $k=>$v){
+						@$result[$k] += $v;
+					}
+                }
+            }
+            return $result;
+        }
+	}
 
     public function iterativeQuery($component, $method, $params) {
         $aResults = array();
