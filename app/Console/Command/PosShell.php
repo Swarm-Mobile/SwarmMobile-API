@@ -68,9 +68,15 @@ SELECT exp_members.member_id
 FROM exp_members
 INNER JOIN exp_member_data
     ON exp_member_data.member_id = exp_members.member_id
+                    
     AND m_field_id_20 IS NOT NULL
     AND m_field_id_20 != ''
     AND m_field_id_20 > 0
+                    
+    AND m_field_id_28 IS NOT NULL
+    AND m_field_id_28 != ''
+    AND m_field_id_28 > 0
+                    
     AND exp_members.group_id = 6
 SQL;
             $aRes = $oModel->query($sSQL);

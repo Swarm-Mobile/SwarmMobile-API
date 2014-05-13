@@ -213,7 +213,9 @@ SQL;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'invoices';
             $oDb = DBComponent::getInstance($table, 'pos');
-            $sSQL = <<<SQL
+            $aRes = array();
+            if (!empty($lightspeed_id)) {
+                $sSQL = <<<SQL
 SELECT 
 	COUNT(*) as transactions,
 	SUM(revenue) as revenue,
@@ -239,7 +241,8 @@ FROM (
 ) t2
 GROUP BY date ASC, hour ASC             
 SQL;
-            $aRes = $oDb->fetchAll($sSQL);
+                $aRes = $oDb->fetchAll($sSQL);
+            }
             return $aRes;
         }
     }
