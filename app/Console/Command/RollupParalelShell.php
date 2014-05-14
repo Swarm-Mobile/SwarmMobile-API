@@ -6,8 +6,8 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
-function call($p1, $p2, $p3) {
-    return array($p1, $p2, $p3);
+function call() {
+    return 'hi';
 }
 
 function created($task) {

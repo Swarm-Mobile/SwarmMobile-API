@@ -340,7 +340,8 @@ SQL;
             $oDb = DBComponent::getInstance($table, 'swarmdataRead');
             $aTmp = array(
                 'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
-                'walkbys' => array("'passerby'")
+                //'walkbys' => array("'passerby'")
+                'total' => array("'passerby'","'instore'", "'passive'", "'active'", "'login'")
             );
             foreach ($aTmp as $var => $aStates) {
                 $aStates = implode(',', $aStates);
@@ -365,7 +366,8 @@ SQL;
                 $$var = $oDb->fetchAll($sSQL);
                 $$var = $this->format($$var, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
             }
-            $result = $this->percentify($footTraffic, $walkbys);
+            //$result = $this->percentify($footTraffic, $walkbys);
+            $result = $this->percentify($footTraffic, $total);
             $result['options'] = array(
                 'endpoint' => '/store/' . __FUNCTION__,
                 'member_id' => $params['member_id'],
