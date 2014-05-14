@@ -35,7 +35,7 @@ class UsersController extends CrudController {
         }
         $this->set('data', $data);
         $this->set('tables_data', $tables_data);
-        $this->render('/crud/form');
+        $this->render('/Crud/form');
     }
 
 }
