@@ -22,14 +22,14 @@ class CrudController extends AppController {
         $this->set('ctrl', $this->ctrl);
         $this->set('fields', $this->view_fields);        
         $this->set('data', $this->{$this->model}->find('all'));
-        $this->render('/crud/table');
+        $this->render('/Crud/table');
     }
 
     public function add() {
         $this->set('model', $this->model);
         $this->set('ctrl', $this->ctrl);
         $this->set('fields', $this->edit_fields);
-        $this->render('/crud/form');
+        $this->render('/Crud/form');
     }
 
     public function edit() {
@@ -43,7 +43,7 @@ class CrudController extends AppController {
             $this->redirect(Router::url('/' . $this->ctrl . '/view'));
         }
         $this->set('data', $data);
-        $this->render('/crud/form');
+        $this->render('/Crud/form');
     }
 
     public function delete() {
