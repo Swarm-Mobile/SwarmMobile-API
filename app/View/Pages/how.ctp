@@ -21,6 +21,10 @@ $this->assign('title', 'Swarm Mobile - Request OAuth Client');
                             can find in the docummentation that we sent to you. Anything
                             more, anything less.
                         </p>
+                        <h3>Get a Code</h3>
+                        <code>
+                            http://api.swarm-mobile.com/oauth/authorize?response_type=code&client_id=xxxx&redirect_url=xxxx
+                        </code>
                         <h3>Get a Token</h3>
                         <code>
                             http://api.swarm-mobile.com/oauth/token?client_id=xxx&client_secret=xxx&code=xxx&grant_type=authorization_code&redirect_uri=xxxx
