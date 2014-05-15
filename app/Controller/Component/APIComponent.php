@@ -544,6 +544,7 @@ SQL;
                 $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour]['total'];
                 $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour]['total'];
                 $result['data']['breakdown'][$date]['hours'][$hour]['total'] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+                $result['data']['breakdown'][$date]['hours'][$hour]['open'] = $v['open'];
                 if ($result['data']['breakdown'][$date]['hours'][$hour]['total'] > 100) {
                     $result['data']['breakdown'][$date]['hours'][$hour]['total'] = 100;
                 }
@@ -581,7 +582,8 @@ SQL;
                 foreach ($values['hours'] as $hour => $v) {
                     $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour]['total'];
                     $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour]['total'];
-                    $result['data']['breakdown'][$date]['hours'][$hour][$i] = ($b == 0) ? 0.00 : round($a / $b, 2);
+                    $result['data']['breakdown'][$date]['hours'][$hour]['total'] = ($b == 0) ? 0.00 : round($a / $b, 2);
+                    $result['data']['breakdown'][$date]['hours'][$hour]['open'] = $v['open'];
                 }
             }
             foreach ($values['totals'] as $k => $v) {
