@@ -398,10 +398,10 @@ SQL;
                     (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
             ) {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
-                $tmp[$date]['open'] += $cValue;
+                @$tmp[$date]['open'] += $cValue;
             } else {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
-                $tmp[$date]['close'] += $cValue;
+                @$tmp[$date]['close'] += $cValue;
             }
             $cResult['data']['breakdown'][$date]['hours'][$hour]['total'] = $cValue;
         }
