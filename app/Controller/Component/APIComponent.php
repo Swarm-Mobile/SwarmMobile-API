@@ -384,6 +384,7 @@ SQL;
         $cResult = array('data' => array('totals' => array('open' => 0, 'close' => 0, 'total' => 0)));
         $date = strtolower(date('Y-m-d', strtotime($params['start_date'])));
         $weekday = strtolower(date('l', strtotime($params['start_date'])));
+        $tmp = array();
         foreach ($aByHour as $oRow) {
             $hour = $oRow[$t2]['hour'];
             $cValue = $oRow[$t1][$dbAlias];
@@ -397,8 +398,10 @@ SQL;
                     (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
             ) {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
+                $tmp[$date]['open'] += $cValue;
             } else {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
+                $tmp[$date]['close'] += $cValue;
             }
             $cResult['data']['breakdown'][$date]['hours'][$hour]['total'] = $cValue;
         }
@@ -412,16 +415,16 @@ SQL;
             @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
             @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = true;
             @$cResult['data']['totals']['total'] = $aByDate[0][0]['value'];
-            @$cResult['data']['totals']['open'] = $aByDate[0][0]['value'];
-            @$cResult['data']['totals']['close'] = 0;
+            @$cResult['data']['totals']['open'] = $tmp[$date]['open'];
+            @$cResult['data']['totals']['close'] = $tmp[$date]['close'];
         } else {
             @$cResult['data']['breakdown'][$date]['totals']['close'] = $aByDate[0][0]['value'];
             @$cResult['data']['breakdown'][$date]['totals']['open'] = 0;
             @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
             @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
             @$cResult['data']['totals']['total'] = $aByDate[0][0]['value'];
-            @$cResult['data']['totals']['open'] = 0;
-            @$cResult['data']['totals']['close'] = $aByDate[0][0]['value'];
+            @$cResult['data']['totals']['open'] = $tmp[$date]['open'];
+            @$cResult['data']['totals']['close'] = $tmp[$date]['close'];
         }
         $cResult['options'] = array(
             'endpoint' => $endpoint,
