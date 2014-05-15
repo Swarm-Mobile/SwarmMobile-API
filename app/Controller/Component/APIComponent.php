@@ -489,7 +489,7 @@ SQL;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += 0;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
                 @$cResult['data']['totals'][$date]['isOpen'] = false;
-                @$cResult['data']['totals']['close'] += $cValue;                
+                @$cResult['data']['totals']['close'] += $cValue;
             }
             @$cResult['data']['breakdown'][$date]['totals']['total'] += $cValue;
             @$cResult['data']['breakdown'][$date]['hours'][$hour]['total'] += $cValue;
@@ -518,11 +518,15 @@ SQL;
                 }
             }
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $total_hours, 2);
+                if ($k != 'isOpen') {
+                    $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $total_hours, 2);
+                }
             }
         } else {
             foreach ($result['data']['totals'] as $k => $v) {
-                $result['data']['totals'][$k] = round($v / $num_days, 2);
+                if ($k != 'isOpen') {
+                    $result['data']['totals'][$k] = round($v / $num_days, 2);
+                }
             }
         }
         unset($result['breakdown']['data']['']);
@@ -552,11 +556,13 @@ SQL;
             }
         }
         foreach ($aRes1['data']['totals'] as $k => $v) {
-            $a = @$aRes1['data']['totals'][$k];
-            $b = @$aRes2['data']['totals'][$k];
-            $result['data']['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
-            if ($result['data']['totals'][$k] > 100) {
-                $result['data']['totals'][$k] = 100;
+            if ($k != 'isOpen') {
+                $a = @$aRes1['data']['totals'][$k];
+                $b = @$aRes2['data']['totals'][$k];
+                $result['data']['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+                if ($result['data']['totals'][$k] > 100) {
+                    $result['data']['totals'][$k] = 100;
+                }
             }
         }
         unset($result['breakdown']['data']['']);
@@ -576,9 +582,11 @@ SQL;
                 }
             }
             foreach ($values['totals'] as $k => $v) {
-                $a = @$aRes1['data']['breakdown'][$date]['totals'][$k];
-                $b = @$aRes2['data']['breakdown'][$date]['totals'][$k];
-                $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0 : round($a / $b, 2);
+                if ($k != 'isOpen') {
+                    $a = @$aRes1['data']['breakdown'][$date]['totals'][$k];
+                    $b = @$aRes2['data']['breakdown'][$date]['totals'][$k];
+                    $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0 : round($a / $b, 2);
+                }
             }
         }
         foreach ($aRes1['data']['totals'] as $k => $v) {
