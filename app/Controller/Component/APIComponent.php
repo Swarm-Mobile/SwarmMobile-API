@@ -364,7 +364,7 @@ SQL;
     public function countOpenHours($data) {
         $i = 0;
         $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
-        if($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0){
+        if ($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0) {
             return 0;
         }
         $open_hour = (int) strstr($data['data'][$weekday . '_open'], ':', true);
@@ -552,11 +552,15 @@ SQL;
                 }
             }
             foreach ($values['totals'] as $k => $v) {
-                $a = @$aRes1['data']['breakdown'][$date]['totals'][$k];
-                $b = @$aRes2['data']['breakdown'][$date]['totals'][$k];
-                $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
-                if ($result['data']['breakdown'][$date]['hours'][$hour][$i] > 100) {
-                    $result['data']['breakdown'][$date]['hours'][$hour][$i] = 100;
+                if ($k != 'isOpen') {
+                    $a = @$aRes1['data']['breakdown'][$date]['totals'][$k];
+                    $b = @$aRes2['data']['breakdown'][$date]['totals'][$k];
+                    $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+                    if ($result['data']['breakdown'][$date]['hours'][$hour][$i] > 100) {
+                        $result['data']['breakdown'][$date]['hours'][$hour][$i] = 100;
+                    }
+                } else {
+                    $result['data']['breakdown'][$date]['totals'][$k] = $v;
                 }
             }
         }
