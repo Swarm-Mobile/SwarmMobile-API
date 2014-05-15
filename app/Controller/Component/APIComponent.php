@@ -323,9 +323,9 @@ SQL;
         $end_date = new DateTime($end_date . ' 23:59:59');
         while ($start_date <= $end_date) {
             $date = date_format($start_date, 'Y-m-d');
+            $weekday = strtolower(date('l', strtotime($date)));
             foreach ($this->hours as $hour) {
                 if (!isset($result['data']['breakdown'][$date]['hours'][$hour])) {
-                    $weekday = strtolower(date('l', strtotime($date)));
                     $open = (
                             $data['data'][$weekday . '_open'] != 0 &&
                             $data['data'][$weekday . '_close'] != 0 &&
@@ -339,11 +339,13 @@ SQL;
                 }
             }
             ksort($tmp['data']['breakdown'][$date]['hours']);
-            if (!isset($tmp['data']['breakdown'][$date]['totals'])) {
+            if (!isset($tmp['data']['breakdown'][$date]['totals'])) {                
+                $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
                 $tmp['data']['breakdown'][$date]['totals'] = array(
                     'open' => 0,
                     'close' => 0,
-                    'total' => 0
+                    'total' => 0,
+                    'isOpen' => $isOpen                    
                 );
             }
             date_add($start_date, date_interval_create_from_date_string('1 days'));
