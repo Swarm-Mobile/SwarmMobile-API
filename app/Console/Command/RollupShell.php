@@ -71,7 +71,7 @@ INNER JOIN exp_member_data
     AND m_field_id_20 IS NOT NULL
     AND m_field_id_20 != ''
     AND m_field_id_20 > 0
-    AND exp_members.group_id = 6
+    AND exp_members.group_id IN (1,6)
 SQL;
             $aRes = $oModel->query($sSQL);
             $members = array();
