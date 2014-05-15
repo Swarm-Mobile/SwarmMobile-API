@@ -487,13 +487,13 @@ SQL;
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += $cValue;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += 0;
-                @$cResult['data']['breakdown'][$date]['isOpen'] = true;
+                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = true;
                 @$cResult['data']['totals']['open'] += $cValue;
             } else {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += 0;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
-                @$cResult['data']['breakdown'][$date]['isOpen'] = false;
+                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
                 @$cResult['data']['totals']['close'] += $cValue;
             }
             @$cResult['data']['breakdown'][$date]['totals']['total'] += $cValue;
