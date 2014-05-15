@@ -117,10 +117,10 @@ SQL;
                 } else if ($override) {
                     $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                     $this->clean($member, $start_date, $end_date);
-                    //Prevent empty rollups for customers that don't have sessions
-                    $this->getFirstRegisterDate($member);
                 }
                 $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
+                //Prevent empty rollups for customers that don't have sessions
+                $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
                 $result = $oAPI->internalCall('store', 'totals', array(
                     'member_id' => $member,
