@@ -327,8 +327,8 @@ SQL;
                 if (!isset($result['data']['breakdown'][$date]['hours'][$hour])) {
                     $weekday = strtolower(date('l', strtotime($date)));
                     $open = (
-                            $data['data'][$weekday.'_open'] != 0 &&
-                            $data['data'][$weekday.'_close'] != 0 &&
+                            $data['data'][$weekday . '_open'] != 0 &&
+                            $data['data'][$weekday . '_close'] != 0 &&
                             (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
                             (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
                             );
@@ -386,35 +386,37 @@ SQL;
                 $hour = '0' . $hour;
             }
             if (
-                    $data['data'][$weekday.'_open'] != 0 &&
-                    $data['data'][$weekday.'_close'] != 0 &&
+                    $data['data'][$weekday . '_open'] != 0 &&
+                    $data['data'][$weekday . '_close'] != 0 &&
                     (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
                     (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
             ) {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
-                //@$cResult['data']['breakdown'][$date]['totals']['open'] += $cValue;
             } else {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
-                //@$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
             }
             $cResult['data']['breakdown'][$date]['hours'][$hour]['total'] = $cValue;
         }
         $aByDate[0][0]['value'] = (empty($aByDate[0][0]['value'])) ? 0 : $aByDate[0][0]['value'];
-        @$cResult['data']['breakdown'][$date]['totals']['close'] = 0;
-        @$cResult['data']['breakdown'][$date]['totals']['open'] = $aByDate[0][0]['value'];
-        @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
-        @$cResult['data']['totals']['total'] = $aByDate[0][0]['value'];
-        if(
-            $data['data'][$weekday.'_open'] != 0 &&
-            $data['data'][$weekday.'_close'] != 0
+        if (
+                $data['data'][$weekday . '_open'] != 0 &&
+                $data['data'][$weekday . '_close'] != 0
         ) {
+            @$cResult['data']['breakdown'][$date]['totals']['close'] = 0;
+            @$cResult['data']['breakdown'][$date]['totals']['open'] = $aByDate[0][0]['value'];
+            @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
+            @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = true;
+            @$cResult['data']['totals']['total'] = $aByDate[0][0]['value'];
             @$cResult['data']['totals']['open'] = $aByDate[0][0]['value'];
             @$cResult['data']['totals']['close'] = 0;
-            @$cResult['data']['totals']['isOpen'] = true;
         } else {
+            @$cResult['data']['breakdown'][$date]['totals']['close'] = $aByDate[0][0]['value'];
+            @$cResult['data']['breakdown'][$date]['totals']['open'] = 0;
+            @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
+            @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
+            @$cResult['data']['totals']['total'] = $aByDate[0][0]['value'];
+            @$cResult['data']['totals']['open'] = 0;
             @$cResult['data']['totals']['close'] = $aByDate[0][0]['value'];
-            @$cResult['data']['totals']['open'] = 0;            
-            @$cResult['data']['totals']['isOpen'] = false;
         }
         $cResult['options'] = array(
             'endpoint' => $endpoint,
@@ -472,22 +474,22 @@ SQL;
                 $hour = '0' . $hour;
             }
             if (
-                $data['data'][$weekday.'_open'] != 0 &&
-                $data['data'][$weekday.'_close'] != 0 &&
-                (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
-                (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
+                    $data['data'][$weekday . '_open'] != 0 &&
+                    $data['data'][$weekday . '_close'] != 0 &&
+                    (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
+                    (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
             ) {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += $cValue;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += 0;
+                @$cResult['data']['totals'][$date]['isOpen'] = true;
                 @$cResult['data']['totals']['open'] += $cValue;
-                @$cResult['data']['totals']['isOpen'] = true;
             } else {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += 0;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
-                @$cResult['data']['totals']['close'] += $cValue;
-                @$cResult['data']['totals']['isOpen'] = false;
+                @$cResult['data']['totals'][$date]['isOpen'] = false;
+                @$cResult['data']['totals']['close'] += $cValue;                
             }
             @$cResult['data']['breakdown'][$date]['totals']['total'] += $cValue;
             @$cResult['data']['breakdown'][$date]['hours'][$hour]['total'] += $cValue;
