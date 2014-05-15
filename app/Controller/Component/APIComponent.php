@@ -339,13 +339,13 @@ SQL;
                 }
             }
             ksort($tmp['data']['breakdown'][$date]['hours']);
-            if (!isset($tmp['data']['breakdown'][$date]['totals'])) {                
+            if (!isset($tmp['data']['breakdown'][$date]['totals'])) {
                 $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
                 $tmp['data']['breakdown'][$date]['totals'] = array(
                     'open' => 0,
                     'close' => 0,
                     'total' => 0,
-                    'isOpen' => $isOpen                    
+                    'isOpen' => $isOpen
                 );
             }
             date_add($start_date, date_interval_create_from_date_string('1 days'));
@@ -364,6 +364,9 @@ SQL;
     public function countOpenHours($data) {
         $i = 0;
         $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
+        if($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0){
+            return 0;
+        }
         $open_hour = (int) strstr($data['data'][$weekday . '_open'], ':', true);
         $close_hour = (int) strstr($data['data'][$weekday . '_close'], ':', true);
         return ($close_hour - $open_hour) + 1;
@@ -516,19 +519,19 @@ SQL;
                 $num_hours = $this->countRevenueHours($result, $date);
                 $total_hours += $num_hours;
                 foreach ($values['totals'] as $k => $v) {
-                    $result['data']['breakdown'][$date]['totals'][$k] = ($num_hours == 0) ? 0 : round($v / $num_hours, 2);
+                    if ($k != 'isOpen') {
+                        $result['data']['breakdown'][$date]['totals'][$k] = ($num_hours == 0) ? 0 : round($v / $num_hours, 2);
+                    } else {
+                        $result['data']['breakdown'][$date]['totals'][$k] = $v;
+                    }
                 }
             }
             foreach ($result['data']['totals'] as $k => $v) {
-                if ($k != 'isOpen') {
-                    $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $total_hours, 2);
-                }
+                $result['data']['totals'][$k] = ($total_hours == 0) ? 0 : round($v / $total_hours, 2);
             }
         } else {
             foreach ($result['data']['totals'] as $k => $v) {
-                if ($k != 'isOpen') {
-                    $result['data']['totals'][$k] = round($v / $num_days, 2);
-                }
+                $result['data']['totals'][$k] = round($v / $num_days, 2);
             }
         }
         unset($result['breakdown']['data']['']);
@@ -558,13 +561,15 @@ SQL;
             }
         }
         foreach ($aRes1['data']['totals'] as $k => $v) {
-            if ($k != 'isOpen') {                
+            if ($k != 'isOpen') {
                 $a = @$aRes1['data']['totals'][$k];
                 $b = @$aRes2['data']['totals'][$k];
                 $result['data']['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
                 if ($result['data']['totals'][$k] > 100) {
                     $result['data']['totals'][$k] = 100;
                 }
+            } else {
+                $result['data']['breakdown'][$date]['totals'][$k] = $v;
             }
         }
         unset($result['breakdown']['data']['']);
@@ -588,6 +593,8 @@ SQL;
                     $a = @$aRes1['data']['breakdown'][$date]['totals'][$k];
                     $b = @$aRes2['data']['breakdown'][$date]['totals'][$k];
                     $result['data']['breakdown'][$date]['totals'][$k] = ($b == 0) ? 0 : round($a / $b, 2);
+                } else {
+                    $result['data']['breakdown'][$date]['totals'][$k] = $v;
                 }
             }
         }

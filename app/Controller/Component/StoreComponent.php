@@ -37,7 +37,7 @@ class StoreComponent extends APIComponent {
         $result = array();
         $calls = array(
             array('store', 'transactions'),
-            array('store', 'revenue'),           
+            array('store', 'revenue'),
             array('store', 'conversionRate'),
             array('store', 'avgTicket'),
             array('store', 'itemsPerTransaction'),
@@ -80,11 +80,16 @@ class StoreComponent extends APIComponent {
                 array('store', 'totalItems')
             );
             foreach ($calls as $call) {
-                $tmp = $this->api->internalCall($call[0], $call[1], $params);
-                if ($data['data']['transactions_while_closed'] == 'no') {
-                    $result[$call[1]] = $tmp['data']['totals']['open'];
-                } else {
-                    $result[$call[1]] = $tmp['data']['totals']['total'];
+                $weekday = strtolower(date('l', strtotime($params['start_date'])));
+                $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+                $result[$call[1]] = 0;
+                if ($isOpen) {
+                    $tmp = $this->api->internalCall($call[0], $call[1], $params);
+                    if ($data['data']['transactions_while_closed'] == 'no') {
+                        $result[$call[1]] = $tmp['data']['totals']['open'];
+                    } else {
+                        $result[$call[1]] = $tmp['data']['totals']['total'];
+                    }
                 }
             }
             return $result;
@@ -341,7 +346,7 @@ SQL;
             $aTmp = array(
                 'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
                 //'walkbys' => array("'passerby'")
-                'total' => array("'passerby'","'instore'", "'passive'", "'active'", "'login'")
+                'total' => array("'passerby'", "'instore'", "'passive'", "'active'", "'login'")
             );
             foreach ($aTmp as $var => $aStates) {
                 $aStates = implode(',', $aStates);
