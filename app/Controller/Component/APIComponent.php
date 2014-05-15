@@ -475,30 +475,29 @@ SQL;
             $date = $oRow[$t2]['date'];
             $hour = $oRow[$t2]['hour'];
             $cValue = $oRow[$t1][$dbAlias];
+            $isOpen  = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
             if ($hour < 10) {
                 $hour = '0' . $hour;
             }
             if (
-                    $data['data'][$weekday . '_open'] != 0 &&
-                    $data['data'][$weekday . '_close'] != 0 &&
                     (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
                     (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
             ) {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = true;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += $cValue;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += 0;
-                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = true;
+                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = $isOpen;
                 @$cResult['data']['totals']['open'] += $cValue;
             } else {
                 $cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += 0;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
-                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
+                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = $isOpen;
                 @$cResult['data']['totals']['close'] += $cValue;
             }
             @$cResult['data']['breakdown'][$date]['totals']['total'] += $cValue;
             @$cResult['data']['breakdown'][$date]['hours'][$hour]['total'] += $cValue;
-            @$cResult['data']['totals']['total'] += $cValue;
+            @$cResult['data']['totals']['total'] += $cValue;                        
         }
         $cResult['options'] = array(
             'endpoint' => $endpoint,
