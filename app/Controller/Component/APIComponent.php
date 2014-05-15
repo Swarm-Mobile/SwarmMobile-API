@@ -557,6 +557,7 @@ SQL;
         }
         foreach ($aRes1['data']['totals'] as $k => $v) {
             if ($k != 'isOpen') {
+                echo $k;
                 $a = @$aRes1['data']['totals'][$k];
                 $b = @$aRes2['data']['totals'][$k];
                 $result['data']['totals'][$k] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
