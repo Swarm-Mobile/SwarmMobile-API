@@ -541,11 +541,11 @@ SQL;
         $result = array();
         foreach ($aRes1['data']['breakdown'] as $date => $values) {
             foreach ($values['hours'] as $hour => $v) {
-                $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour][$v['total']];
-                $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour][$v['total']];
-                $result['data']['breakdown'][$date]['hours'][$hour][$v['total']] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
-                if ($result['data']['breakdown'][$date]['hours'][$hour][$v['total']] > 100) {
-                    $result['data']['breakdown'][$date]['hours'][$hour][$v['total']] = 100;
+                $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour]['total'];
+                $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour]['total'];
+                $result['data']['breakdown'][$date]['hours'][$hour]['total'] = ($b == 0) ? 0.00 : round(($a / $b) * 100, 2);
+                if ($result['data']['breakdown'][$date]['hours'][$hour]['total'] > 100) {
+                    $result['data']['breakdown'][$date]['hours'][$hour]['total'] = 100;
                 }
             }
             foreach ($values['totals'] as $k => $v) {
@@ -579,8 +579,8 @@ SQL;
         foreach ($aRes1['data']['breakdown'] as $date => $values) {
             if ($hours) {
                 foreach ($values['hours'] as $hour => $v) {
-                    $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour][$v['total']];
-                    $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour][$v['total']];
+                    $a = @$aRes1['data']['breakdown'][$date]['hours'][$hour]['total'];
+                    $b = @$aRes2['data']['breakdown'][$date]['hours'][$hour]['total'];
                     $result['data']['breakdown'][$date]['hours'][$hour][$i] = ($b == 0) ? 0.00 : round($a / $b, 2);
                 }
             }
