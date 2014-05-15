@@ -99,6 +99,7 @@ SQL;
         $oAPI->cache = false;
         $oAPI->rollups = true;
         foreach ($members as $member) {
+            $member = trim($member);
             try {
                 $this->output("");
                 $this->output("Processing member : $member");
@@ -116,8 +117,9 @@ SQL;
                 } else if ($override) {
                     $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                     $this->clean($member, $start_date, $end_date);
+                    //Prevent empty rollups for customers that don't have sessions
+                    $this->getFirstRegisterDate($member);
                 }
-                $member = trim($member);
                 $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
                 $this->output("Rebuilding rollups");
                 $result = $oAPI->internalCall('store', 'totals', array(
