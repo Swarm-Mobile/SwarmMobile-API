@@ -305,7 +305,7 @@ class OAuthComponent extends Component implements IOAuth2Storage, IOAuth2Refresh
 				));
 			$token = empty($token) ? $this->getBearerToken() : $token;
 			$data = $this->AccessToken->find('first', array(
-				'conditions' => array('oauth_token' => $token),
+				'conditions' => array('AccessToken.oauth_token' => $token),
 				'recursive' => 1
 			));
 			if (!$data) {
@@ -442,7 +442,7 @@ class OAuthComponent extends Component implements IOAuth2Storage, IOAuth2Refresh
  */
 	public function getAccessToken($oauth_token) {
 		$accessToken = $this->AccessToken->find('first', array(
-			'conditions' => array('oauth_token' => $oauth_token),
+			'conditions' => array('AccessToken.oauth_token' => $oauth_token),
 			'recursive' => -1,
 		));
 		if ($accessToken) {
