@@ -62,7 +62,26 @@ class StoreComponent extends APIComponent {
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeTotals('store', __FUNCTION__, $params);
+            $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
+            $start = new DateTime($params['start_date']);
+            $end = new DateTime($params['end_date']);
+            $interval = date_diff($start, $end);
+            $d = $interval->format('%d');
+            foreach($aRes['data'] as $k=>$v){
+                if(
+                    in_array($k, array(
+                            'windowConversion', 
+                            'dwell',
+                            'conversionRate',
+                            'itemsPerTransaction',
+                            'avgTicket',
+                        )
+                    )
+               ){
+                    $aRes['data'][$k] = $v/$d;
+                }
+            }
+            return $aRes;
         } else {
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $result = array();
