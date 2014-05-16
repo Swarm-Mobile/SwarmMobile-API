@@ -66,19 +66,19 @@ class StoreComponent extends APIComponent {
             $start = new DateTime($params['start_date']);
             $end = new DateTime($params['end_date']);
             $interval = date_diff($start, $end);
-            $d = $interval->format('%d')+1;
-            foreach($aRes as $k=>$v){
-                if(
-                    in_array($k, array(
-                            'windowConversion', 
+            $d = $interval->format('%d') + 1;
+            foreach ($aRes as $k => $v) {
+                if (
+                        in_array($k, array(
+                            'windowConversion',
                             'dwell',
                             'conversionRate',
                             'itemsPerTransaction',
                             'avgTicket',
+                                )
                         )
-                    )
-               ){
-                    $aRes[$k] = round($v/$d,2);
+                ) {
+                    $aRes[$k] = round($v / $d, 2);
                 }
             }
             return $aRes;
@@ -104,10 +104,21 @@ class StoreComponent extends APIComponent {
                 $result[$call[1]] = 0;
                 if ($isOpen) {
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
-                    if ($data['data']['transactions_while_closed'] == 'no') {
+                    if (!in_array($call[1], array(
+                                'transactions',
+                                'revenue',
+                                'avgTicket',
+                                'itemsPerTransaction',
+                                'totalItems')
+                            )
+                    ) {
                         $result[$call[1]] = $tmp['data']['totals']['open'];
                     } else {
-                        $result[$call[1]] = $tmp['data']['totals']['total'];
+                        if ($data['data']['transactions_while_closed'] == 'no') {
+                            $result[$call[1]] = $tmp['data']['totals']['open'];
+                        } else {
+                            $result[$call[1]] = $tmp['data']['totals']['total'];
+                        }
                     }
                 }
             }
@@ -455,7 +466,7 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
 
-    private function dwellByDate($date, $data, $timezone, $member_id, $ap_id) {            
+    private function dwellByDate($date, $data, $timezone, $member_id, $ap_id) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
@@ -496,7 +507,7 @@ SQL;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
             $aByDate = $this->dwellByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id);
-            return $this->averagify($this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x'),$data, false);
+            return $this->averagify($this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x'), $data, false);
         }
     }
 
