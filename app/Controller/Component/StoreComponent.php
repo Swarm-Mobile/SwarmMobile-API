@@ -104,21 +104,28 @@ class StoreComponent extends APIComponent {
                 $result[$call[1]] = 0;
                 if ($isOpen) {
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
-                    if (!in_array($call[1], array(
-                                'transactions',
-                                'revenue',
-                                'avgTicket',
-                                'itemsPerTransaction',
-                                'totalItems')
-                            )
-                    ) {
-                        $result[$call[1]] = $tmp['data']['totals']['open'];
-                    } else {
-                        if ($data['data']['transactions_while_closed'] == 'no') {
+                    switch ($call[1]) {
+                        case 'windowConversion':
+                        case 'conversionRate':
+                        case 'walkbys':
                             $result[$call[1]] = $tmp['data']['totals']['open'];
-                        } else {
+                            break;
+                        case 'footTraffic':
+                        case 'returning':
+                        case 'dwell':
                             $result[$call[1]] = $tmp['data']['totals']['total'];
-                        }
+                            break;
+                        case 'avgTicket':
+                        case 'revenue':
+                        case 'itemsPerTransaction':
+                        case 'transactions':
+                        case 'totalItems':
+                            if ($data['data']['transactions_while_closed'] == 'no') {
+                                $result[$call[1]] = $tmp['data']['totals']['open'];
+                            } else {
+                                $result[$call[1]] = $tmp['data']['totals']['total'];
+                            }
+                            break;
                     }
                 }
             }
