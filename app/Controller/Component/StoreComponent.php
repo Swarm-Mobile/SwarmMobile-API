@@ -456,7 +456,7 @@ SQL;
     }
 
     private function dwellByDate($date, $data, $timezone, $member_id, $ap_id) {            
-        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data);        
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
@@ -549,7 +549,7 @@ SQL;
     }
 
     private function returningByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
-        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data);
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT  
@@ -642,7 +642,7 @@ SQL;
     }
 
     private function footTrafficByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
-        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data);
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT 
