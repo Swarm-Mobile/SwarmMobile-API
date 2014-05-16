@@ -78,7 +78,7 @@ class StoreComponent extends APIComponent {
                         )
                     )
                ){
-                    $aRes[$k] = $v/$d;
+                    $aRes[$k] = round($v/$d,2);
                 }
             }
             return $aRes;
