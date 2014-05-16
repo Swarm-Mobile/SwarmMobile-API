@@ -455,7 +455,8 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
 
-    private function dwellByDate($start_date, $end_date, $timezone, $member_id, $ap_id) {
+    private function dwellByDate($date, $data, $timezone, $member_id, $ap_id) {            
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data);        
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT AVG(dwell_time) as value
@@ -494,7 +495,7 @@ SQL;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
-            $aByDate = $this->dwellByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
+            $aByDate = $this->dwellByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id);
             return $this->averagify($this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x'),$data, false);
         }
     }
@@ -547,7 +548,8 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
 
-    private function returningByDate($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+    private function returningByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT  
@@ -595,7 +597,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
-            $aByDate = $this->returningByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->returningByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
@@ -639,7 +641,8 @@ SQL;
         return $oDb->fetchAll($sSQL);
     }
 
-    private function footTrafficByDate($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+    private function footTrafficByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
 SELECT 
@@ -676,7 +679,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
-            $aByDate = $this->footTrafficByDate($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->footTrafficByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }

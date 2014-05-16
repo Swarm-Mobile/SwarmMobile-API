@@ -106,6 +106,23 @@ class APIComponent {
         }
         return $params['group_by'];
     }
+    
+    public function getOpenCloseTimes($date, $data){
+        $weekday = strtolower(date('l', strtotime($date)));
+        
+        $tzLocal = $this->getLocalTimezone($timezone);
+        $timezone = $tzLocal->getName();
+
+        $start_date = new DateTime($date . ' '.$data['data'][$weekday . '_open'].':00', $tzLocal);
+        $start_date = $start_date->setTimezone(new DateTimeZone('GMT'));
+        $start_date = $start_date->format('Y-m-d H:i:s');
+
+        $end_date = new DateTime($date . ' '.$data['data'][$weekday . '_close'].':00', $tzLocal);
+        $end_date = $end_date->setTimezone(new DateTimeZone('GMT'));
+        $end_date = $end_date->format('Y-m-d H:i:s');
+        
+        return array($start_date, $end_date);
+    }
 
     public function parseDates($params, $timezone) {
         $tzLocal = $this->getLocalTimezone($timezone);
