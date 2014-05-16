@@ -66,8 +66,8 @@ class StoreComponent extends APIComponent {
             $start = new DateTime($params['start_date']);
             $end = new DateTime($params['end_date']);
             $interval = date_diff($start, $end);
-            $d = $interval->format('%d');
-            foreach($aRes['data'] as $k=>$v){
+            $d = $interval->format('%d')+1;
+            foreach($aRes as $k=>$v){
                 if(
                     in_array($k, array(
                             'windowConversion', 
@@ -78,7 +78,7 @@ class StoreComponent extends APIComponent {
                         )
                     )
                ){
-                    $aRes['data'][$k] = $v/$d;
+                    $aRes[$k] = $v/$d;
                 }
             }
             return $aRes;
