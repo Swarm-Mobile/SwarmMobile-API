@@ -21,7 +21,7 @@ class APIController extends AppController {
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
     public $uses = array('Inbox');
-    public $debug = true;
+    public $debug = false;
     public $cache = true;
     public $rollups = true;
     public $user = array('id_user' => 0, 'username' => '');
@@ -79,6 +79,8 @@ class APIController extends AppController {
     }
 
     public function index() {
+        $env = getenv('server_location');
+        $this->debug = ($env != 'live');
         set_time_limit(3600);
         $this->microtime = microtime(true);
         $this->request_start = date('Y-m-d H:i:s');
