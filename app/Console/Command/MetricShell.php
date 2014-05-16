@@ -6,32 +6,7 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
-function call() {
-    return 'hi';
-}
-
-function created($task) {
-    echo "CREATED: " . $task->jobHandle() . "\n";
-}
-
-function status($task) {
-    echo "STATUS: " . $task->jobHandle() . " - " . $task->taskNumerator() .
-            "/" . $task->taskDenominator()."\n";
-}
-
-function complete($task) {
-    echo "COMPLETE: " . $task->jobHandle() . ", " . $task->data()."\n";
-}
-
-function fail($task) {
-    echo "FAILED: " . $task->jobHandle()."\n";
-}
-
-function data($task) {
-    echo "DATA: " . $task->data()."\n";
-}
-
-class RollupParalelShell extends AppShell {
+class RollupShell extends AppShell {
 
     private $console = true;
 
@@ -96,7 +71,7 @@ INNER JOIN exp_member_data
     AND m_field_id_20 IS NOT NULL
     AND m_field_id_20 != ''
     AND m_field_id_20 > 0
-    AND exp_members.group_id = 6
+    AND exp_members.group_id IN (1,6)
 SQL;
             $aRes = $oModel->query($sSQL);
             $members = array();
@@ -124,11 +99,12 @@ SQL;
         $oAPI->cache = false;
         $oAPI->rollups = true;
         foreach ($members as $member) {
+            $member = trim($member);
             try {
                 $this->output("");
                 $this->output("Processing member : $member");
                 $this->output("");
-                $this->output("Start             : " . date('H:i:s'));
+                $this->output("Start             : " . date('H:i:s'));                
                 if ($rebuild) {
                     $start_date = $this->getFirstRegisterDate($member);
                     $end_date = date('Y-m-d');
@@ -142,43 +118,18 @@ SQL;
                     $this->output('Elements cached before clean: ' . $this->mongoResults($member));
                     $this->clean($member, $start_date, $end_date);
                 }
-                $member = trim($member);
                 $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
+                //Prevent empty rollups for customers that don't have sessions
+                $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
-
-                $gmc = new GearmanClient();
-                $gmc->addServer();
-                $gmc->setCreatedCallback("created");
-                $gmc->setDataCallback("data");
-                $gmc->setStatusCallback("status");
-                $gmc->setCompleteCallback("complete");
-                $gmc->setFailCallback("fail");
-
-                $metrics = array(
-                    'walkbys',
-                    'footTraffic',
-                    'transactions'
-                );
-                foreach ($metrics as $metric) {
-                    $args = array(
-                        'component' => 'store',
-                        'metric' => $metric,
-                        'params' => array(
-                            'member_id' => $member,
-                            'start_date' => $start_date,
-                            'end_date' => $end_date
-                        )
-                    );
-                    $gmc->addTask('call', serialize($args));
-                }
-
-                if (!$gmc->runTasks()) {
-                    echo "ERROR " . $gmc->error() . "\n";
-                    exit;
-                }
+                $result = $oAPI->internalCall('store', $this->params['metric'], array(
+                    'member_id' => $member,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ));
 
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
-                $this->output("---------------------------------------------");
+                $this->output("---------------------------------------------");                
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
                 $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
@@ -255,6 +206,11 @@ SQL;
             'short' => 'o',
             'default' => false,
             'help' => 'Delete the interval info and builds it again'
+        ));
+        $parser->addOption('metric', array(
+            'short' => 'x',
+            'default' => false,
+            'help' => 'Metric to process'
         ));
         $parser->addOption('rebuild', array(
             'short' => 'r',
