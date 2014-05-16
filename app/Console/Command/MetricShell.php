@@ -6,7 +6,7 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
-class RollupShell extends AppShell {
+class MetricShell extends AppShell {
 
     private $console = true;
 
