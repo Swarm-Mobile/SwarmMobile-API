@@ -26,34 +26,6 @@ class StoreComponent extends APIComponent {
         return $result;
     }
 
-    public function pos($params) {
-        $rules = array(
-            'member_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
-            'end_date' => array('required', 'date')
-        );
-        $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $result = array();
-        $calls = array(
-            array('store', 'transactions'),
-            array('store', 'revenue'),
-            array('store', 'conversionRate'),
-            array('store', 'avgTicket'),
-            array('store', 'itemsPerTransaction'),
-            array('store', 'totalItems')
-        );
-        foreach ($calls as $call) {
-            $tmp = $this->api->internalCall($call[0], $call[1], $params);
-            if ($data['data']['transactions_while_closed'] == 'no') {
-                $result[$call[1]] = $tmp['data']['totals']['open'];
-            } else {
-                $result[$call[1]] = $tmp['data']['totals']['total'];
-            }
-        }
-        return $result;
-    }
-
     public function totals($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -66,13 +38,13 @@ class StoreComponent extends APIComponent {
             $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
             foreach ($aRes as $k => $v) {
                 if (in_array($k, array(
-                        'windowConversion',
-                        'dwell',
-                        'conversionRate',
-                        'itemsPerTransaction',
-                        'avgTicket',
+                            'windowConversion',
+                            'dwell',
+                            'conversionRate',
+                            'itemsPerTransaction',
+                            'avgTicket',
+                                )
                         )
-                    )
                 ) {
                     $aRes[$k] = round($v / $d, 2);
                 }
@@ -291,11 +263,15 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-        $timezone = $data['data']['timezone'];
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
+        }
     }
 
     public function revenue($params) {
@@ -305,11 +281,15 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-        $timezone = $data['data']['timezone'];
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
+        }
     }
 
     public function avgTicket($params) {
@@ -319,13 +299,18 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-        $timezone = $data['data']['timezone'];
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'revenue');
-        $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
-        return $this->calculate($aRes1, $aRes2);
+        if ($params['start_date'] != $params['end_date']) {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'revenue');
+            $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
+            return $this->calculate($aRes1, $aRes2);
+        }
     }
 
     public function itemsPerTransaction($params) {
@@ -335,13 +320,18 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-        $timezone = $data['data']['timezone'];
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
-        $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
-        return $this->calculate($aRes1, $aRes2, true);
+        if ($params['start_date'] != $params['end_date']) {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
+            $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
+            return $this->calculate($aRes1, $aRes2, true);
+        }
     }
 
     public function totalItems($params) {
@@ -351,11 +341,15 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-        $timezone = $data['data']['timezone'];
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
+        }
     }
 
     public function windowConversion($params) {
@@ -373,12 +367,11 @@ SQL;
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            list($start_date, $end_date) = $this->getOpenCloseTimes($params['start_date'], $data, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
             $oDb = DBComponent::getInstance($table, 'swarmdataRead');
             $aTmp = array(
                 'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
-                //'walkbys' => array("'passerby'")
                 'total' => array("'passerby'", "'instore'", "'passive'", "'active'", "'login'")
             );
             foreach ($aTmp as $var => $aStates) {
@@ -404,7 +397,6 @@ SQL;
                 $$var = $oDb->fetchAll($sSQL);
                 $$var = $this->format($$var, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
             }
-            //$result = $this->percentify($footTraffic, $walkbys);
             $result = $this->percentify($footTraffic, $total);
             $result['options'] = array(
                 'endpoint' => '/store/' . __FUNCTION__,
@@ -417,16 +409,21 @@ SQL;
     }
 
     public function conversionRate($params) {
-        $tr = $this->api->internalCall('store', 'transactions', $params);
-        $ft = $this->api->internalCall('store', 'footTraffic', $params);
-        $result = $this->percentify($tr, $ft);
-        $result['options'] = array(
-            'endpoint' => '/store/' . __FUNCTION__,
-            'member_id' => $params['member_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
-        );
-        return $result;
+        if ($params['start_date'] != $params['end_date']) {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
+        } else {
+            $tr = $this->api->internalCall('store', 'transactions', $params);
+            $ft = $this->api->internalCall('store', 'footTraffic', $params);
+            $result = $this->percentify($tr, $ft);
+            $result['options'] = array(
+                'endpoint' => '/store/' . __FUNCTION__,
+                'member_id' => $params['member_id'],
+                'start_date' => $params['start_date'],
+                'end_date' => $params['end_date'],
+            );
+            return $result;
+        }
     }
 
     private function dwellByHour($start_date, $end_date, $timezone, $member_id, $ap_id) {
