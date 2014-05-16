@@ -107,7 +107,7 @@ class APIComponent {
         return $params['group_by'];
     }
     
-    public function getOpenCloseTimes($date, $data){
+    public function getOpenCloseTimes($date, $data, $timezone){
         $weekday = strtolower(date('l', strtotime($date)));
         
         $tzLocal = $this->getLocalTimezone($timezone);
