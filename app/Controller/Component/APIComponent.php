@@ -106,21 +106,36 @@ class APIComponent {
         }
         return $params['group_by'];
     }
-    
-    public function getOpenCloseTimes($date, $data, $timezone){
+
+    public function countWorkDays($start_date, $end_date, $member_id) {
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $member_id));
+        $end = new DateTime($end_date);        
+        $d = 0;        
+        $new_start_date = new DateTime($start_date);        
+        do {
+            $weekday = $end->format('l');
+            if ($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0) {
+                $d++;
+            }            
+            date_add($new_start_date, date_interval_create_from_date_string('1 days'));            
+        } while ($new_start_date <= $end);
+        return $d;
+    }
+
+    public function getOpenCloseTimes($date, $data, $timezone) {
         $weekday = strtolower(date('l', strtotime($date)));
-        
+
         $tzLocal = $this->getLocalTimezone($timezone);
         $timezone = $tzLocal->getName();
 
-        $start_date = new DateTime($date . ' '.$data['data'][$weekday . '_open'].':00', $tzLocal);
+        $start_date = new DateTime($date . ' ' . $data['data'][$weekday . '_open'] . ':00', $tzLocal);
         $start_date = $start_date->setTimezone(new DateTimeZone('GMT'));
         $start_date = $start_date->format('Y-m-d H:i:s');
 
-        $end_date = new DateTime($date . ' '.$data['data'][$weekday . '_close'].':00', $tzLocal);
+        $end_date = new DateTime($date . ' ' . $data['data'][$weekday . '_close'] . ':00', $tzLocal);
         $end_date = $end_date->setTimezone(new DateTimeZone('GMT'));
         $end_date = $end_date->format('Y-m-d H:i:s');
-        
+
         return array($start_date, $end_date);
     }
 

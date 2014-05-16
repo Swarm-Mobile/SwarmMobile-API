@@ -63,20 +63,16 @@ class StoreComponent extends APIComponent {
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
             $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
-            $start = new DateTime($params['start_date']);
-            $end = new DateTime($params['end_date']);
-            $interval = date_diff($start, $end);
-            $d = $interval->format('%d') + 1;
+            $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
             foreach ($aRes as $k => $v) {
-                if (
-                        in_array($k, array(
-                            'windowConversion',
-                            'dwell',
-                            'conversionRate',
-                            'itemsPerTransaction',
-                            'avgTicket',
-                                )
+                if (in_array($k, array(
+                        'windowConversion',
+                        'dwell',
+                        'conversionRate',
+                        'itemsPerTransaction',
+                        'avgTicket',
                         )
+                    )
                 ) {
                     $aRes[$k] = round($v / $d, 2);
                 }
