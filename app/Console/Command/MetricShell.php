@@ -113,10 +113,10 @@ SQL;
                     $this->output("");
                     $this->output("---------------------------------------------");
                     $this->output('Elements cached before clean: ' . $this->mongoResults($member));
-                    $this->clean($member, $start_date, $end_date);
+                    $this->clean($member, $this->params['metric'], $start_date, $end_date);
                 } else if ($override) {
                     $this->output('Elements cached before clean: ' . $this->mongoResults($member));
-                    $this->clean($member, $start_date, $end_date);
+                    $this->clean($member, $this->params['metric'], $start_date, $end_date);
                 }
                 $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
                 //Prevent empty rollups for customers that don't have sessions
@@ -164,21 +164,22 @@ SQL;
         return count($aRes);
     }
 
-    private function cleanDay($member, $date) {
+    private function cleanDay($member, $date, $metric) {
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
-            "params.start_date" => "$date"
+            "params.start_date" => "$date",
+            "params.endpoint" => 'store/'.$metric
         ));
     }
 
-    private function clean($member, $start_date = false, $end_date = false) {
+    private function clean($member, $metric, $start_date = false, $end_date = false) {
         $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
         $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
         $end = new DateTime($end_date);
         $date = $start_date;
         do {
-            $this->cleanDay($member, $date);
+            $this->cleanDay($member, $date, $metric);
             $start_date = new DateTime($date);
             date_add($start_date, date_interval_create_from_date_string('1 days'));
             $date = date_format($start_date, 'Y-m-d');
