@@ -86,8 +86,7 @@ class APIController extends AppController {
         header("Access-Control-Allow-Methods: POST, GET");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
         header("Access-Control-Max-Age: 1728000");
-        header("Content-Type: application/json; charset=utf-8");
-        header("Content-Encoding:gzip");
+        header("Content-Type: application/json; charset=UTF-8");
         try {
             if ($this->request->is('get')) {
                 $params = $_GET;
