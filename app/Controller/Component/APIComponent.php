@@ -113,7 +113,7 @@ class APIComponent {
         $d = 0;        
         $new_start_date = new DateTime($start_date);        
         do {
-            $weekday = $end->format('l');
+            $weekday = strtolower($end->format('l'));
             if ($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0) {
                 $d++;
             }            
