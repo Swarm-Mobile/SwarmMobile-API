@@ -594,7 +594,7 @@ LEFT JOIN (
 	SELECT 
            DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
 	   ses1.mac_id,
-	   SUM((UNIX_TIMESTAMP(time_logout)-UNIX_TIMESTAMP(time_login)) as dwell_time
+	   SUM(UNIX_TIMESTAMP(time_logout)-UNIX_TIMESTAMP(time_login)) as dwell_time
 	FROM $table as ses1
 	INNER JOIN mac_address 
 		ON ses1.mac_id = mac_address.id
@@ -626,7 +626,7 @@ SQL;
  FROM(
     SELECT 
        ses1.mac_id,
-       SUM((UNIX_TIMESTAMP(time_logout)-UNIX_TIMESTAMP(time_login)) as dwell_time
+       SUM(UNIX_TIMESTAMP(time_logout)-UNIX_TIMESTAMP(time_login)) as dwell_time
     FROM $table as ses1
     INNER JOIN mac_address 
             ON ses1.mac_id = mac_address.id
