@@ -599,7 +599,13 @@ LEFT JOIN (
 	INNER JOIN mac_address 
 		ON ses1.mac_id = mac_address.id
 	WHERE status !='noise' 
-		AND noise IS false 
+           AND (            
+            sessionid='instore' OR 
+            sessionid='passive' OR 
+            sessionid='active' OR 
+            sessionid='login'
+           )  
+           AND noise IS false 
 	   AND time_logout IS NOT NULL 
 	   AND network_id= $ap_id
 	   AND time_login BETWEEN '$start_date' AND '$end_date'
@@ -616,8 +622,8 @@ SQL;
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
-SELECT SUM(dwell_time) as value
-FROM(
+ SELECT SUM(dwell_time) as value
+ FROM(
     SELECT 
        ses1.mac_id,
        (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
@@ -625,18 +631,24 @@ FROM(
     INNER JOIN mac_address 
             ON ses1.mac_id = mac_address.id
     WHERE status !='noise' 
-            AND noise IS false 
+       AND (         
+         sessionid='instore' OR 
+         sessionid='passive' OR 
+         sessionid='active' OR 
+         sessionid='login'
+       )     
+       AND noise IS false 
        AND time_logout IS NOT NULL 
        AND network_id= $ap_id
        AND time_login BETWEEN '$start_date' AND '$end_date'
     GROUP BY ses1.mac_id
     HAVING 18000 > dwell_time
-) t2
+ ) t2
 SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-    public function timeInShop($params) {
+    public function timeInShop($params) {           
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -653,7 +665,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->timeInShopByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
-            $aByDate = $this->timeInShopByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->timeInShopByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);            
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
@@ -709,7 +721,7 @@ SQL;
     }
     public function dwell($params) {
         $ts = $this->api->internalCall('store', 'timeInShop', $params);
-        $tr = $this->api->internalCall('store', 'footTraffic', $params);        
+        $tr = $this->api->internalCall('store', 'footTraffic', $params);                
         $result = $this->calculate($ts, $tr);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
