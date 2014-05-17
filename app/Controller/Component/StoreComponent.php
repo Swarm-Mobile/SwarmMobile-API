@@ -25,7 +25,6 @@ class StoreComponent extends APIComponent {
         );
         return $result;
     }
-
     public function totals($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -100,7 +99,6 @@ class StoreComponent extends APIComponent {
             return $result;
         }
     }
-
     public function walkbys($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -199,7 +197,6 @@ SQL;
         // return formatted result
         return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0, 'detect_count');
     }
-
     public function purchaseInfo($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -255,7 +252,6 @@ SQL;
             return $aRes;
         }
     }
-
     public function transactions($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -273,7 +269,6 @@ SQL;
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
         }
     }
-
     public function revenue($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -291,49 +286,6 @@ SQL;
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', __FUNCTION__);
         }
     }
-
-    public function avgTicket($params) {
-        $rules = array(
-            'member_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
-            'end_date' => array('required', 'date')
-        );
-        $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date']) {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
-        } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-            $timezone = $data['data']['timezone'];
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'revenue');
-            $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
-            return $this->calculate($aRes1, $aRes2);
-        }
-    }
-
-    public function itemsPerTransaction($params) {
-        $rules = array(
-            'member_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
-            'end_date' => array('required', 'date')
-        );
-        $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date']) {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
-        } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            $aRes = $this->api->internalCall('store', 'purchaseInfo', $params);
-            $timezone = $data['data']['timezone'];
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aRes1 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
-            $aRes2 = $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'transactions');
-            return $this->calculate($aRes1, $aRes2, true);
-        }
-    }
-
     public function totalItems($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -349,165 +301,6 @@ SQL;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2', 'total_items');
-        }
-    }
-
-    public function windowConversion($params) {
-        $rules = array(
-            'member_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
-            'end_date' => array('required', 'date')
-        );
-        $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        if ($params['start_date'] != $params['end_date']) {
-            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
-        } else {
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
-            $timezone = $data['data']['timezone'];
-            $factor = $data['data']['traffic_factor'];
-            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
-            list($start_date, $end_date) = $this->getOpenCloseTimes($params['start_date'], $data, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-            $aTmp = array(
-                'footTraffic' => array("'instore'", "'passive'", "'active'", "'login'"),
-                'total' => array("'passerby'", "'instore'", "'passive'", "'active'", "'login'")
-            );
-            foreach ($aTmp as $var => $aStates) {
-                $aStates = implode(',', $aStates);
-                $sSQL = <<<SQL
-SELECT 
-    ROUND(COUNT(*)*$factor) as value,
-    date, 
-    hour 
-FROM(
-    SELECT 
-        DISTINCT ses1.mac_id as value, 
-        DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%k') AS hour,
-	DATE_FORMAT(convert_tz(time_login,'GMT','$timezone'),'%Y-%m-%d') AS date	        
-    FROM $table ses1
-    WHERE sessionid IN ($aStates)
-      AND time_logout IS NOT NULL
-      AND (network_id= $ap_id) 
-      AND time_login BETWEEN '$start_date' AND '$end_date'
-) t2
-GROUP BY date ASC, hour ASC
-SQL;
-                $$var = $oDb->fetchAll($sSQL);
-                $$var = $this->format($$var, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
-            }
-            $result = $this->percentify($footTraffic, $total);
-            $result['options'] = array(
-                'endpoint' => '/store/' . __FUNCTION__,
-                'member_id' => $params['member_id'],
-                'start_date' => $params['start_date'],
-                'end_date' => $params['end_date'],
-            );
-            return $result;
-        }
-    }
-
-    public function conversionRate($params) {
-        if ($params['start_date'] != $params['end_date']) {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-            return $this->averagify($this->iterativeCall('store', __FUNCTION__, $params), $data);
-        } else {
-            $tr = $this->api->internalCall('store', 'transactions', $params);
-            $ft = $this->api->internalCall('store', 'footTraffic', $params);
-            $result = $this->percentify($tr, $ft);
-            $result['options'] = array(
-                'endpoint' => '/store/' . __FUNCTION__,
-                'member_id' => $params['member_id'],
-                'start_date' => $params['start_date'],
-                'end_date' => $params['end_date'],
-            );
-            return $result;
-        }
-    }
-
-    private function dwellByHour($start_date, $end_date, $timezone, $member_id, $ap_id) {
-        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
-        $sSQL = <<<SQL
-SELECT
-    x.hour,
-    IFNULL(AVG(dwell_time),0) as value 
-FROM(
-    SELECT 0 as hour 
-    UNION SELECT 1   UNION SELECT 2 	UNION SELECT 3 	
-    UNION SELECT 4   UNION SELECT 5	UNION SELECT 6	
-    UNION SELECT 7   UNION SELECT 8     UNION SELECT 9	
-    UNION SELECT 10  UNION SELECT 11	UNION SELECT 12	
-    UNION SELECT 13  UNION SELECT 14	UNION SELECT 15	
-    UNION SELECT 16  UNION SELECT 17	UNION SELECT 18	
-    UNION SELECT 19  UNION SELECT 20	UNION SELECT 21	
-    UNION SELECT 22  UNION SELECT 23
-) x
-LEFT JOIN (
-	SELECT 
-           DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
-	   ses1.mac_id,
-	   (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
-	FROM $table as ses1
-	INNER JOIN mac_address 
-		ON ses1.mac_id = mac_address.id
-	WHERE status !='noise' 
-		AND noise IS false 
-	   AND time_logout IS NOT NULL 
-	   AND network_id= $ap_id
-	   AND time_login BETWEEN '$start_date' AND '$end_date'
-	GROUP BY ses1.mac_id
-	HAVING 18000 > dwell_time
-) z ON z.login = x.hour
-GROUP BY x.hour      
-ORDER BY x.hour ASC
-SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-        return $oDb->fetchAll($sSQL);
-    }
-
-    private function dwellByDate($date, $data, $timezone, $member_id, $ap_id) {
-        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
-        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
-        $sSQL = <<<SQL
-SELECT AVG(dwell_time) as value
-FROM(
-    SELECT 
-       ses1.mac_id,
-       (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
-    FROM $table as ses1
-    INNER JOIN mac_address 
-            ON ses1.mac_id = mac_address.id
-    WHERE status !='noise' 
-            AND noise IS false 
-       AND time_logout IS NOT NULL 
-       AND network_id= $ap_id
-       AND time_login BETWEEN '$start_date' AND '$end_date'
-    GROUP BY ses1.mac_id
-    HAVING 18000 > dwell_time
-) t2
-SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-        return $oDb->fetchAll($sSQL);
-    }
-
-    public function dwell($params) {
-        $rules = array(
-            'member_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
-            'end_date' => array('required', 'date')
-        );
-        $this->validate($params, $rules);
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeHourDateCall('store', __FUNCTION__, $params);
-        } else {
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
-            $timezone = $data['data']['timezone'];
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->dwellByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id);
-            $aByDate = $this->dwellByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id);
-            return $this->averagify($this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x'), $data, false);
         }
     }
 
@@ -558,7 +351,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     private function returningByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -590,7 +382,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     public function returning($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -612,7 +403,7 @@ SQL;
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
-
+    
     private function footTrafficByHour($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
         $sSQL = <<<SQL
@@ -651,7 +442,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     private function footTrafficByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -672,7 +462,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     public function footTraffic($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -694,5 +483,241 @@ SQL;
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
         }
     }
-
+    
+    private function numDevicesByHour($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
+        $sSQL = <<<SQL
+SELECT 
+    x.hour,
+    ROUND(COUNT(y.mac_id)*$factor) as value
+FROM(
+    SELECT 0 as hour 
+    UNION SELECT 1   UNION SELECT 2 	UNION SELECT 3 	
+    UNION SELECT 4   UNION SELECT 5	UNION SELECT 6	
+    UNION SELECT 7   UNION SELECT 8	UNION SELECT 9	
+    UNION SELECT 10  UNION SELECT 11	UNION SELECT 12	
+    UNION SELECT 13  UNION SELECT 14	UNION SELECT 15	
+    UNION SELECT 16  UNION SELECT 17	UNION SELECT 18	
+    UNION SELECT 19  UNION SELECT 20	UNION SELECT 21	
+    UNION SELECT 22  UNION SELECT 23
+) x
+LEFT JOIN
+(
+    SELECT 
+    	ses1.mac_id,DATE_FORMAT(MIN(convert_tz(time_login,'GMT','$timezone')), '%H') AS walk_in,
+    	DATE_FORMAT(max(convert_tz(time_logout,'GMT','$timezone')),'%H') AS walk_out
+   	FROM $table ses1
+    INNER JOIN mac_address 
+    	ON ses1.mac_id = mac_address.id
+    WHERE (mac_address.status<>'noise') 
+      AND (
+         sessionid='passerby' OR 
+         sessionid='instore' OR 
+         sessionid='passive' OR 
+         sessionid='active' OR 
+         sessionid='login'
+      )       
+      AND (network_id=$ap_id)
+      AND time_login BETWEEN '$start_date' AND '$end_date'
+    GROUP BY ses1.mac_id
+) y ON x.hour between walk_in and walk_out 
+GROUP BY x.hour
+ORDER BY x.hour ASC
+SQL;
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        return $oDb->fetchAll($sSQL);
+    }
+    private function numDevicesByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
+        $sSQL = <<<SQL
+SELECT 
+    DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,
+    ROUND(COUNT(DISTINCT ses1.mac_id)*$factor) as value 
+FROM $table ses1
+INNER JOIN mac_address 
+    ON ses1.mac_id = mac_address.id
+WHERE (mac_address.status<>'noise')
+ AND (
+     sessionid='passerby' OR 
+     sessionid='instore' OR 
+     sessionid='passive' OR 
+     sessionid='active' OR 
+     sessionid='login'
+  )   
+ AND (network_id= $ap_id) 
+ AND time_login BETWEEN '$start_date' AND '$end_date'  
+GROUP BY date
+SQL;
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        return $oDb->fetchAll($sSQL);
+    }
+    public function numDevices($params) {
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+            $timezone = $data['data']['timezone'];
+            $factor = $data['data']['traffic_factor'];
+            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $aByHour = $this->numDevicesByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->numDevicesByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
+        }
+    }
+    private function timeInShopByHour($start_date, $end_date, $timezone, $member_id, $ap_id, $factor) {
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
+        $sSQL = <<<SQL
+SELECT
+    x.hour,
+    IFNULL(SUM(dwell_time),0) as value 
+FROM(
+    SELECT 0 as hour 
+    UNION SELECT 1   UNION SELECT 2 	UNION SELECT 3 	
+    UNION SELECT 4   UNION SELECT 5	UNION SELECT 6	
+    UNION SELECT 7   UNION SELECT 8     UNION SELECT 9	
+    UNION SELECT 10  UNION SELECT 11	UNION SELECT 12	
+    UNION SELECT 13  UNION SELECT 14	UNION SELECT 15	
+    UNION SELECT 16  UNION SELECT 17	UNION SELECT 18	
+    UNION SELECT 19  UNION SELECT 20	UNION SELECT 21	
+    UNION SELECT 22  UNION SELECT 23
+) x
+LEFT JOIN (
+	SELECT 
+           DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
+	   ses1.mac_id,
+	   (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
+	FROM $table as ses1
+	INNER JOIN mac_address 
+		ON ses1.mac_id = mac_address.id
+	WHERE status !='noise' 
+		AND noise IS false 
+	   AND time_logout IS NOT NULL 
+	   AND network_id= $ap_id
+	   AND time_login BETWEEN '$start_date' AND '$end_date'
+	GROUP BY ses1.mac_id
+	HAVING 18000 > dwell_time
+) z ON z.login = x.hour
+GROUP BY x.hour      
+ORDER BY x.hour ASC
+SQL;
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        return $oDb->fetchAll($sSQL);
+    }
+    private function timeInShopByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
+        list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
+        $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
+        $sSQL = <<<SQL
+SELECT SUM(dwell_time) as value
+FROM(
+    SELECT 
+       ses1.mac_id,
+       (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
+    FROM $table as ses1
+    INNER JOIN mac_address 
+            ON ses1.mac_id = mac_address.id
+    WHERE status !='noise' 
+            AND noise IS false 
+       AND time_logout IS NOT NULL 
+       AND network_id= $ap_id
+       AND time_login BETWEEN '$start_date' AND '$end_date'
+    GROUP BY ses1.mac_id
+    HAVING 18000 > dwell_time
+) t2
+SQL;
+        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        return $oDb->fetchAll($sSQL);
+    }
+    public function timeInShop($params) {
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+            $timezone = $data['data']['timezone'];
+            $factor = $data['data']['traffic_factor'];
+            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $aByHour = $this->timeInShopByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+            $aByDate = $this->timeInShopByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
+        }
+    }
+    
+    //Rates
+    public function itemsPerTransaction($params) {
+        $tt = $this->api->internalCall('store', 'totalItems', $params);
+        $tr = $this->api->internalCall('store', 'transactions', $params);        
+        $result = $this->calculate($tt, $tr);        
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
+    }
+    public function windowConversion($params) {
+        $ft = $this->api->internalCall('store', 'footTraffic', $params);
+        $nd = $this->api->internalCall('store', 'numDevices', $params);        
+        $result = $this->percentify($ft, $nd);
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
+    }
+    public function avgTicket($params) {
+        $re = $this->api->internalCall('store', 'revenue', $params);
+        $tr = $this->api->internalCall('store', 'transactions', $params);        
+        $result = $this->calculate($re, $tr);        
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
+    }
+    public function conversionRate($params) {
+        $tr = $this->api->internalCall('store', 'transactions', $params);
+        $ft = $this->api->internalCall('store', 'footTraffic', $params);        
+        $result = $this->percentify($tr, $ft);
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
+    }
+    public function dwell($params) {
+        $ts = $this->api->internalCall('store', 'timeInShop', $params);
+        $tr = $this->api->internalCall('store', 'footTraffic', $params);        
+        $result = $this->calculate($ts, $tr);
+        $result['options'] = array(
+            'endpoint' => '/store/' . __FUNCTION__,
+            'member_id' => $params['member_id'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+        );
+        return $result;
+    }
+    
 }
