@@ -674,7 +674,7 @@ SQL;
     public function itemsPerTransaction($params) {
         $tt = $this->api->internalCall('store', 'totalItems', $params);
         $tr = $this->api->internalCall('store', 'transactions', $params);        
-        $result = $this->calculate($tt, $tr);        
+        $result = $this->calculate($tt, $tr, true);        
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
             'member_id' => $params['member_id'],
@@ -698,7 +698,7 @@ SQL;
     public function avgTicket($params) {
         $re = $this->api->internalCall('store', 'revenue', $params);
         $tr = $this->api->internalCall('store', 'transactions', $params);        
-        $result = $this->calculate($re, $tr);        
+        $result = $this->calculate($re, $tr, true);        
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
             'member_id' => $params['member_id'],
@@ -722,7 +722,7 @@ SQL;
     public function dwell($params) {
         $ts = $this->api->internalCall('store', 'timeInShop', $params);
         $tr = $this->api->internalCall('store', 'footTraffic', $params);                
-        $result = $this->calculate($ts, $tr);
+        $result = $this->calculate($ts, $tr, true);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
             'member_id' => $params['member_id'],
