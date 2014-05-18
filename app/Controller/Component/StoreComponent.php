@@ -73,16 +73,16 @@ class StoreComponent extends APIComponent {
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
                     switch ($call[1]) {
                         case 'windowConversion':
-                        case 'conversionRate':
                         case 'walkbys':
                             $result[$call[1]] = $tmp['data']['totals']['open'];
                             break;
                         case 'footTraffic':
                         case 'returning':
                         case 'dwell':
+                        case 'avgTicket':
+                        case 'conversionRate':
                             $result[$call[1]] = $tmp['data']['totals']['total'];
                             break;
-                        case 'avgTicket':
                         case 'revenue':
                         case 'itemsPerTransaction':
                         case 'transactions':
@@ -592,9 +592,9 @@ FROM(
 ) x
 LEFT JOIN (
 	SELECT 
-           DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
+       DATE_FORMAT((CONVERT_TZ(time_login,'GMT','$timezone')),'%H') as login,
 	   ses1.mac_id,
-	   SUM(UNIX_TIMESTAMP(time_logout)-UNIX_TIMESTAMP(time_login)) as dwell_time
+	   (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
 	FROM $table as ses1
 	INNER JOIN mac_address 
 		ON ses1.mac_id = mac_address.id
@@ -626,7 +626,7 @@ SQL;
  FROM(
     SELECT 
        ses1.mac_id,
-       SUM(UNIX_TIMESTAMP(time_logout)-UNIX_TIMESTAMP(time_login)) as dwell_time
+       (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time
     FROM $table as ses1
     INNER JOIN mac_address 
             ON ses1.mac_id = mac_address.id
