@@ -94,11 +94,11 @@ class StoreComponent extends APIComponent {
                     switch ($call[1]) {
                         case 'windowConversion':
                         case 'walkbys':
+                        case 'dwell':
                             $result[$call[1]] = $tmp['data']['totals']['open'];
                             break;
                         case 'footTraffic':
                         case 'returning':
-                        case 'dwell':
                         case 'avgTicket':
                         case 'conversionRate':
                             $result[$call[1]] = $tmp['data']['totals']['total'];
