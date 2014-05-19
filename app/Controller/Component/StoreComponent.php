@@ -48,7 +48,7 @@ class StoreComponent extends APIComponent {
                         )
                 ) {
                     $tmp = $this->api->internalCall('store', $k, $params);
-                    switch ($call[1]) {
+                    switch ($k) {
                         case 'windowConversion':
                             $aRes[$k] = $tmp['data']['totals']['open'];
                             break;
