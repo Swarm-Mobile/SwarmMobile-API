@@ -33,6 +33,7 @@ class StoreComponent extends APIComponent {
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
+        $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
         if ($params['start_date'] != $params['end_date']) {
             $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
             $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
@@ -69,8 +70,7 @@ class StoreComponent extends APIComponent {
                 }
             }
             return $aRes;
-        } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+        } else {            
             $result = array();
             $calls = array(
                 array('store', 'walkbys'),
