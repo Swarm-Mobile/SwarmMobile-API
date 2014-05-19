@@ -47,8 +47,7 @@ class StoreComponent extends APIComponent {
                                 )
                         )
                 ) {
-                    $tmp = $this->api->internalCall('store', $k, $params);
-                    var_dump($k,$tmp['data']['totals']);
+                    $tmp = $this->api->internalCall('store', $k, $params);                    
                     switch ($k) {
                         case 'dwell':
                         case 'windowConversion':
