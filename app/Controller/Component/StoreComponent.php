@@ -48,15 +48,17 @@ class StoreComponent extends APIComponent {
                         )
                 ) {
                     $tmp = $this->api->internalCall('store', $k, $params);
+                    var_dump($k,$tmp['data']['totals']);
                     switch ($k) {
+                        case 'dwell':
                         case 'windowConversion':
                             $aRes[$k] = $tmp['data']['totals']['open'];
                             break;
-                        case 'dwell':
-                        case 'avgTicket':
+                        //case '':                                                                        
+                        //    $aRes[$k] = $tmp['data']['totals']['total'];
+                        //    break;
                         case 'conversionRate':
-                            $aRes[$k] = $tmp['data']['totals']['total'];
-                            break;
+                        case 'avgTicket':
                         case 'itemsPerTransaction':
                             if ($data['data']['transactions_while_closed'] == 'no') {
                                 $aRes[$k] = $tmp['data']['totals']['open'];
