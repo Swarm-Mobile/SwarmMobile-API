@@ -241,7 +241,8 @@ SELECT
     m_field_id_72 as guest_wifi,
     m_field_id_70 as pos_provider,
     m_field_id_123 as transactions_while_closed,
-    m_field_id_129 as goal_total_shoppers
+    m_field_id_129 as goal_total_shoppers,
+    m_field_id_130 as goal_revenue
 FROM $table  
 WHERE member_id = :member_id
 SQL;
