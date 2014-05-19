@@ -99,10 +99,10 @@ class StoreComponent extends APIComponent {
                             break;
                         case 'footTraffic':
                         case 'returning':
-                        case 'avgTicket':
-                        case 'conversionRate':
                             $result[$call[1]] = $tmp['data']['totals']['total'];
                             break;
+                        case 'conversionRate':
+                        case 'avgTicket':
                         case 'revenue':
                         case 'itemsPerTransaction':
                         case 'transactions':
