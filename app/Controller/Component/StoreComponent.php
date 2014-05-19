@@ -35,6 +35,7 @@ class StoreComponent extends APIComponent {
         if ($params['start_date'] != $params['end_date']) {
             $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
             $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
+			$d = max(array(1,$d));
             foreach ($aRes as $k => $v) {
                 if (in_array($k, array(
                             'windowConversion',
