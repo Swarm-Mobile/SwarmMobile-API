@@ -49,13 +49,6 @@ SQL;
         throw new Exception('No data on sessions registered for this store.');
     }
 
-    private function output($text) {
-        $this->out($text);
-        if (!$this->console) {
-            echo $text . "\n";
-        }
-    }
-
     public function main($console = true) {
         $this->console = $console;
         $this->setEnvironment();

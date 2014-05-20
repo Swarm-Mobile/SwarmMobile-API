@@ -37,31 +37,32 @@
  * The origin email. See CakeEmail::from() about the valid values
  *
  */
+        
 class EmailConfig {
 
 	public $default = array(
 		'transport' => 'Mail',
-		'from' => 'you@localhost',
-		//'charset' => 'utf-8',
-		//'headerCharset' => 'utf-8',
+		'from' => 'info@swarm-mobile.com',
+		'charset' => 'utf-8',
+		'headerCharset' => 'utf-8',
 	);
 
 	public $smtp = array(
 		'transport' => 'Smtp',
-		'from' => array('site@localhost' => 'My Site'),
-		'host' => 'localhost',
-		'port' => 25,
-		'timeout' => 30,
-		'username' => 'user',
-		'password' => 'secret',
+		'from' => array('info@swarm-mobile.com' => 'Info'),
+		'host' => 'mail.authsmtp.com',
+		'port' => 23,
+		'timeout' => 5,
+		'username' => 'ac61405',
+		'password' => 'hyjebkr3tfekmu',
 		'client' => null,
 		'log' => false,
-		//'charset' => 'utf-8',
-		//'headerCharset' => 'utf-8',
+		'charset' => 'utf-8',
+		'headerCharset' => 'utf-8',
 	);
 
 	public $fast = array(
-		'from' => 'you@localhost',
+		'from' => 'info@swarm-mobile.com',
 		'sender' => null,
 		'to' => null,
 		'cc' => null,
@@ -80,15 +81,15 @@ class EmailConfig {
 		'attachments' => null,
 		'emailFormat' => null,
 		'transport' => 'Smtp',
-		'host' => 'localhost',
-		'port' => 25,
-		'timeout' => 30,
-		'username' => 'user',
-		'password' => 'secret',
+		'host' => 'mail.authsmtp.com',
+		'port' => 23,
+		'timeout' => 5,
+		'username' => 'ac61405',
+		'password' => 'hyjebkr3tfekmu',
 		'client' => null,
 		'log' => true,
-		//'charset' => 'utf-8',
-		//'headerCharset' => 'utf-8',
+		'charset' => 'utf-8',
+		'headerCharset' => 'utf-8',
 	);
 
 }

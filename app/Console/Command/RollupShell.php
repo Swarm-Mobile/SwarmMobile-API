@@ -49,13 +49,6 @@ SQL;
         throw new Exception('No data on sessions registered for this store.');
     }
 
-    private function output($text) {
-        $this->out($text);
-        if (!$this->console) {
-            echo $text . "\n";
-        }
-    }
-
     public function main($console = true) {
         $this->console = $console;
         $this->setEnvironment();
@@ -139,6 +132,11 @@ SQL;
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
                 $this->output($e->getMessage());
+                $Email = new CakeEmail();
+                $Email->from(array('info@swarm-mobile.com' => 'Info'));
+                $Email->to('dev@swarm-mobile.com');
+                $Email->subject('Rollup Issue: Member #'.$member_id);
+                $Email->send('The script throw: '.$e->getMessage());
                 continue;
             }
         }

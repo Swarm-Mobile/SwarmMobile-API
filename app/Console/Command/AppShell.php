@@ -1,4 +1,5 @@
 <?php
+
 /**
  * AppShell file
  *
@@ -14,7 +15,6 @@
  * @since         CakePHP(tm) v 2.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-
 App::uses('Shell', 'Console');
 
 /**
@@ -26,5 +26,16 @@ App::uses('Shell', 'Console');
  * @package       app.Console.Command
  */
 class AppShell extends Shell {
+
+    public function output($text) {
+        $this->out($text);
+        if (!$this->console) {
+            echo $text . "\n";
+        }
+    }
+
+    public function coalesce() {
+        return array_shift(array_filter(func_get_args()));
+    }
 
 }
