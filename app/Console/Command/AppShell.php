@@ -27,6 +27,8 @@ App::uses('Shell', 'Console');
  */
 class AppShell extends Shell {
 
+    private $console = true;
+    
     public function output($text) {
         $this->out($text);
         if (!$this->console) {
