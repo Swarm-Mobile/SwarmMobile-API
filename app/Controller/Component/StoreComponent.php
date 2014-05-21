@@ -232,9 +232,9 @@ SQL;
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $timezone = $data['data']['timezone'];
 
-            $register_filter = $data['data']['register_filter'];
+            $register_filter = @$data['data']['register_filter'];
             $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
-            $outlet_filter = $data['data']['outlet_filter'];
+            $outlet_filter = @$data['data']['outlet_filter'];
             $outlet_filter = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
 
             $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];

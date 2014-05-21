@@ -440,7 +440,7 @@ SQL;
         return $this->nightClubFormat($result, $data);
     }
     private function nightClubFormat($result, $data) {
-        if ($data['data']['nightclub_hours'] == 'yes') {
+        if (@$data['data']['nightclub_hours'] == 'yes') {
             $ncResult = array();
             $ncResult['options'] = $result['options'];
             $ncResult['data']['totals'] = $result['data']['totals'];

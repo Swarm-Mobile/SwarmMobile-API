@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../../Controller/Component/DBComponent.php');
 App::uses('APIComponent', 'Controller/Component');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
+App::uses('CakeEmail', 'Network/Email');
 
 class RollupShell extends AppShell {
 
@@ -97,7 +98,7 @@ SQL;
                 $this->output("");
                 $this->output("Processing member : $member");
                 $this->output("");
-                $this->output("Start             : " . date('H:i:s'));                
+                $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
                     $start_date = $this->getFirstRegisterDate($member);
                     $end_date = date('Y-m-d');
@@ -122,7 +123,7 @@ SQL;
                 ));
 
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
-                $this->output("---------------------------------------------");                
+                $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
                 $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
@@ -132,11 +133,15 @@ SQL;
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
                 $this->output($e->getMessage());
-                $Email = new CakeEmail();
-                $Email->from(array('info@swarm-mobile.com' => 'Info'));
-                $Email->to('dev@swarm-mobile.com');
-                $Email->subject('Rollup Issue: Member #'.$member_id);
-                $Email->send('The script throw: '.$e->getMessage());
+                if ($e->getMessage() != 'No data on sessions registered for this store.') {
+                    $this->output('Sending email to dev@swarm-mobile.com');
+                    $Email = new CakeEmail();
+                    $Email->from(array('info@swarm-mobile.com' => 'Info'));
+                    $Email->to('dev@swarm-mobile.com');
+                    $Email->subject('Rollup Issue: Member #' . $member_id);
+                    $Email->send('The script throw: ' . $e->getMessage());
+                    $this->output('Email sended.');
+                }
                 continue;
             }
         }

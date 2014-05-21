@@ -2,16 +2,36 @@
 
 require_once 'DBComponent.php';
 
-class PersonComponent extends ConsumerAPIComponent {}
-class DeviceComponent extends ConsumerAPIComponent {}
-class VisitComponent extends ConsumerAPIComponent {}
-class PurchaseComponent extends ConsumerAPIComponent {}
-class ProductComponent extends ConsumerAPIComponent {}
-class LocationComponent extends ConsumerAPIComponent {}
-class BrandComponent extends ConsumerAPIComponent {}
+class PersonComponent extends ConsumerAPIComponent {
+    
+}
+
+class DeviceComponent extends ConsumerAPIComponent {
+    
+}
+
+class VisitComponent extends ConsumerAPIComponent {
+    
+}
+
+class PurchaseComponent extends ConsumerAPIComponent {
+    
+}
+
+class ProductComponent extends ConsumerAPIComponent {
+    
+}
+
+class LocationComponent extends ConsumerAPIComponent {
+    
+}
+
+class BrandComponent extends ConsumerAPIComponent {
+    
+}
 
 class ConsumerAPIComponent extends APIComponent {
-    
+
     public $paths = array(
         'Person' => array(
             'Purchase' => array(),
@@ -104,13 +124,13 @@ class ConsumerAPIComponent extends APIComponent {
                 $prev = $cur;
             } while ($collection = array_pop($path));
         }
-        $ids = $this->in($aRes);
-        if ($ids) {
+        if (!empty($aRes)) {
             if (!$through) {
-                $conditions = array('_' . $end => array('$in' => $ids));
+                $ids = $this->in($aRes, '_' . $start);
             } else {
-                $conditions = array('_id' => array('$in' => $ids));
+                $ids = $this->in($aRes);
             }
+            $conditions = array('_id' => array('$in' => $ids));
             $oModel->setSource($start);
             $tmp = $oModel->find('all', array('conditions' => $conditions, 'limit' => 50));
             foreach ($tmp as $oRow) {
@@ -123,4 +143,5 @@ class ConsumerAPIComponent extends APIComponent {
         }
         return $result;
     }
+
 }
