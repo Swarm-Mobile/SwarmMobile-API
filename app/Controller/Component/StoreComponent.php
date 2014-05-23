@@ -785,7 +785,7 @@ SQL;
     HAVING 18000 > dwell_time
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0);
         } 
     }
     
