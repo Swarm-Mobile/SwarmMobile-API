@@ -764,7 +764,7 @@ SQL;
             $oDb = DBComponent::getInstance($table, 'swarmdataRead');
             $sSQL = <<<SQL
     SELECT 
-       COUNT(DISTINCT ses1.mac_id),
+       COUNT(DISTINCT ses1.mac_id) as value,
        DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
        DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
     FROM $table as ses1
