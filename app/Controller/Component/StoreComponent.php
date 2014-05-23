@@ -781,8 +781,7 @@ SQL;
        AND time_logout IS NOT NULL 
        AND network_id= $ap_id
        AND time_login BETWEEN '$start_date' AND '$end_date'
-    GROUP BY date, hour
-    HAVING 18000 > dwell_time
+    GROUP BY date, hour    
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0);
