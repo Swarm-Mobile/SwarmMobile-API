@@ -50,11 +50,11 @@ class StoreComponent extends APIComponent {
                 ) {
                     $tmp = $this->api->internalCall('store', $k, $params);                    
                     switch ($k) {
-                        case 'dwell':
                         case 'windowConversion':
+                        case 'dwell':                        
                             $aRes[$k] = $tmp['data']['totals']['open'];
                             break;
-                        //case '':                                                                        
+                        //case '':                      
                         //    $aRes[$k] = $tmp['data']['totals']['total'];
                         //    break;
                         case 'conversionRate':
@@ -376,7 +376,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     private function returningByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -408,7 +407,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     public function returning($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -469,7 +467,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     private function footTrafficByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -490,7 +487,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     public function footTraffic($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -556,7 +552,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     private function numDevicesByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -582,7 +577,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     public function numDevices($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -650,7 +644,6 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
-
     private function timeInShopByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -681,8 +674,29 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+//    public function timeInShop($params) {
+//        $rules = array(
+//            'member_id' => array('required', 'int'),
+//            'start_date' => array('required', 'date'),
+//            'end_date' => array('required', 'date')
+//        );
+//        $this->validate($params, $rules);
+//        if ($params['start_date'] != $params['end_date']) {
+//            return $this->iterativeCall('store', __FUNCTION__, $params);
+//        } else {
+//            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+//            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+//            $timezone = $data['data']['timezone'];
+//            $factor = $data['data']['traffic_factor'];
+//            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+//            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+//            $aByHour = $this->timeInShopByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
+//            $aByDate = $this->timeInShopByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
+//            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
+//        }
+//    }
 
-    public function timeInShop($params) {
+    public function timeInShop($params){
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -695,15 +709,86 @@ SQL;
             $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
-            $factor = $data['data']['traffic_factor'];
-            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->timeInShopByHour($start_date, $end_date, $timezone, $params['member_id'], $ap_id, $factor);
-            $aByDate = $this->timeInShopByDate($params['start_date'], $data, $timezone, $params['member_id'], $ap_id, $factor);
-            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
-        }
+            $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
+            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL = <<<SQL
+ SELECT 
+     SUM(dwell_time) as value,
+     date,
+     hour
+ FROM(
+    SELECT 
+       ses1.mac_id,
+       (MAX(UNIX_TIMESTAMP(time_logout))-MIN(UNIX_TIMESTAMP(time_login))) as dwell_time,
+       DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+       DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
+    FROM $table as ses1
+    INNER JOIN mac_address 
+            ON ses1.mac_id = mac_address.id
+    WHERE status !='noise' 
+       AND (         
+         sessionid='instore' OR 
+         sessionid='passive' OR 
+         sessionid='active' OR 
+         sessionid='login'
+       )     
+       AND noise IS false 
+       AND time_logout IS NOT NULL 
+       AND network_id= $ap_id
+       AND time_login BETWEEN '$start_date' AND '$end_date'
+    GROUP BY ses1.mac_id, date, hour
+    HAVING 18000 > dwell_time
+ ) t2
+GROUP BY date, hour      
+SQL;
+            $aRes = $oDb->fetchAll($sSQL);
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
+        }        
     }
-
+    public function traffic($params){
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
+            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL = <<<SQL
+    SELECT 
+       COUNT(DISTINCT ses1.mac_id),
+       DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+       DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
+    FROM $table as ses1
+    INNER JOIN mac_address 
+            ON ses1.mac_id = mac_address.id
+    WHERE status !='noise' 
+       AND (         
+         sessionid='instore' OR 
+         sessionid='passive' OR 
+         sessionid='active' OR 
+         sessionid='login'
+       )     
+       AND noise IS false 
+       AND time_logout IS NOT NULL 
+       AND network_id= $ap_id
+       AND time_login BETWEEN '$start_date' AND '$end_date'
+    GROUP BY date, hour
+    HAVING 18000 > dwell_time
+SQL;
+            $aRes = $oDb->fetchAll($sSQL);
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
+        } 
+    }
+    
     //Rates
     public function itemsPerTransaction($params) {
         $tt = $this->api->internalCall('store', 'totalItems', $params);
@@ -717,7 +802,6 @@ SQL;
         );
         return $result;
     }
-
     public function windowConversion($params) {
         $ft = $this->api->internalCall('store', 'footTraffic', $params);
         $nd = $this->api->internalCall('store', 'numDevices', $params);
@@ -730,7 +814,6 @@ SQL;
         );
         return $result;
     }
-
     public function avgTicket($params) {
         $re = $this->api->internalCall('store', 'revenue', $params);
         $tr = $this->api->internalCall('store', 'transactions', $params);
@@ -743,7 +826,6 @@ SQL;
         );
         return $result;
     }
-
     public function conversionRate($params) {
         $tr = $this->api->internalCall('store', 'transactions', $params);
         $ft = $this->api->internalCall('store', 'footTraffic', $params);
@@ -759,7 +841,7 @@ SQL;
 
     public function dwell($params) {
         $ts = $this->api->internalCall('store', 'timeInShop', $params);
-        $tr = $this->api->internalCall('store', 'footTraffic', $params);
+        $tr = $this->api->internalCall('store', 'traffic', $params);
         $result = $this->calculate($ts, $tr, true);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
