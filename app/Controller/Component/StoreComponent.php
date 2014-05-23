@@ -788,6 +788,49 @@ SQL;
         } 
     }
     
+    public function devices($params){
+        $rules = array(
+            'member_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('store', __FUNCTION__, $params);
+        } else {
+            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $table = $this->getSessionsTableName($start_date, $end_date, $params['member_id'], $ap_id);
+            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL = <<<SQL
+    SELECT 
+       COUNT(DISTINCT ses1.mac_id) as value,
+       DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+       DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%k') AS hour
+    FROM $table as ses1
+    INNER JOIN mac_address 
+            ON ses1.mac_id = mac_address.id
+    WHERE status !='noise' 
+       AND (         
+         sessionid='passerby' OR 
+         sessionid='instore' OR 
+         sessionid='passive' OR 
+         sessionid='active' OR 
+         sessionid='login'
+       )     
+       AND noise IS false 
+       AND time_logout IS NOT NULL 
+       AND network_id= $ap_id
+       AND time_login BETWEEN '$start_date' AND '$end_date'
+    GROUP BY date, hour    
+SQL;
+            $aRes = $oDb->fetchAll($sSQL);
+            return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0);
+        } 
+    }
+    
     //Rates
     public function itemsPerTransaction($params) {
         $tt = $this->api->internalCall('store', 'totalItems', $params);
@@ -802,8 +845,10 @@ SQL;
         return $result;
     }
     public function windowConversion($params) {
-        $ft = $this->api->internalCall('store', 'footTraffic', $params);
-        $nd = $this->api->internalCall('store', 'numDevices', $params);
+        //$ft = $this->api->internalCall('store', 'footTraffic', $params);
+        //$nd = $this->api->internalCall('store', 'numDevices', $params);
+        $ft = $this->api->internalCall('store', 'traffic', $params);
+        $nd = $this->api->internalCall('store', 'devices', $params);
         $result = $this->percentify($ft, $nd);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
@@ -827,7 +872,7 @@ SQL;
     }
     public function conversionRate($params) {
         $tr = $this->api->internalCall('store', 'transactions', $params);
-        $ft = $this->api->internalCall('store', 'footTraffic', $params);
+        $ft = $this->api->internalCall('store', 'footTraffic', $params);        
         $result = $this->percentify($tr, $ft);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
