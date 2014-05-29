@@ -2,33 +2,13 @@
 
 require_once 'DBComponent.php';
 
-class PersonComponent extends ConsumerAPIComponent {
-    
-}
-
-class DeviceComponent extends ConsumerAPIComponent {
-    
-}
-
-class VisitComponent extends ConsumerAPIComponent {
-    
-}
-
-class PurchaseComponent extends ConsumerAPIComponent {
-    
-}
-
-class ProductComponent extends ConsumerAPIComponent {
-    
-}
-
-class LocationComponent extends ConsumerAPIComponent {
-    
-}
-
-class BrandComponent extends ConsumerAPIComponent {
-    
-}
+class PersonComponent   extends ConsumerAPIComponent {}
+class DeviceComponent   extends ConsumerAPIComponent {}
+class VisitComponent    extends ConsumerAPIComponent {}
+class PurchaseComponent extends ConsumerAPIComponent {}
+class ProductComponent  extends ConsumerAPIComponent {}
+class LocationComponent extends ConsumerAPIComponent {}
+class BrandComponent    extends ConsumerAPIComponent {}
 
 class ConsumerAPIComponent extends APIComponent {
 

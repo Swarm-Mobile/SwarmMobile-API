@@ -193,7 +193,7 @@ SQL;
         ));
         $parser->addOption('end_date', array(
             'short' => 'e',
-            'default' => date('Y-m-d'),
+            'default' => date('Y-m-d', time() + 1 * 24 * 3600),
             'help' => 'End Date of the rollup'
         ));
         $parser->addOption('override', array(
