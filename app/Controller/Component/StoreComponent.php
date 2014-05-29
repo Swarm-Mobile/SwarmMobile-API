@@ -733,6 +733,7 @@ SQL;
        )     
        AND noise IS false 
        AND time_logout IS NOT NULL 
+       AND time_login != time_logout
        AND network_id= $ap_id
        AND time_login BETWEEN '$start_date' AND '$end_date'
     GROUP BY ses1.mac_id, date, hour
@@ -777,6 +778,7 @@ SQL;
        )     
        AND noise IS false 
        AND time_logout IS NOT NULL 
+       AND time_login != time_logout
        AND network_id= $ap_id
        AND time_login BETWEEN '$start_date' AND '$end_date'
     GROUP BY date, hour    
