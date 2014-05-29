@@ -97,7 +97,7 @@ SQL;
                 $this->output("");
                 $this->output("Processing member : $member");
                 $this->output("");
-                $this->output("Start             : " . date('H:i:s'));                
+                $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
                     $start_date = $this->getFirstRegisterDate($member);
                     $end_date = date('Y-m-d');
@@ -115,14 +115,31 @@ SQL;
                 //Prevent empty rollups for customers that don't have sessions
                 $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
-                $result = $oAPI->internalCall('store', $this->params['metric'], array(
-                    'member_id' => $member,
-                    'start_date' => $start_date,
-                    'end_date' => $end_date
-                ));
+                if ($params['start_date'] != $params['end_date']) {
+                    $end = new DateTime($params['end_date']);
+                    do {
+                        $this->output('Processing: ' . $start_date);
+                        $end_date = $start_date;
+                        $oAPI->internalCall('store', $this->params['metric'], array(
+                            'member_id' => $member,
+                            'start_date' => $start_date,
+                            'end_date' => $end_date
+                        ));
+                        $start = new DateTime($start_date);
+                        date_add($start, date_interval_create_from_date_string('1 days'));
+                        $start_time = date_format($start, 'Y-m-d');
+                    } while ($start <= $end);
+                } else {
+                    $this->output('Processing: ' . $start_date);
+                    $oAPI->internalCall('store', 'totals', array(
+                        'member_id' => $member,
+                        'start_date' => $start_date,
+                        'end_date' => $end_date
+                    ));
+                }
 
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
-                $this->output("---------------------------------------------");                
+                $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
                 $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
@@ -162,7 +179,7 @@ SQL;
         $oModel->deleteAll(array(
             "params.member_id" => "$member",
             "params.start_date" => "$date",
-            "params.endpoint" => 'store/'.$metric
+            "params.endpoint" => 'store/' . $metric
         ));
     }
 
