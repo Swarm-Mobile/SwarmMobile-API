@@ -48,10 +48,10 @@ class StoreComponent extends APIComponent {
                                 )
                         )
                 ) {
-                    $tmp = $this->api->internalCall('store', $k, $params);                    
+                    $tmp = $this->api->internalCall('store', $k, $params);
                     switch ($k) {
                         case 'windowConversion':
-                        case 'dwell':                        
+                        case 'dwell':
                             $aRes[$k] = $tmp['data']['totals']['open'];
                             break;
                         //case '':                      
@@ -70,7 +70,7 @@ class StoreComponent extends APIComponent {
                 }
             }
             return $aRes;
-        } else {            
+        } else {
             $result = array();
             $calls = array(
                 array('store', 'walkbys'),
@@ -376,6 +376,7 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     private function returningByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -407,6 +408,7 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     public function returning($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -467,6 +469,7 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     private function footTrafficByDate($date, $data, $timezone, $member_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $member_id, $ap_id);
@@ -487,6 +490,7 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     public function footTraffic($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
@@ -694,7 +698,7 @@ SQL;
 //            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/store/' . __FUNCTION__, 0, 'x');
 //        }
 //    }
-    public function timeInShop($params){
+    public function timeInShop($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -743,9 +747,10 @@ GROUP BY date, hour
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 't2');
-        }        
+        }
     }
-    public function traffic($params){
+
+    public function traffic($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -785,10 +790,10 @@ SQL;
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0);
-        } 
+        }
     }
-    
-    public function devices($params){
+
+    public function devices($params) {
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -828,9 +833,9 @@ SQL;
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0);
-        } 
+        }
     }
-    
+
     //Rates
     public function itemsPerTransaction($params) {
         $tt = $this->api->internalCall('store', 'totalItems', $params);
@@ -844,6 +849,7 @@ SQL;
         );
         return $result;
     }
+
     public function windowConversion($params) {
         //$ft = $this->api->internalCall('store', 'footTraffic', $params);
         //$nd = $this->api->internalCall('store', 'numDevices', $params);
@@ -858,6 +864,7 @@ SQL;
         );
         return $result;
     }
+
     public function avgTicket($params) {
         $re = $this->api->internalCall('store', 'revenue', $params);
         $tr = $this->api->internalCall('store', 'transactions', $params);
@@ -870,9 +877,10 @@ SQL;
         );
         return $result;
     }
+
     public function conversionRate($params) {
         $tr = $this->api->internalCall('store', 'transactions', $params);
-        $ft = $this->api->internalCall('store', 'footTraffic', $params);        
+        $ft = $this->api->internalCall('store', 'footTraffic', $params);
         $result = $this->percentify($tr, $ft);
         $result['options'] = array(
             'endpoint' => '/store/' . __FUNCTION__,
