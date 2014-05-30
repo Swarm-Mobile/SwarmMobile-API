@@ -97,7 +97,7 @@ class StoreComponent extends APIComponent {
                     }
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
                     if($rollup){
-                        echo microtime(true) - $smicro.'ms';
+                        echo microtime(true) - $smicro.'s'."\n";
                     }
                     switch ($call[1]) {
                         case 'windowConversion':
