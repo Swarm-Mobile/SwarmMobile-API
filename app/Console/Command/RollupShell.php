@@ -96,7 +96,10 @@ SQL;
         $oAPI = new APIController();
         $oAPI->cache = false;
         $oAPI->rollups = true;
+        $index = 0;
+        $total = count($members);
         foreach ($members as $member) {
+            $index++;
             $member = trim($member);
             try {
                 $this->output("");
@@ -122,7 +125,7 @@ SQL;
                 $this->output("Rebuilding rollups");
                 $end = new DateTime($end_date);
                 do {
-                    $this->output('Processing: ' . $start_date);
+                    $this->output('Member #'.$member.' ('.$index.'/'.$total.') Processing: ' . $start_date);
                     $end_date = $start_date;
                     $oAPI->internalCall('store', 'totals', array(
                         'member_id' => $member,
