@@ -126,7 +126,7 @@ SQL;
                     ));
                     $start = new DateTime($start_date);
                     date_add($start, date_interval_create_from_date_string('1 days'));
-                    $start_time = date_format($start, 'Y-m-d');
+                    $start_date = date_format($start, 'Y-m-d');
                 } while ($start <= $end);
 
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
