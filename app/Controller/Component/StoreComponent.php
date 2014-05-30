@@ -91,10 +91,14 @@ class StoreComponent extends APIComponent {
                 $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
                 $result[$call[1]] = 0;
                 if ($isOpen) {
-                    if ($rollup) {                        
-                        echo "  " . $call[1] . ': '.str_repeat(' ', strlen(25-$call[1])).date('Y-m-d H:i:s') . "\n";
+                    if ($rollup) {
+                        $smicro = microtime(true);
+                        echo "  " . $call[1] . ': '.str_repeat(' ', 25-strlen($call[1]));
                     }
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
+                    if($rollup){
+                        echo microtime(true) - $smicro.'ms';
+                    }
                     switch ($call[1]) {
                         case 'windowConversion':
                         case 'walkbys':
