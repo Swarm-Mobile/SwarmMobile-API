@@ -97,7 +97,7 @@ class StoreComponent extends APIComponent {
                 $result[$call[1]] = 0;
                 if ($isOpen) {
                     if($rollups){
-                        echo $call[1].':'.date('Y-m-d H:i:s')."\n";
+                        echo "\t\t".$call[1].':'.date('Y-m-d H:i:s')."\n";
                     }
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
                     switch ($call[1]) {
