@@ -127,7 +127,8 @@ SQL;
                     $oAPI->internalCall('store', 'totals', array(
                         'member_id' => $member,
                         'start_date' => $start_date,
-                        'end_date' => $end_date
+                        'end_date' => $end_date,
+                        'rollup' => true
                     ));
                     $start = new DateTime($start_date);
                     date_add($start, date_interval_create_from_date_string('1 days'));
