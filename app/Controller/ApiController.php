@@ -178,7 +178,7 @@ class APIController extends AppController {
     public function internalCall($component, $method, $params) {
         unset($params['access_token']);
         unset($params['norollups']);
-        unset($params['nocache']);
+        unset($params['nocache']);        
         $classname = ucfirst($component) . 'Component';
         if (class_exists($classname)) {
             $oComponent = new $classname($this->request, $this->cache, $this->rollups);
@@ -196,6 +196,7 @@ class APIController extends AppController {
         unset($params['access_token']);
         unset($params['norollups']);
         unset($params['nocache']);
+        unset($params['rollup']);
         if ($this->cache) {
             /*
               $filename = $this->getCacheFilePath($component, $method, $params);
@@ -269,6 +270,7 @@ class APIController extends AppController {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
+            unset($params['rollup']);
             if (
                     isset($params['start_date']) &&
                     isset($params['end_date']) &&

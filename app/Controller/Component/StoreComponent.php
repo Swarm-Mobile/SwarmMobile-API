@@ -27,12 +27,6 @@ class StoreComponent extends APIComponent {
     }
 
     public function totals($params) {
-        if (isset($params['rollup'])) {
-            $rollup = true;
-            unset($params['rollup']);
-        } else {
-            $rollup = false;
-        }
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -77,6 +71,7 @@ class StoreComponent extends APIComponent {
             }
             return $aRes;
         } else {
+            $rollup = (!empty($params['rollup'])) ? $params['rollup'] : false;
             $result = array();
             $calls = array(
                 array('store', 'walkbys'),
@@ -96,8 +91,8 @@ class StoreComponent extends APIComponent {
                 $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
                 $result[$call[1]] = 0;
                 if ($isOpen) {
-                    if($rollups){
-                        echo "\t\t".$call[1].':'.date('Y-m-d H:i:s')."\n";
+                    if ($rollups) {
+                        echo "\t\t" . $call[1] . ':' . date('Y-m-d H:i:s') . "\n";
                     }
                     $tmp = $this->api->internalCall($call[0], $call[1], $params);
                     switch ($call[1]) {
