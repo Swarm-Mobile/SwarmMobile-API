@@ -120,28 +120,19 @@ SQL;
                 //Prevent empty rollups for customers that don't have sessions
                 $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
-                if ($params['start_date'] != $params['end_date']) {
-                    $end = new DateTime($params['end_date']);                    
-                    do {                        
-                        $this->output('Processing: ' . $start_date);
-                        $end_date = $start_date;
-                        $oAPI->internalCall('store', 'totals', array(
-                            'member_id' => $member,
-                            'start_date' => $start_date,
-                            'end_date' => $end_date
-                        ));                        
-                        $start = new DateTime($start_date);
-                        date_add($start, date_interval_create_from_date_string('1 days'));
-                        $start_time = date_format($start, 'Y-m-d');
-                    } while ($start <= $end);
-                } else {
+                $end = new DateTime($params['end_date']);
+                do {
                     $this->output('Processing: ' . $start_date);
+                    $end_date = $start_date;
                     $oAPI->internalCall('store', 'totals', array(
                         'member_id' => $member,
                         'start_date' => $start_date,
                         'end_date' => $end_date
                     ));
-                }
+                    $start = new DateTime($start_date);
+                    date_add($start, date_interval_create_from_date_string('1 days'));
+                    $start_time = date_format($start, 'Y-m-d');
+                } while ($start <= $end);
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
                 $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
