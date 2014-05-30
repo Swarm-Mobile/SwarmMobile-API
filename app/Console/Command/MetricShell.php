@@ -115,7 +115,7 @@ SQL;
                 //Prevent empty rollups for customers that don't have sessions
                 $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
-                $end = new DateTime($params['end_date']);
+                $end = new DateTime($end_date);
                 do {
                     $this->output('Processing: ' . $start_date);
                     $end_date = $start_date;
