@@ -444,10 +444,10 @@ class DATABASE_CONFIG {
 		'swarmdataRead' => array(
 			'datasource' => 'Database/Mysql',
 			'persistent' => false,
-			'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
-			'login' => 'swarmdata',
-			'password' => '4Ha2Rap4ePHe',
-			'database' => 'swarmdata',
+			'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+			'login' => 'swarmdev',
+			'password' => 'dev2DaMax',
+			'database' => 'swarmdata_int',
 			'prefix' => '',
 		)
 	);
