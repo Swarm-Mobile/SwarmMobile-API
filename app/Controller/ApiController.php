@@ -148,12 +148,14 @@ class APIController extends AppController {
             if ($request->is('post')) {
                 $this->rollups = false;
                 $this->cache = false;
-            } elseif ($this->request->is('get')) {
+            } elseif ($this->request->is('get')) {                
                 if (isset($_GET['norollups'])) {
-                    $this->rollups = !$_GET['norollups'];
+                    $norollups = in_array($_GET['norollups'], [1,'yes',true]);
+                    $this->rollups = !$norollups;
                 }
                 if (isset($_GET['nocache'])) {
-                    $this->cache = !$_GET['nocache'];
+                    $nocache = in_array($_GET['nocache'], [1,'yes',true]);
+                    $this->cache = !$nocache;
                 }
             }
         }
