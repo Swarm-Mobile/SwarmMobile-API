@@ -10,5 +10,6 @@ class DeviceComponent extends APIComponent {
             $content = var_export($_POST);
             file_put_contents($file, $content);
         }
+        return array();
     }
 }
