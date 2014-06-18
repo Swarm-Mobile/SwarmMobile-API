@@ -10,6 +10,6 @@ class PortalComponent extends APIComponent {
             $content = var_export($_POST,true);
             file_put_contents($file, $content);
         }
-        return array('path'=>$file);
+        return array();
     }
 }
