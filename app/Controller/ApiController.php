@@ -9,7 +9,7 @@ App::uses('Model', 'Model');
 App::uses('RequestModel', 'Model');
 
 //ONE for every component that extends from APIComponent
-App::uses('DeviceComponent', 'Controller/Component');
+App::uses('PortalComponent', 'Controller/Component');
 App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');

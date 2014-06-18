@@ -2,7 +2,7 @@
 
 App::uses('APIComponent', 'Controller/Component');
 
-class DeviceComponent extends APIComponent {
+class PortalComponent extends APIComponent {
     
     public function visitorEvent($params){        
         if(!empty($_POST)){
