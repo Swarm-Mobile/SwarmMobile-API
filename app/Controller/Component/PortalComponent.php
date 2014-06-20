@@ -7,7 +7,7 @@ class PortalComponent extends APIComponent {
     public function visitorEvent($params) {
         if (!empty($_POST)) {            
             $sSQL = <<<SQL
-INSERT INTO visitorevent
+INSERT INTO visitorEvent
     SET device_id = :device_id,
         entered = :entered,
         exited = :exited,
@@ -18,7 +18,7 @@ INSERT INTO visitorevent
         ts_update = NOW()
 SQL;
             foreach ($_POST['upload'] as $oRow) {
-                $oModel = new Model(false, 'visitorevent', 'portal');
+                $oModel = new Model(false, 'visitorEvent', 'portal');
                 $oDb = $oModel->getDataSource();
                 $date = new DateTime($oRow['date']);               
                 $oDb->query($sSQL, array(
