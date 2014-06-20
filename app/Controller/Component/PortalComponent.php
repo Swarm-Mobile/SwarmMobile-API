@@ -18,7 +18,8 @@ INSERT INTO visitorEvent
         ts_creation = NOW(),
         ts_update = NOW()
 SQL;
-            foreach ($_POST['upload'] as $oRow) {
+            $upload = (is_array($_POST['upload']))?$_POST['upload']:json_decode($_POST['upload'],true);
+            foreach ($upload as $oRow) {
                 $oModel = new Model(false, 'visitorEvent', 'portal');
                 $oDb = $oModel->getDataSource();
                 $date = new DateTime($oRow['date']);               
@@ -34,7 +35,7 @@ SQL;
             }
             $file = realpath(__DIR__ . '/../../../../') . '/raw/' . date('Y_m_d_h_i_s_') . uniqid();
             $content = var_export($_POST, true);
-            file_put_contents($file, $content);
+            file_put_contents($file, $content);            
         }
         return array();
     }
