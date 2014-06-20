@@ -322,6 +322,15 @@ class DATABASE_CONFIG {
             'password' => '4Ha2Rap4ePHe',
             'database' => 'swarmdata',
             'prefix' => '',
+        ),
+        'portal' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host' => 'swarm-device-data.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarm_admin',
+            'password' => '+uPaSeQeru5a',
+            'database' => 'portal',
+            'prefix' => '',
         )
     );
     public $dev_yaron = array(
