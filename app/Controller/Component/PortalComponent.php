@@ -13,6 +13,7 @@ INSERT INTO visitorEvent
         exited = :exited,
         total_count = :total_count,
         user_id = :user_id,
+        location_id = :location_id,
         ts = :ts,
         ts_creation = NOW(),
         ts_update = NOW()
@@ -22,8 +23,9 @@ SQL;
                 $oDb = $oModel->getDataSource();
                 $date = new DateTime($oRow['date']);               
                 $oDb->query($sSQL, array(
-                    ':device_id' => 0,
+                    ':device_id' => $oRow['serialNumber'],
                     ':entered' => $oRow['entered'],
+                    ':location_id' => $oRow['locationID'],
                     ':exited' => $oRow['exited'],
                     ':total_count' => $oRow['totalCount'],
                     ':user_id' => 0,
