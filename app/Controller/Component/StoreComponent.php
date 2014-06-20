@@ -206,21 +206,12 @@ SELECT
     DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k:00') AS hour
 FROM visitorEvent
 WHERE
+	entered = 1 AND			
     location_id=$member_id AND
     ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-
-        // Loop through results and divide by 2 to account for customers entering and then leaving the store.
-        // The exception is 1 for cases where there is one customer currently in the store
-        // TODO: migrate this logic to the MySQL query with CEIL(ROUND(COUNT(*)(*$factor)/2) as detect count
-        foreach ($aRes[0] as $key => $row) {
-            $dCount = intval($row['detect_count']);
-            $dCount = ($dCount === 1) ? $dCount : intval($dCount / 2);
-            $aRes[0][$key]['detect_count'] = $dCount;
-        }
-
         // return formatted result
         return $this->format($aRes, $data, $params, '/store/' . __FUNCTION__, 0, 0, 'detect_count');
     }
