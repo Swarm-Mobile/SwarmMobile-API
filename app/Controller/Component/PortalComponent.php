@@ -5,8 +5,7 @@ App::uses('APIComponent', 'Controller/Component');
 class PortalComponent extends APIComponent {
 
     public function visitorEvent($params) {
-        if (!empty($_POST)) {
-            $aRows = json_decode($_POST['upload'], true);
+        if (!empty($_POST)) {            
             $sSQL = <<<SQL
 INSERT INTO visitorevent
     SET device_id = :device_id,
@@ -18,7 +17,7 @@ INSERT INTO visitorevent
         ts_creation = NOW(),
         ts_update = NOW()
 SQL;
-            foreach ($aRows as $oRow) {
+            foreach ($_POST['upload'] as $oRow) {
                 $oModel = new Model(false, 'visitorevent', 'portal');
                 $oDb = $oModel->getDataSource();
                 $date = new DateTime($oRow['date']);               
