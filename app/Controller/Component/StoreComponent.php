@@ -203,7 +203,7 @@ SQL;
 SELECT
     ROUND(COUNT(*)) AS detect_count,
     DATE_FORMAT(convert_tz(ts,'GMT', '$timezone'), '%Y-%m-%d') AS date,
-    DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k:00') AS hour
+    DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k') AS hour
 FROM visitorEvent
 WHERE
 	entered = 1 AND			
