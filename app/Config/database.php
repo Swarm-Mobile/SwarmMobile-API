@@ -70,6 +70,7 @@ class DATABASE_CONFIG {
     public $mongodb = array();
     public $consumerAPI = array();
     public $oauth = array();
+    public $portal = array();
     public $local = array(
         'consumerAPI' => array(
             'datasource' => 'Mongodb.MongodbSource',
@@ -406,7 +407,8 @@ class DATABASE_CONFIG {
             'pos', 
             'mongodb', 
             'oauth', 
-            'consumerAPI'
+            'consumerAPI',
+            'portal',
         );
         $env = ((!empty($env) && isset($this->$env)) ? $env : 'local');
         foreach ($dbs as $dbname) {
