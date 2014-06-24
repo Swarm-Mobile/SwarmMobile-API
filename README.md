@@ -1,5 +1,8 @@
 #Swarm-Platform
 
+##Contents
+This is the repo for the "Data API" e.g. everything to do with stores and the REST API that lives on top of it. The third party docs for accessing the API are here https://docs.google.com/a/swarm-mobile.com/document/d/1CR_bRYyD02afAxqFO2DZORMb8TvunmLqp_D2nAedALg/edit?disco=AAAAAKLewao
+
 ##Installation
 
 
