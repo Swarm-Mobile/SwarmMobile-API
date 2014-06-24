@@ -27,6 +27,7 @@ class StoreComponent extends APIComponent {
     }
 
     public function totals($params) {
+        $oAPI = new OAuthClientComponent();
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -60,8 +61,7 @@ class StoreComponent extends APIComponent {
                         $aPath[] = $v[0] . '/' . $v[1];
                         $aPostfields[] = $params;
                     }
-                }
-                $oAPI = new OAuthClientComponent();
+                }                
                 $aResults = $oAPI->multiGet($aPath, $aPostfields);
                 foreach ($metrics as $k => $v) {
                     if ($v[2] == 1) {
