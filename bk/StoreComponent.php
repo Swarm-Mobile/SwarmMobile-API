@@ -27,6 +27,7 @@ class StoreComponent extends APIComponent {
     }
 
     public function totals($params) {
+        $oAPI = new OAuthClientComponent();
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -34,95 +35,50 @@ class StoreComponent extends APIComponent {
         );
         $this->validate($params, $rules);
         $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+        $while_closed = $data['data']['transactions_while_closed'];
+        $open_total = $while_closed == 'no' ? 'open' : 'total';
+        $result = array();
+        $aPath = array();
+        $aPostfields = array();
+        $metrics = [
+            ['store', 'walkbys', 0, 'open'],
+            ['store', 'transactions', 0, 'open'],
+            ['store', 'dwell', 1, 'open'],
+            ['store', 'windowConversion', 1, 'open'],
+            ['store', 'returning', 0, 'total'],
+            ['store', 'footTraffic', 0, 'total'],
+            ['store', 'revenue', 0, $open_total],
+            ['store', 'avgTicket', 1, $open_total],
+            ['store', 'totalItems', 0, $open_total],
+            ['store', 'conversionRate', 1, $open_total],
+            ['store', 'itemsPerTransaction', 1, $open_total],
+        ];
         if ($params['start_date'] != $params['end_date']) {
-            $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
-            $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
-            $d = max(array(1, $d));
-            foreach ($aRes as $k => $v) {
-                if (in_array($k, array(
-                            'windowConversion',
-                            'dwell',
-                            'conversionRate',
-                            'itemsPerTransaction',
-                            'avgTicket',
-                                )
-                        )
-                ) {
-                    $tmp = $this->api->internalCall('store', $k, $params);
-                    switch ($k) {
-                        case 'windowConversion':
-                        case 'dwell':
-                            $aRes[$k] = $tmp['data']['totals']['open'];
-                            break;
-                        //case '':                      
-                        //    $aRes[$k] = $tmp['data']['totals']['total'];
-                        //    break;
-                        case 'conversionRate':
-                        case 'avgTicket':
-                        case 'itemsPerTransaction':
-                            if ($data['data']['transactions_while_closed'] == 'no') {
-                                $aRes[$k] = $tmp['data']['totals']['open'];
-                            } else {
-                                $aRes[$k] = $tmp['data']['totals']['total'];
-                            }
-                            break;
-                    }
-                }
+            $aRes = array();
+            foreach ($metrics as $v) {
+                //if ($v[2] == 0) {
+                    $aPath[] = $v[0] . '/' . $v[1];
+                    $aPostfields[] = $params;
+                //}
+            }
+            $aResults = $oAPI->multiGet($aPath, $aPostfields);
+            foreach ($metrics as $k => $v) {
+                //if ($v[2] == 0) {
+                    $aRes[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
+                //} else {
+                //   $tmp = $this->api->internalCall('store', $k, $params);
+                //    $aRes[$v[1]] = $tmp['data']['totals'][$v[3]];
+                //}
             }
             return $aRes;
         } else {
-            $rollup = (!empty($params['rollup'])) ? $params['rollup'] : false;
-            $result = array();
-            $calls = array(
-                array('store', 'walkbys'),
-                array('store', 'footTraffic'),
-                array('store', 'transactions'),
-                array('store', 'revenue'),
-                array('store', 'returning'),
-                array('store', 'avgTicket'),
-                array('store', 'totalItems'),
-                array('store', 'dwell'),
-                array('store', 'conversionRate'),
-                array('store', 'itemsPerTransaction'),
-                array('store', 'windowConversion'),
-            );
-            foreach ($calls as $call) {
-                $weekday = strtolower(date('l', strtotime($params['start_date'])));
-                $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
-                $result[$call[1]] = 0;
-                if ($isOpen) {
-                    if ($rollup) {
-                        $smicro = microtime(true);
-                        echo "  " . $call[1] . ': ' . str_repeat(' ', 25 - strlen($call[1]));
-                    }
-                    $tmp = $this->api->internalCall($call[0], $call[1], $params);
-                    if ($rollup) {
-                        echo round(microtime(true) - $smicro, 2) . 's' . "\n";
-                    }
-                    switch ($call[1]) {
-                        case 'windowConversion':
-                        case 'walkbys':
-                        case 'dwell':
-                            $result[$call[1]] = $tmp['data']['totals']['open'];
-                            break;
-                        case 'footTraffic':
-                        case 'returning':
-                            $result[$call[1]] = $tmp['data']['totals']['total'];
-                            break;
-                        case 'conversionRate':
-                        case 'avgTicket':
-                        case 'revenue':
-                        case 'itemsPerTransaction':
-                        case 'transactions':
-                        case 'totalItems':
-                            if ($data['data']['transactions_while_closed'] == 'no') {
-                                $result[$call[1]] = $tmp['data']['totals']['open'];
-                            } else {
-                                $result[$call[1]] = $tmp['data']['totals']['total'];
-                            }
-                            break;
-                    }
-                }
+            foreach ($metrics as $v) {
+                $aPath[] = $v[0] . '/' . $v[1];
+                $aPostfields[] = $params;
+            }
+            $aResults = $oAPI->multiGet($aPath, $aPostfields);
+            foreach ($metrics as $k => $v) {
+                $result[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
             }
             return $result;
         }
@@ -689,7 +645,7 @@ SQL;
          sessionid='login'
        )     
        AND noise IS false 
-       AND time_logout IS NOT NULL         
+       AND time_logout IS NOT NULL 
        AND time_login != time_logout
        AND network_id= $ap_id
        AND time_login BETWEEN '$start_date' AND '$end_date'
