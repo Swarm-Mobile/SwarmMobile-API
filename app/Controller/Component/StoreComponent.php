@@ -61,6 +61,7 @@ class StoreComponent extends APIComponent {
                         $aPostfields[] = $params;
                     }
                 }
+                $oAPI = new OAuthClientComponent();
                 $aResults = $oAPI->multiGet($aPath, $aPostfields);
                 foreach ($metrics as $k => $v) {
                     if ($v[2] == 1) {
