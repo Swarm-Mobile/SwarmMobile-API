@@ -1,5 +1,6 @@
 <?php
 
+require_once 'OAuthClientComponent.php';
 require_once 'DBComponent.php';
 
 class APIComponent {
