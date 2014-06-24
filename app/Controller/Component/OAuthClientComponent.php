@@ -127,8 +127,7 @@ class OAuthClientComponent extends Component {
             $qry_str = substr($qry_str, 0, -1);
             $url = 'http://api.swarm-mobile.com/' . $aPath[$i] . $qry_str;
             $curl_arr[$i] = curl_init($url);
-            curl_setopt($curl_arr[$i], CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl_arr[$i], CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl_arr[$i], CURLOPT_RETURNTRANSFER, true);            
             curl_setopt($curl_arr[$i], CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curl_arr[$i], CURLOPT_SSL_VERIFYPEER, 0);
             curl_multi_add_handle($master, $curl_arr[$i]);
@@ -138,7 +137,7 @@ class OAuthClientComponent extends Component {
         } while ($running > 0);
         $aResult = array();
         for ($i = 0; $i < $node_count; $i++) {
-            $aResult[] = json_decode(curl_multi_getcontent($curl_arr[$i]));
+            $aResult[] = json_decode(curl_multi_getcontent($curl_arr[$i]), true);
         }
         curl_multi_close($master);
         return $aResult;
