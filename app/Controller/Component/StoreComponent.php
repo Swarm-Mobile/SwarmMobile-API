@@ -64,7 +64,7 @@ class StoreComponent extends APIComponent {
                 $aResults = $oAPI->multiGet($aPath, $aPostfields);
                 foreach ($metrics as $k => $v) {
                     if ($v[2] == 1) {
-                        $aRes[$v[1]] = $aResults[$k]->data->totals->{$v[3]};
+                        $aRes[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
                     }
                 }
             }
@@ -76,7 +76,7 @@ class StoreComponent extends APIComponent {
             }
             $aResults = $oAPI->multiGet($aPath, $aPostfields);
             foreach ($metrics as $k => $v) {
-                $result[$v[1]] = $aResults[$k]->data->totals->{$v[3]};
+                $result[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
             }
             return $result;
         }
