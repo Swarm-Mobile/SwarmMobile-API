@@ -4,6 +4,7 @@ App::uses('APIComponent', 'Controller/Component');
 App::uses('ValidatorComponent', 'Controller/Component');
 App::uses('SettingComponent', 'Controller/Component');
 App::uses('Model', 'Model');
+App::uses('Location', 'Model');
 App::import('helper', 'String');
 App::import('helper', 'FormValidate');
 App::uses('ExpMember', 'Model');
