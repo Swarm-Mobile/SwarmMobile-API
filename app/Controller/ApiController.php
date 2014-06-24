@@ -10,6 +10,10 @@ App::uses('AppController', 'Controller');
 App::uses('Model', 'Model');
 App::uses('RequestModel', 'Model');
 
+App::uses('Location', 'Model');
+App::uses('Setting', 'Model');
+App::uses('SettingGroup', 'Model');
+
 //ONE for every component that extends from APIComponent
 App::uses('PortalComponent', 'Controller/Component');
 App::uses('ConsumerComponent', 'Controller/Component');
