@@ -125,7 +125,7 @@ SQL;
                 $this->output("Rebuilding rollups");
                 $end = new DateTime($end_date);
                 do {
-                    $this->output('Member #' . $member . ' (' . $index . '/' . $total . ') Processing: ' . $start_date);
+                    $this->output('Member #'.$member.' ('.$index.'/'.$total.') Processing: ' . $start_date);
                     $end_date = $start_date;
                     $oAPI->internalCall('store', 'totals', array(
                         'member_id' => $member,
