@@ -21,7 +21,7 @@ class MemberComponent extends APIComponent {
             'timezone'                  => 'timezone',
             'store_open'                => 'store_open',
             'store_close'               => 'store_close',
-            'lightspeed_id'             => 'pos_id',
+            'lightspeed_id'             => 'pos_store_id',
             'monday_open'               => 'monday_open',
             'monday_close'              => 'monday_close',
             'tuesday_open'              => 'tuesday_open',
