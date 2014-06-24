@@ -112,12 +112,14 @@ class OAuthClientComponent extends Component {
         return json_decode($result);
     }
 
-    public function multiGet($aPath, $aPostfields) {
+    public function multiGet($aPath, $aPostfields, $nocache = 0, $norollups = 0) {
         $node_count = count($aPath);
         $curl_arr = array();
         $master = curl_multi_init();
         for ($i = 0; $i < $node_count; $i++) {
             $aPostfields[$i]['access_token'] = $this->access_token;
+            $aPostfields[$i]['norollups'] = $norollups;
+            $aPostfields[$i]['nocache'] = $nocache;
             $qry_str = '?';
             foreach ($aPostfields[$i] as $k => $v) {
                 $qry_str .= urlencode($k) . '=' . urlencode($v) . '&';
