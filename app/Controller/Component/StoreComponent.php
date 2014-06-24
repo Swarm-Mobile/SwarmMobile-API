@@ -56,16 +56,16 @@ class StoreComponent extends APIComponent {
         if ($params['start_date'] != $params['end_date']) {
             $aRes = array();
             foreach ($metrics as $v) {
-                if ($v[2] == 1) {
+                //if ($v[2] == 1) {
                     $aPath[] = $v[0] . '/' . $v[1];
                     $aPostfields[] = $params;
-                }
+                //}
             }
             $aResults = $oAPI->multiGet($aPath, $aPostfields);
             foreach ($metrics as $k => $v) {
-                if ($v[2] == 1) {
+                //if ($v[2] == 1) {
                     $aRes[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
-                }
+                //}
             }
             return $aRes;
         } else {
