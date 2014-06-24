@@ -62,10 +62,10 @@ SQL;
         if ($member_id == 'all') {
             $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
-SELECT l.location_id 
+SELECT l.id 
 FROM location l
 INNER JOIN location_setting ls
-    ON l.location_id = ls.location_id
+    ON l.id = ls.location_id
     AND ls.setting_id = 6
     AND value IS NOT NULL
     AND value != ''
