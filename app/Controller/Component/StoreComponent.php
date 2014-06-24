@@ -53,8 +53,7 @@ class StoreComponent extends APIComponent {
             ['store', 'conversionRate'      , 1 , $open_total],
             ['store', 'itemsPerTransaction' , 1 , $open_total],
         ];
-        if ($params['start_date'] != $params['end_date']) {
-            $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
+        if ($params['start_date'] != $params['end_date']) {            
             foreach ($aRes as $k => $v) {
                 foreach ($metrics as $v) {
                     if ($v[2] == 1) {
