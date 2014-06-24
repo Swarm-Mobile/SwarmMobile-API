@@ -223,7 +223,7 @@ SQL;
             date_add($new_start_date, date_interval_create_from_date_string('1 days'));
             $slave_params['start_date'] = date_format($new_start_date, 'Y-m-d');
         } while ($new_start_date <= $end);
-        return $oAPI->multiGet($aPath, $aPostfields, (int)!$this->cache, (int)!$this->rollups);        
+        return $oAPI->multiGet($aPath, $aPostfields);        
     }
 
     public function iterativeTotals($component, $method, $params) {
