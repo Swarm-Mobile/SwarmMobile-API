@@ -74,7 +74,7 @@ SQL;
             $aRes = $oModel->query($sSQL);
             $members = array();
             foreach ($aRes as $oRow) {
-                $members[] = $oRow['l']['location_id'];
+                $members[] = $oRow['l']['id'];
             }
         } else {
             $members = explode(',', $this->params['member_id']);
