@@ -60,7 +60,7 @@ SQL;
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
         $parts = explode('/', $this->params['part']);
         if ($member_id == 'all') {
-            $oModel = new Model(false, 'exp_members', 'ee');
+            $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
 SELECT l.location_id 
 FROM location l
