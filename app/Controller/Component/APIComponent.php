@@ -424,6 +424,9 @@ SQL;
         $aByDate[0][0]['value'] = (empty($aByDate[0][0]['value'])) ? 0 : $aByDate[0][0]['value'];
         $aByDate[0][0]['value'] = (float) $aByDate[0][0]['value'];
         $cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
+        $cResult['data']['breakdown'][$date]['totals']['open'] = 0;
+        $cResult['data']['breakdown'][$date]['totals']['close'] = 0;
+        $cResult['data']['breakdown'][$date]['totals']['total'] = 0;
         foreach ($aByHour as $oRow) {
             $hour = $oRow[$t2]['hour'];
             $cValue = $oRow[$t1][$dbAlias];
@@ -445,8 +448,7 @@ SQL;
                 @$cResult['data']['totals']['open'] += $cValue;
                 @$cResult['data']['totals']['close'] += 0;
             } else {
-                @$cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;
-                @$cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
+                @$cResult['data']['breakdown'][$date]['hours'][$hour]['open'] = false;                
                 @$cResult['data']['breakdown'][$date]['totals']['open'] += 0;
                 @$cResult['data']['breakdown'][$date]['totals']['close'] += $cValue;
                 @$cResult['data']['breakdown'][$date]['totals']['total'] = $aByDate[0][0]['value'];
