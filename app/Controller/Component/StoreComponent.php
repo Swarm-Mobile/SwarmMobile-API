@@ -41,31 +41,30 @@ class StoreComponent extends APIComponent {
         $aPath = array();
         $aPostfields = array();
         $metrics = [
-            ['store', 'walkbys'             , 0 , 'open'],
-            ['store', 'transactions'        , 0 , 'open'],
-            ['store', 'dwell'               , 1 , 'open'],
-            ['store', 'windowConversion'    , 1 , 'open'],
-            ['store', 'returning'           , 0 , 'total'],
-            ['store', 'footTraffic'         , 0 , 'total'],
-            ['store', 'revenue'             , 0 , $open_total],
-            ['store', 'avgTicket'           , 1 , $open_total],
-            ['store', 'totalItems'          , 0 , $open_total],
-            ['store', 'conversionRate'      , 1 , $open_total],
-            ['store', 'itemsPerTransaction' , 1 , $open_total],
+            ['store', 'walkbys', 0, 'open'],
+            ['store', 'transactions', 0, 'open'],
+            ['store', 'dwell', 1, 'open'],
+            ['store', 'windowConversion', 1, 'open'],
+            ['store', 'returning', 0, 'total'],
+            ['store', 'footTraffic', 0, 'total'],
+            ['store', 'revenue', 0, $open_total],
+            ['store', 'avgTicket', 1, $open_total],
+            ['store', 'totalItems', 0, $open_total],
+            ['store', 'conversionRate', 1, $open_total],
+            ['store', 'itemsPerTransaction', 1, $open_total],
         ];
-        if ($params['start_date'] != $params['end_date']) {            
-            foreach ($aRes as $k => $v) {
-                foreach ($metrics as $v) {
-                    if ($v[2] == 1) {
-                        $aPath[] = $v[0] . '/' . $v[1];
-                        $aPostfields[] = $params;
-                    }
-                }                
-                $aResults = $oAPI->multiGet($aPath, $aPostfields);
-                foreach ($metrics as $k => $v) {
-                    if ($v[2] == 1) {
-                        $aRes[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
-                    }
+        if ($params['start_date'] != $params['end_date']) {
+            $aRes = array();
+            foreach ($metrics as $v) {
+                if ($v[2] == 1) {
+                    $aPath[] = $v[0] . '/' . $v[1];
+                    $aPostfields[] = $params;
+                }
+            }
+            $aResults = $oAPI->multiGet($aPath, $aPostfields);
+            foreach ($metrics as $k => $v) {
+                if ($v[2] == 1) {
+                    $aRes[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
                 }
             }
             return $aRes;
