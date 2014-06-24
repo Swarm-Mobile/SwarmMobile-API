@@ -103,7 +103,7 @@ SQL;
             $member = trim($member);
             try {
                 $this->output("");
-                $this->output("Processing member : $member".' ('.$index.'/'.$total.')');
+                $this->output("Processing member : $member");
                 $this->output("");
                 $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
@@ -125,7 +125,7 @@ SQL;
                 $this->output("Rebuilding rollups");
                 $end = new DateTime($end_date);
                 do {
-                    //$this->output('Member #'.$member.' ('.$index.'/'.$total.') Processing: ' . $start_date);
+                    $this->output('Member #' . $member . ' (' . $index . '/' . $total . ') Processing: ' . $start_date);
                     $end_date = $start_date;
                     $oAPI->internalCall('store', 'totals', array(
                         'member_id' => $member,
