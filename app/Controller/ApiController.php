@@ -2,7 +2,9 @@
 
 require_once __DIR__ . '/Component/APIComponent.php';
 require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
+require_once __DIR__ . '/Component/CompressedFunctions.php';
 
+App::uses('SettingComponent', 'Controller/Component');
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('AppController', 'Controller');
 App::uses('Model', 'Model');
