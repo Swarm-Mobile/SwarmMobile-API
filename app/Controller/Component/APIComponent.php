@@ -511,6 +511,10 @@ SQL;
             $hour = $oRow[$t2]['hour'];
             $cValue = $oRow[$t1][$dbAlias];
             $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+            $cResult['data']['breakdown'][$date]['totals']['isOpen'] = false;
+            $cResult['data']['breakdown'][$date]['totals']['open'] = 0;
+            $cResult['data']['breakdown'][$date]['totals']['close'] = 0;
+            $cResult['data']['breakdown'][$date]['totals']['total'] = 0;
             if ($hour < 10) {
                 $hour = '0' . $hour;
             }
