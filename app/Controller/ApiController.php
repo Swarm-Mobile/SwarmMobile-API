@@ -154,8 +154,8 @@ class APIController extends AppController {
         parent::__construct($request, $response);
         if (!empty($this->request)) {
             if ($request->is('post')) {
-                $this->rollups = true;
-                $this->cache = true;
+                $this->rollups = false;
+                $this->cache = false;
             } elseif ($this->request->is('get')) {                
                 if (isset($_GET['norollups'])) {
                     $norollups = in_array($_GET['norollups'], ['1',1,'yes',true], true);
