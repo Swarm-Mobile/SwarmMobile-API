@@ -27,7 +27,6 @@ class StoreComponent extends APIComponent {
     }
 
     public function totals($params) {
-        $oAPI = new OAuthClientComponent();
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -35,43 +34,88 @@ class StoreComponent extends APIComponent {
         );
         $this->validate($params, $rules);
         $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
-        $while_closed = $data['data']['transactions_while_closed'];
-        $open_total = $while_closed == 'no' ? 'open' : 'total';
-        $result = array();
-        $aPath = array();
-        $aPostfields = array();
-        $metrics = [
-            ['store', 'walkbys', 0, 'open'],
-            ['store', 'transactions', 0, 'open'],
-            ['store', 'dwell', 1, 'open'],
-            ['store', 'windowConversion', 1, 'open'],
-            ['store', 'returning', 0, 'total'],
-            ['store', 'footTraffic', 0, 'total'],
-            ['store', 'revenue', 0, $open_total],
-            ['store', 'avgTicket', 1, $open_total],
-            ['store', 'totalItems', 0, $open_total],
-            ['store', 'conversionRate', 1, $open_total],
-            ['store', 'itemsPerTransaction', 1, $open_total],
-        ];
         if ($params['start_date'] != $params['end_date']) {
-            $aRes = array();
-            foreach ($metrics as $v) {                
-                $aPath[] = $v[0] . '/' . $v[1];
-                $aPostfields[] = $params;                
-            }
-            $aResults = $oAPI->multiGet($aPath, $aPostfields);
-            foreach ($metrics as $k => $v) {                
-                $aRes[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
+            $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
+            $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
+            $d = max(array(1, $d));
+            foreach ($aRes as $k => $v) {
+                if (in_array($k, array(
+                            'windowConversion',
+                            'dwell',
+                            'conversionRate',
+                            'itemsPerTransaction',
+                            'avgTicket',
+                                )
+                        )
+                ) {
+                    $tmp = $this->api->internalCall('store', $k, $params);
+                    switch ($k) {
+                        case 'windowConversion':
+                        case 'dwell':
+                            $aRes[$k] = $tmp['data']['totals']['open'];
+                            break;
+                        //case '':                      
+                        //    $aRes[$k] = $tmp['data']['totals']['total'];
+                        //    break;
+                        case 'conversionRate':
+                        case 'avgTicket':
+                        case 'itemsPerTransaction':
+                            if ($data['data']['transactions_while_closed'] == 'no') {
+                                $aRes[$k] = $tmp['data']['totals']['open'];
+                            } else {
+                                $aRes[$k] = $tmp['data']['totals']['total'];
+                            }
+                            break;
+                    }
+                }
             }
             return $aRes;
         } else {
-            foreach ($metrics as $v) {
-                $aPath[] = $v[0] . '/' . $v[1];
-                $aPostfields[] = $params;
-            }
-            $aResults = $oAPI->multiGet($aPath, $aPostfields);
-            foreach ($metrics as $k => $v) {
-                $result[$v[1]] = $aResults[$k]['data']['totals'][$v[3]];
+            $rollup = (!empty($params['rollup'])) ? $params['rollup'] : false;
+            $result = array();
+            $calls = array(
+                array('store', 'walkbys'),
+                array('store', 'footTraffic'),
+                array('store', 'transactions'),
+                array('store', 'revenue'),
+                array('store', 'returning'),
+                array('store', 'avgTicket'),
+                array('store', 'totalItems'),
+                array('store', 'dwell'),
+                array('store', 'conversionRate'),
+                array('store', 'itemsPerTransaction'),
+                array('store', 'windowConversion'),
+            );
+            foreach ($calls as $call) {
+                $weekday = strtolower(date('l', strtotime($params['start_date'])));
+                $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+                $result[$call[1]] = 0;
+                if ($isOpen) {
+                    $tmp = $this->api->internalCall($call[0], $call[1], $params);
+                    switch ($call[1]) {
+                        case 'windowConversion':
+                        case 'walkbys':
+                        case 'dwell':
+                            $result[$call[1]] = $tmp['data']['totals']['open'];
+                            break;
+                        case 'footTraffic':
+                        case 'returning':
+                            $result[$call[1]] = $tmp['data']['totals']['total'];
+                            break;
+                        case 'conversionRate':
+                        case 'avgTicket':
+                        case 'revenue':
+                        case 'itemsPerTransaction':
+                        case 'transactions':
+                        case 'totalItems':
+                            if ($data['data']['transactions_while_closed'] == 'no') {
+                                $result[$call[1]] = $tmp['data']['totals']['open'];
+                            } else {
+                                $result[$call[1]] = $tmp['data']['totals']['total'];
+                            }
+                            break;
+                    }
+                }
             }
             return $result;
         }
@@ -155,7 +199,7 @@ SELECT
     DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k') AS hour
 FROM visitorEvent
 WHERE
-	entered = 1 AND			
+    entered = 1 AND         
     location_id=$member_id AND
     ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC
@@ -242,27 +286,27 @@ SQL;
             if (!empty($lightspeed_id)) {
                 $sSQL = <<<SQL
 SELECT 
-	COUNT(*) as transactions,
-	SUM(revenue) as revenue,
-	SUM(total_items) as total_items,
-	date,
-	hour
+    COUNT(*) as transactions,
+    SUM(revenue) as revenue,
+    SUM(total_items) as total_items,
+    date,
+    hour
 FROM (
-	SELECT
+    SELECT
             i.invoice_id as transactions,
-	    i.total as revenue,
-	    SUM(il.quantity) as total_items,
-	    DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'),'%Y-%m-%d' ) AS date,
-	    DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'), '%k') AS hour
-	    FROM invoices i
-	LEFT JOIN invoice_lines il ON i.invoice_id = il.invoice_id
-	WHERE i.store_id= $lightspeed_id
-	    AND i.completed 
-	    AND i.total != 0 
+        i.total as revenue,
+        SUM(il.quantity) as total_items,
+        DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'),'%Y-%m-%d' ) AS date,
+        DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'), '%k') AS hour
+        FROM invoices i
+    LEFT JOIN invoice_lines il ON i.invoice_id = il.invoice_id
+    WHERE i.store_id= $lightspeed_id
+        AND i.completed 
+        AND i.total != 0 
             $register_filter
             $outlet_filter
-	    AND i.ts BETWEEN '$start_date' AND '$end_date'
-	GROUP BY i.invoice_id
+        AND i.ts BETWEEN '$start_date' AND '$end_date'
+    GROUP BY i.invoice_id
 ) t2
 GROUP BY date ASC, hour ASC             
 SQL;
@@ -334,13 +378,13 @@ SELECT
     ROUND(COUNT(z.login)*$factor) as value 
 FROM(
     SELECT 0 as hour 
-    UNION SELECT 1   UNION SELECT 2 	UNION SELECT 3 	
-    UNION SELECT 4   UNION SELECT 5	UNION SELECT 6	
-    UNION SELECT 7   UNION SELECT 8	UNION SELECT 9	
-    UNION SELECT 10  UNION SELECT 11	UNION SELECT 12	
-    UNION SELECT 13  UNION SELECT 14	UNION SELECT 15	
-    UNION SELECT 16  UNION SELECT 17	UNION SELECT 18	
-    UNION SELECT 19  UNION SELECT 20	UNION SELECT 21	
+    UNION SELECT 1   UNION SELECT 2     UNION SELECT 3  
+    UNION SELECT 4   UNION SELECT 5 UNION SELECT 6  
+    UNION SELECT 7   UNION SELECT 8 UNION SELECT 9  
+    UNION SELECT 10  UNION SELECT 11    UNION SELECT 12 
+    UNION SELECT 13  UNION SELECT 14    UNION SELECT 15 
+    UNION SELECT 16  UNION SELECT 17    UNION SELECT 18 
+    UNION SELECT 19  UNION SELECT 20    UNION SELECT 21 
     UNION SELECT 22  UNION SELECT 23
 ) x
 INNER JOIN (
@@ -383,11 +427,11 @@ SELECT
     ROUND(COUNT(distinct y.unique_mac)*$factor) as value
 FROM (
     SELECT 
-	DISTINCT ses1.mac_id as unique_mac,
-	date((CONVERT_TZ(time_login,'GMT','$timezone'))) as max_login 
+    DISTINCT ses1.mac_id as unique_mac,
+    date((CONVERT_TZ(time_login,'GMT','$timezone'))) as max_login 
     FROM $table  ses1
     INNER JOIN mac_address 
-	ON ses1.mac_id = mac_address.id
+    ON ses1.mac_id = mac_address.id
     WHERE (mac_address.status<>'noise')
       AND (sessionid='instore' OR sessionid='passive' OR sessionid='active' OR sessionid='login') 
       AND time_login IS NOT NULL
@@ -436,23 +480,23 @@ SELECT
     ROUND(COUNT(y.mac_id)*$factor) as value
 FROM(
     SELECT 0 as hour 
-    UNION SELECT 1   UNION SELECT 2 	UNION SELECT 3 	
-    UNION SELECT 4   UNION SELECT 5	UNION SELECT 6	
-    UNION SELECT 7   UNION SELECT 8	UNION SELECT 9	
-    UNION SELECT 10  UNION SELECT 11	UNION SELECT 12	
-    UNION SELECT 13  UNION SELECT 14	UNION SELECT 15	
-    UNION SELECT 16  UNION SELECT 17	UNION SELECT 18	
-    UNION SELECT 19  UNION SELECT 20	UNION SELECT 21	
+    UNION SELECT 1   UNION SELECT 2     UNION SELECT 3  
+    UNION SELECT 4   UNION SELECT 5 UNION SELECT 6  
+    UNION SELECT 7   UNION SELECT 8 UNION SELECT 9  
+    UNION SELECT 10  UNION SELECT 11    UNION SELECT 12 
+    UNION SELECT 13  UNION SELECT 14    UNION SELECT 15 
+    UNION SELECT 16  UNION SELECT 17    UNION SELECT 18 
+    UNION SELECT 19  UNION SELECT 20    UNION SELECT 21 
     UNION SELECT 22  UNION SELECT 23
 ) x
 LEFT JOIN
 (
     SELECT 
-    	ses1.mac_id,DATE_FORMAT(MIN(convert_tz(time_login,'GMT','$timezone')), '%H') AS walk_in,
-    	DATE_FORMAT(max(convert_tz(time_logout,'GMT','$timezone')),'%H') AS walk_out
-   	FROM $table ses1
+        ses1.mac_id,DATE_FORMAT(MIN(convert_tz(time_login,'GMT','$timezone')), '%H') AS walk_in,
+        DATE_FORMAT(max(convert_tz(time_logout,'GMT','$timezone')),'%H') AS walk_out
+    FROM $table ses1
     INNER JOIN mac_address 
-    	ON ses1.mac_id = mac_address.id
+        ON ses1.mac_id = mac_address.id
     WHERE (mac_address.status<>'noise') 
       AND (sessionid='instore' OR sessionid='passive' OR sessionid='active' OR sessionid='login') 
       AND time_logout IS NOT NULL
