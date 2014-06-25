@@ -156,13 +156,13 @@ class APIController extends AppController {
             if ($request->is('post')) {
                 $this->rollups = false;
                 $this->cache = false;
-            } elseif ($this->request->is('get')) {                
+            } elseif ($this->request->is('get')) {
                 if (isset($_GET['norollups'])) {
-                    $norollups = in_array($_GET['norollups'], ['1',1,'yes',true], true);
+                    $norollups = in_array($_GET['norollups'], ['1', 1, 'yes', true], true);
                     $this->rollups = !$norollups;
                 }
                 if (isset($_GET['nocache'])) {
-                    $nocache = in_array($_GET['nocache'], ['1',1,'yes',true], true);
+                    $nocache = in_array($_GET['nocache'], ['1', 1, 'yes', true], true);
                     $this->cache = !$nocache;
                 }
             }
@@ -188,7 +188,7 @@ class APIController extends AppController {
     public function internalCall($component, $method, $params) {
         unset($params['access_token']);
         unset($params['norollups']);
-        unset($params['nocache']);        
+        unset($params['nocache']);
         $classname = ucfirst($component) . 'Component';
         if (class_exists($classname)) {
             $oComponent = new $classname($this->request, $this->cache, $this->rollups);
@@ -208,20 +208,18 @@ class APIController extends AppController {
         unset($params['nocache']);
         unset($params['rollup']);
         if ($this->cache) {
-            /*
-              $filename = $this->getCacheFilePath($component, $method, $params);
-              if (file_exists($filename)) {
-              $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-              if (time() - filemtime($filename) <= $cache_time) {
-              include $filename;
-              return $result;
-              }
-              }
-             */
+            $filename = $this->getCacheFilePath($component, $method, $params);
+            if (file_exists($filename)) {
+                $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
+                if (time() - filemtime($filename) <= $cache_time) {
+                    include $filename;
+                    return $result;
+                }
+            }
         }
         if ($this->rollups && $component == 'store') {
             $oModel = new Model(false, 'cache', 'mongodb');
-            $conditions = array("params"=>array());
+            $conditions = array("params" => array());
             foreach ($params as $k => $v) {
                 $conditions['params'][$k] = $v;
             }
@@ -289,19 +287,17 @@ class APIController extends AppController {
                 return;
             }
             if ($this->cache) {
-                /*
                   $this->createCacheFolders($component, $method);
                   $cache_file = $this->getCacheFilePath($component, $method, $params);
                   $handle = fopen($cache_file, 'w+');
                   fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                   fclose($handle);
-                 */
             }
             if ($this->rollups) {
                 if (!$from_mongo && $component == 'store') {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
-                    $conditions = array("params"=>array());
+                    $conditions = array("params" => array());
                     foreach ($params as $k => $v) {
                         $result['params'][$k] = $v;
                         $conditions['params'][$k] = $v;
