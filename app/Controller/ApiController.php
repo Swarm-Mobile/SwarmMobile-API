@@ -207,6 +207,7 @@ class APIController extends AppController {
         unset($params['norollups']);
         unset($params['nocache']);
         unset($params['rollup']);
+        /*
         if ($this->cache) {
             $filename = $this->getCacheFilePath($component, $method, $params);
             if (file_exists($filename)) {
@@ -216,7 +217,8 @@ class APIController extends AppController {
                     return $result;
                 }
             }
-        }
+        }         
+         */
         if ($this->rollups && $component == 'store') {
             $oModel = new Model(false, 'cache', 'mongodb');
             $conditions = array("params" => array());
@@ -280,19 +282,21 @@ class APIController extends AppController {
             unset($params['nocache']);
             unset($params['rollup']);
             if (
-                    isset($params['start_date']) &&
-                    isset($params['end_date']) &&
-                    $params['start_date'] != $params['end_date']
+                isset($params['start_date']) &&
+                isset($params['end_date']) &&
+                $params['start_date'] != $params['end_date']
             ) {
                 return;
             }
+            /*
             if ($this->cache) {
                   $this->createCacheFolders($component, $method);
                   $cache_file = $this->getCacheFilePath($component, $method, $params);
                   $handle = fopen($cache_file, 'w+');
                   fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                   fclose($handle);
-            }
+            }             
+             */
             if ($this->rollups) {
                 if (!$from_mongo && $component == 'store') {
                     $oModel = new Model(false, 'cache', 'mongodb');

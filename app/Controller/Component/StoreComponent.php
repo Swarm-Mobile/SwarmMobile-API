@@ -73,7 +73,7 @@ class StoreComponent extends APIComponent {
             foreach ($metrics as $k => $v) {
                 if ($isOpen) {
                     $tmp = $this->api->internalCall($v[0], $v[1], $params);
-                    $result[$v[1]] = $tmp[$k]['data']['totals'][$v[2]];
+                    $result[$v[1]] = $tmp['data']['totals'][$v[2]];
                 } else {
                     $result[$v[1]] = 0;
                 }
