@@ -10,12 +10,16 @@ class MetricShell extends AppShell {
 
     private $console = true;
 
-    private function setEnvironment() {
-        $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
-        $pattern = '/.*SetEnv server_location "(.*)"/';
-        if (preg_match_all($pattern, $htaccess, $matches)) {
-            putenv('server_location=' . $matches[1][0]);
-            $_SERVER['server_location'] = $matches[1][0];
+    private function setEnvironment($env = false) {
+        if (!$env) {
+            $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
+            $pattern = '/.*SetEnv server_location "(.*)"/';
+            if (preg_match_all($pattern, $htaccess, $matches)) {
+                putenv('server_location=' . $matches[1][0]);
+                $_SERVER['server_location'] = $matches[1][0];
+            }
+        } else {
+            $_SERVER['server_location'] = $env;
         }
     }
 
