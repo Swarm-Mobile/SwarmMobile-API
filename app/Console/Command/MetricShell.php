@@ -20,11 +20,11 @@ class MetricShell extends AppShell {
     }
 
     public function getFirstRegisterDate($member) {
-        $sSQL = "SELECT m_field_id_20 FROM exp_member_data WHERE member_id = $member";
-        $oModel = new Model(false, 'exp_member_data', 'ee');
+        $sSQL = "SELECT value FROM location_setting WHERE setting_id = 6 AND location_id = $member";
+        $oModel = new Model(false, 'location_setting', 'backstage');
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);
-        $ap_id = $result[0]['exp_member_data']['m_field_id_20'];
+        $ap_id = $result[0]['location_setting']['value'];
         $ap_id = (empty($ap_id)) ? 0 : $ap_id;
         $aTables = array('sessions_archive', 'sessions');
         foreach ($aTables as $table) {
@@ -55,21 +55,21 @@ SQL;
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
         $parts = explode('/', $this->params['part']);
         if ($member_id == 'all') {
-            $oModel = new Model(false, 'exp_members', 'ee');
+            $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
-SELECT exp_members.member_id 
-FROM exp_members
-INNER JOIN exp_member_data
-    ON exp_member_data.member_id = exp_members.member_id
-    AND m_field_id_20 IS NOT NULL
-    AND m_field_id_20 != ''
-    AND m_field_id_20 > 0
-    AND exp_members.group_id IN (1,6)
+SELECT l.id 
+FROM location l
+INNER JOIN location_setting ls
+    ON l.id = ls.location_id
+    AND ls.setting_id = 6
+    AND value IS NOT NULL
+    AND value != ''
+    AND value > 0    
 SQL;
             $aRes = $oModel->query($sSQL);
             $members = array();
             foreach ($aRes as $oRow) {
-                $members[] = $oRow["exp_members"]['member_id'];
+                $members[] = $oRow['l']['id'];
             }
         } else {
             $members = explode(',', $this->params['member_id']);
