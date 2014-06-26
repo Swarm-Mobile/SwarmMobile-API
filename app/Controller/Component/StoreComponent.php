@@ -27,6 +27,7 @@ class StoreComponent extends APIComponent {
     }
 
     public function totals($params) {
+        $oAPI = new OAuthClientComponent();
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -34,87 +35,47 @@ class StoreComponent extends APIComponent {
         );
         $this->validate($params, $rules);
         $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+        $while_closed = $data['data']['transactions_while_closed'];
+        $open_total = $while_closed == 'no' ? 'open' : 'total';
+        $result = array();
+        $aPath = array();
+        $aPostfields = array();
+        $metrics = [
+            ['store', 'walkbys', 'open'],
+            ['store', 'transactions', 'open'],
+            ['store', 'dwell', 'open'],
+            ['store', 'windowConversion', 'open'],
+            ['store', 'returning', 'total'],
+            ['store', 'footTraffic', 'total'],
+            ['store', 'revenue', $open_total],
+            ['store', 'avgTicket', $open_total],
+            ['store', 'totalItems', $open_total],
+            ['store', 'conversionRate', $open_total],
+            ['store', 'itemsPerTransaction', $open_total],
+            
+            ['store', 'traffic', 'total'],
+            ['store', 'devices', 'total'],
+            ['store', 'timeInShop', 'total'],
+            ['store', 'totalItems', $open_total],
+            
+        ];
         if ($params['start_date'] != $params['end_date']) {
-            $aRes = $this->iterativeTotals('store', __FUNCTION__, $params);
-            $d = $this->countWorkDays($params['start_date'], $params['end_date'], $params['member_id']);
-            $d = max(array(1, $d));
-            foreach ($aRes as $k => $v) {
-                if (in_array($k, array(
-                            'windowConversion',
-                            'dwell',
-                            'conversionRate',
-                            'itemsPerTransaction',
-                            'avgTicket',
-                                )
-                        )
-                ) {
-                    $tmp = $this->api->internalCall('store', $k, $params);
-                    switch ($k) {
-                        case 'windowConversion':
-                        case 'dwell':
-                            $aRes[$k] = $tmp['data']['totals']['open'];
-                            break;
-                        //case '':                      
-                        //    $aRes[$k] = $tmp['data']['totals']['total'];
-                        //    break;
-                        case 'conversionRate':
-                        case 'avgTicket':
-                        case 'itemsPerTransaction':
-                            if ($data['data']['transactions_while_closed'] == 'no') {
-                                $aRes[$k] = $tmp['data']['totals']['open'];
-                            } else {
-                                $aRes[$k] = $tmp['data']['totals']['total'];
-                            }
-                            break;
-                    }
-                }
-            }
-            return $aRes;
+            $result = $this->iterativeTotals('store', __FUNCTION__, $params);
+            $result['dwell'] = $result['timeInShop'] / $result['traffic'];
+            $result['windowConversion'] = $result['traffic'] / $result['devices'];
+            $result['conversionRate'] = $result['transactions'] / $result['footTraffic'];
+            $result['itemsPerTransaction'] = $result['totalItems'] / $result['transactions'];
+            $result['avgTicket'] = $result['revenue'] / $result['transactions'];
+            return $result;
         } else {
-            $rollup = (!empty($params['rollup'])) ? $params['rollup'] : false;
-            $result = array();
-            $calls = array(
-                array('store', 'walkbys'),
-                array('store', 'footTraffic'),
-                array('store', 'transactions'),
-                array('store', 'revenue'),
-                array('store', 'returning'),
-                array('store', 'avgTicket'),
-                array('store', 'totalItems'),
-                array('store', 'dwell'),
-                array('store', 'conversionRate'),
-                array('store', 'itemsPerTransaction'),
-                array('store', 'windowConversion'),
-            );
-            foreach ($calls as $call) {
-                $weekday = strtolower(date('l', strtotime($params['start_date'])));
-                $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
-                $result[$call[1]] = 0;
+            $weekday = strtolower(date('l', strtotime($params['start_date'])));
+            $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+            foreach ($metrics as $k => $v) {
                 if ($isOpen) {
-                    $tmp = $this->api->internalCall($call[0], $call[1], $params);
-                    switch ($call[1]) {
-                        case 'windowConversion':
-                        case 'walkbys':
-                        case 'dwell':
-                            $result[$call[1]] = $tmp['data']['totals']['open'];
-                            break;
-                        case 'footTraffic':
-                        case 'returning':
-                            $result[$call[1]] = $tmp['data']['totals']['total'];
-                            break;
-                        case 'conversionRate':
-                        case 'avgTicket':
-                        case 'revenue':
-                        case 'itemsPerTransaction':
-                        case 'transactions':
-                        case 'totalItems':
-                            if ($data['data']['transactions_while_closed'] == 'no') {
-                                $result[$call[1]] = $tmp['data']['totals']['open'];
-                            } else {
-                                $result[$call[1]] = $tmp['data']['totals']['total'];
-                            }
-                            break;
-                    }
+                    $tmp = $this->api->internalCall($v[0], $v[1], $params);
+                    $result[$v[1]] = $tmp[$k]['data']['totals'][$v[2]];
+                } else {
+                    $result[$v[1]] = 0;
                 }
             }
             return $result;
