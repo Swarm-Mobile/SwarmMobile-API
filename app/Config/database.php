@@ -177,7 +177,7 @@ class DATABASE_CONFIG {
     public $live = array(
         'consumerAPI' => array(
             'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
+            'host' => '54.241.21.4',
             'database' => 'Swarm_BI_POS',
             'port' => 27017,
             'prefix' => '',
@@ -185,7 +185,7 @@ class DATABASE_CONFIG {
         ),
         'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'mongo.swarm-mobile.com',
+            'host' => '54.241.21.4',
             'login' => 'mongouser',
             'password' => 'Swarmap!',
             'database' => 'API',
