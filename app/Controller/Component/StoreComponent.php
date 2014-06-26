@@ -26,8 +26,7 @@ class StoreComponent extends APIComponent {
         return $result;
     }
 
-    public function totals($params) {
-        $oAPI = new OAuthClientComponent();
+    public function totals($params) {        
         $rules = array(
             'member_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
