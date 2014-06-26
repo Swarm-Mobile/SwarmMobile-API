@@ -88,7 +88,7 @@ SQL;
         $oDb = $oModel->getDataSource();
         $sSQL = <<<SQL
 SELECT 
-    emailId,
+    DISTINCT emailId,
     convert_tz(time,'GMT', '$timezone') AS date    
 FROM `ws_user_profile`
 WHERE storeId= $member_id  
