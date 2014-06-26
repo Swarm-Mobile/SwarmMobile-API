@@ -41,7 +41,7 @@ class StoreComponent extends APIComponent {
         $aPostfields = array();
         $metrics = [
             ['store', 'walkbys', 'open'],
-            ['store', 'transactions', 'open'],
+            ['store', 'transactions', $open_total],
             ['store', 'dwell', 'open'],
             ['store', 'windowConversion', 'open'],
             ['store', 'returning', 'total'],
