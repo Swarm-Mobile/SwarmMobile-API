@@ -95,11 +95,14 @@ SQL;
         $oAPI = new APIController();
         $oAPI->cache = false;
         $oAPI->rollups = true;
+        $index = 0;
+        $total = count($members);
         foreach ($members as $member) {
+            $index++;
             $member = trim($member);
             try {
                 $this->output("");
-                $this->output("Processing member : $member");
+                $this->output("Processing member : $member" . ' (' . $index . '/' . $total . ')');
                 $this->output("");
                 $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
