@@ -103,7 +103,7 @@ SQL;
             $member = trim($member);
             try {
                 $this->output("");
-                $this->output("Processing member : $member".' ('.$index.'/'.$total.')');
+                $this->output("Processing member : $member" . ' (' . $index . '/' . $total . ')');
                 $this->output("");
                 $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
@@ -123,20 +123,12 @@ SQL;
                 //Prevent empty rollups for customers that don't have sessions
                 $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
-                $end = new DateTime($end_date);
-                do {
-                    //$this->output('Member #'.$member.' ('.$index.'/'.$total.') Processing: ' . $start_date);
-                    $end_date = $start_date;
-                    $oAPI->internalCall('store', 'totals', array(
-                        'member_id' => $member,
-                        'start_date' => $start_date,
-                        'end_date' => $end_date,
-                        'rollup' => true
-                    ));
-                    $start = new DateTime($start_date);
-                    date_add($start, date_interval_create_from_date_string('1 days'));
-                    $start_date = date_format($start, 'Y-m-d');
-                } while ($start <= $end);
+                $oAPI->internalCall('store', 'totals', array(
+                    'member_id' => $member,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'rollup' => true
+                ));
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
                 $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));

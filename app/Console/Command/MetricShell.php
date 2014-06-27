@@ -122,20 +122,11 @@ SQL;
                 //Prevent empty rollups for customers that don't have sessions
                 $this->getFirstRegisterDate($member);
                 $this->output("Rebuilding rollups");
-                $end = new DateTime($end_date);
-                do {
-                    //$this->output('Processing: ' . $start_date);
-                    $end_date = $start_date;
-                    $oAPI->internalCall('store', $this->params['metric'], array(
-                        'member_id' => $member,
-                        'start_date' => $start_date,
-                        'end_date' => $end_date
-                    ));
-                    $start = new DateTime($start_date);
-                    date_add($start, date_interval_create_from_date_string('1 days'));
-                    $start_date = date_format($start, 'Y-m-d');
-                } while ($start <= $end);
-
+                $oAPI->internalCall('store', $this->params['metric'], array(
+                    'member_id' => $member,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date
+                ));
                 $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
                 $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
