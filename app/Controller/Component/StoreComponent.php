@@ -61,8 +61,8 @@ class StoreComponent extends APIComponent {
         if ($params['start_date'] != $params['end_date']) {
             $result = $this->iterativeTotals('store', __FUNCTION__, $params);
             $result['dwell'] = round($result['timeInShop'] / $result['traffic'],2);
-            $result['windowConversion'] = round($result['traffic'] / $result['devices'],2);
-            $result['conversionRate'] = round($result['transactions'] / $result['footTraffic'],2);
+            $result['windowConversion'] = round(($result['traffic'] / $result['devices'])*100,2);
+            $result['conversionRate'] = round(($result['transactions'] / $result['footTraffic'])*100,2);
             $result['itemsPerTransaction'] = round($result['totalItems'] / $result['transactions'],2);
             $result['avgTicket'] = round($result['revenue'] / $result['transactions'],2);
             return $result;
