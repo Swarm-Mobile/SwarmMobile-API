@@ -60,11 +60,11 @@ class StoreComponent extends APIComponent {
         ];
         if ($params['start_date'] != $params['end_date']) {
             $result = $this->iterativeTotals('store', __FUNCTION__, $params);
-            $result['dwell'] = $result['timeInShop'] / $result['traffic'];
-            $result['windowConversion'] = $result['traffic'] / $result['devices'];
-            $result['conversionRate'] = $result['transactions'] / $result['footTraffic'];
-            $result['itemsPerTransaction'] = $result['totalItems'] / $result['transactions'];
-            $result['avgTicket'] = $result['revenue'] / $result['transactions'];
+            $result['dwell'] = round($result['timeInShop'] / $result['traffic'],2);
+            $result['windowConversion'] = round($result['traffic'] / $result['devices'],2);
+            $result['conversionRate'] = round($result['transactions'] / $result['footTraffic'],2);
+            $result['itemsPerTransaction'] = round($result['totalItems'] / $result['transactions'],2);
+            $result['avgTicket'] = round($result['revenue'] / $result['transactions'],2);
             return $result;
         } else {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
