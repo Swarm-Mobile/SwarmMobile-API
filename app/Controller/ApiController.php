@@ -24,6 +24,11 @@ App::uses('StoreComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
 App::uses('AnalyticsComponent', 'Controller/Component');
 
+App::uses('UserComponent', 'Controller/Component');
+App::uses('CouponComponent', 'Controller/Component');
+App::uses('CampaignComponent', 'Controller/Component');
+App::uses('LocationComponent', 'Controller/Component');
+
 class APIController extends AppController {
 
     public $default_cache_time = 300;
