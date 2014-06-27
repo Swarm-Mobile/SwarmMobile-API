@@ -85,7 +85,7 @@ SQL;
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->output("Full Rebuild                  : $rebuild_text");
         if (!$rebuild) {
-            $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time()) : $this->params['start_date'];
+            $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time() + 2 * 24 * 3600) : $this->params['start_date'];
             $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
             $this->output("Start Date               : $start_date");
             $this->output("End Date                 : $end_date");
@@ -208,7 +208,7 @@ SQL;
         ));
         $parser->addOption('end_date', array(
             'short' => 'e',
-            'default' => date('Y-m-d', time() + 1 * 24 * 3600),
+            'default' => date('Y-m-d', time() + 2 * 24 * 3600),
             'help' => 'End Date of the rollup'
         ));
         $parser->addOption('override', array(
