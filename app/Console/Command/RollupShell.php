@@ -56,9 +56,10 @@ SQL;
 
     public function main($console = true) {
 		$hash = uniqid();
-		$log = fopen(__DIR__.DS.'rollup.log', 'a');
+		$log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
 		fwrite($log, 'INI:'.date('Y-m-d H:i:s').$this->params['part'].' HASH:'.$hash);
-        $this->console = $console;
+        fclose($log);
+		$this->console = $console;
         $this->setEnvironment();
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
         $parts = explode('/', $this->params['part']);
@@ -136,9 +137,6 @@ SQL;
                 $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
-                $handle = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-                fwrite($handle, $member . "\n");
-                fclose($handle);
             } catch (Exception $e) {
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
@@ -155,8 +153,9 @@ SQL;
                 continue;
             }
         }
-        $this->output("Done!");
+        $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
 		fwrite($log, 'END:'.date('Y-m-d H:i:s').$this->params['part'].' HASH:'.$hash);
+        fclose($log);
     }
 
     private function mongoResults($member, $start_date = false) {
