@@ -5,13 +5,13 @@ App::uses('RollupShell', 'Console/Command');
 
 class RollupComponent extends APIComponent {
     public function make($params) {
-        $user = $this->api->authenticate($params['access_token']);        
+        $user = $this->api->authenticate($params['access_token']);
         if($user['id'] != 10){
             throw new APIException(401, 'invalid_grant', "Permission denied");
         }
         $rules = array(
             'action' => array('required'),
-            'member_id' => array('required', 'int'),
+            'location_id' => array('required', 'int'),
         );
         if ($params['action'] == 'override') {
             $rules['start_date'] = array('required', 'date');
@@ -19,7 +19,7 @@ class RollupComponent extends APIComponent {
         }
         $this->validate($params, $rules);
         $oRollup = new RollupShell();
-        $oRollup->params['member_id']   = $params['member_id'];
+        $oRollup->params['location_id'] = $params['location_id'];
         $oRollup->params['start_date']  = $params['start_date'];
         $oRollup->params['end_date']    = $params['end_date'];
         $oRollup->params['override']    = $params['action'] == 'override';

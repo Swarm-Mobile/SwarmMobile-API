@@ -1,17 +1,17 @@
 <?php
 App::uses('APIComponent', 'Controller/Component');
 class ConsumerComponent extends APIComponent {
-    public function store($params){
+    public function location($params){
         $rules = array(
-            'member_id' => array('required', 'int'),
+            'location_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('store', __FUNCTION__, $params);
+            return $this->iterativeCall('location', __FUNCTION__, $params);
         } else {
-            $data = $this->api->internalCall('member', 'data', array('member_id' => $params['member_id']));
+            $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $ap_id = $data['data']['ap_id'];
             $timezone = $data['data']['timezone'];
             $factor = $data['data']['traffic_factor'];
@@ -42,7 +42,7 @@ FROM(
 ) as t2 GROUP BY date ASC, hour ASC             
 SQL;
             $aRes = $oDb->fetchAll($sSQL);
-            return $this->format($aRes, $data, $params, $start_date, $end_date, '/store/' . __FUNCTION__, 0, 't2');
+            return $this->format($aRes, $data, $params, $start_date, $end_date, '/location/' . __FUNCTION__, 0, 't2');
         }
     }
 }

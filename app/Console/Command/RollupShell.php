@@ -24,8 +24,8 @@ class RollupShell extends AppShell {
         }
     }
 
-    public function getFirstRegisterDate($member) {
-        $sSQL = "SELECT value FROM location_setting WHERE setting_id = 6 AND location_id = $member";
+    public function getFirstRegisterDate($location) {
+        $sSQL = "SELECT value FROM location_setting WHERE setting_id = 6 AND location_id = $location";
         $oModel = new Model(false, 'location_setting', 'backstage');
         $oDb = $oModel->getDataSource();
         $result = $oDb->query($sSQL);
@@ -51,7 +51,7 @@ SQL;
             $swarm_born = new DateTime('2013-01-01');
             return ($first_date < $swarm_born) ? '2013-01-01' : $result[0][0]['first_date'];
         }
-        throw new Exception('No data on sessions registered for this store.');
+        throw new Exception('No data on sessions registered for this location.');
     }
 
     public function main($console = true) {
@@ -61,9 +61,9 @@ SQL;
         fclose($log);
 		$this->console = $console;
         $this->setEnvironment();
-        $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
+        $location_id = (empty($this->params['location_id'])) ? 'all' : $this->params['location_id'];
         $parts = explode('/', $this->params['part']);
-        if ($member_id == 'all') {
+        if ($location_id == 'all') {
             $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
 SELECT l.id 
@@ -76,15 +76,15 @@ INNER JOIN location_setting ls
     AND value > 0    
 SQL;
             $aRes = $oModel->query($sSQL);
-            $members = array();
+            $locations = array();
             foreach ($aRes as $oRow) {
-                $members[] = $oRow['l']['id'];
+                $locations[] = $oRow['l']['id'];
             }
         } else {
-            $members = explode(',', $this->params['member_id']);
+            $locations = explode(',', $this->params['location_id']);
         }
-        $tmp = array_chunk($members, ceil(count($members) / $parts[1]));
-        $members = $tmp[$parts[0] - 1];
+        $tmp = array_chunk($locations, ceil(count($locations) / $parts[1]));
+        $locations = $tmp[$parts[0] - 1];
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
@@ -95,45 +95,45 @@ SQL;
             $this->output("Start Date               : $start_date");
             $this->output("End Date                 : $end_date");
         }
-        $this->output("Members to process (ID's)     : " . implode(' ', $members));
+        $this->output("Locations to process (ID's)     : " . implode(' ', $locations));
         $this->output("---------------------------------------------");
         $oAPI = new APIController();
         $oAPI->cache = false;
         $oAPI->rollups = true;
         $index = 0;
-        $total = count($members);
-        foreach ($members as $member) {
+        $total = count($locations);
+        foreach ($locations as $location) {
             $index++;
-            $member = trim($member);
+            $location = trim($location);
             try {
                 $this->output("");
-                $this->output("Processing member : $member" . ' (' . $index . '/' . $total . ')');
+                $this->output("Processing location : $location" . ' (' . $index . '/' . $total . ')');
                 $this->output("");
                 $this->output("Start             : " . date('H:i:s'));
                 if ($rebuild) {
-                    $start_date = $this->getFirstRegisterDate($member);
+                    $start_date = $this->getFirstRegisterDate($location);
                     $end_date = date('Y-m-d');
                     $this->output("Start Date        : $start_date");
                     $this->output("End Date          : $end_date");
                     $this->output("");
                     $this->output("---------------------------------------------");
-                    $this->output('Elements cached before clean: ' . $this->mongoResults($member));
-                    $this->clean($member, $start_date, $end_date);
+                    $this->output('Elements cached before clean: ' . $this->mongoResults($location));
+                    $this->clean($location, $start_date, $end_date);
                 } else if ($override) {
-                    $this->output('Elements cached before clean: ' . $this->mongoResults($member));
-                    $this->clean($member, $start_date, $end_date);
+                    $this->output('Elements cached before clean: ' . $this->mongoResults($location));
+                    $this->clean($location, $start_date, $end_date);
                 }
-                $this->output('Elements cached before rebuild: ' . $this->mongoResults($member));
+                $this->output('Elements cached before rebuild: ' . $this->mongoResults($location));
                 //Prevent empty rollups for customers that don't have sessions
-                $this->getFirstRegisterDate($member);
+                $this->getFirstRegisterDate($location);
                 $this->output("Rebuilding rollups");
-                $oAPI->internalCall('store', 'totals', array(
-                    'member_id' => $member,
+                $oAPI->internalCall('location', 'totals', array(
+                    'location_id' => $location,
                     'start_date' => $start_date,
                     'end_date' => $end_date,
                     'rollup' => true
                 ));
-                $this->output('Elements cached after rebuild: ' . $this->mongoResults($member));
+                $this->output('Elements cached after rebuild: ' . $this->mongoResults($location));
                 $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
@@ -141,12 +141,12 @@ SQL;
                 //Do nothing
                 $this->output('Something goes wrong rebuilding');
                 $this->output($e->getMessage());
-                if ($e->getMessage() != 'No data on sessions registered for this store.') {
+                if ($e->getMessage() != 'No data on sessions registered for this location.') {
                     $this->output('Sending email to dev@swarm-mobile.com');
                     $Email = new CakeEmail();
                     $Email->from(array('info@swarm-mobile.com' => 'Info'));
                     $Email->to('dev@swarm-mobile.com');
-                    $Email->subject('Rollup Issue: Member #' . $member_id);
+                    $Email->subject('Rollup Issue: Location #' . $location_id);
                     $Email->send('The script throw: ' . $e->getMessage());
                     $this->output('Email sended.');
                 }
@@ -158,40 +158,40 @@ SQL;
         fclose($log);
     }
 
-    private function mongoResults($member, $start_date = false) {
+    private function mongoResults($location, $start_date = false) {
         $oModel = new Model(false, 'cache', 'mongodb');
         if ($start_date) {
             $aRes = $oModel->find('all', array(
                 'conditions' => array(
-                    "params.member_id" => "$member",
+                    "params.location_id" => "$location",
                     "params.start_date" => "$start_date",
                 )
             ));
         } else {
             $aRes = $oModel->find('all', array(
                 'conditions' => array(
-                    "params.member_id" => "$member"
+                    "params.location_id" => "$location"
                 )
             ));
         }
         return count($aRes);
     }
 
-    private function cleanDay($member, $date) {
+    private function cleanDay($location, $date) {
         $oModel = new Model(false, 'cache', 'mongodb');
         $oModel->deleteAll(array(
-            "params.member_id" => "$member",
+            "params.location_id" => "$location",
             "params.start_date" => "$date"
         ));
     }
 
-    private function clean($member, $start_date = false, $end_date = false) {
-        $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($member) : $start_date;
+    private function clean($location, $start_date = false, $end_date = false) {
+        $start_date = (empty($start_date)) ? $this->getFirstRegisterDate($location) : $start_date;
         $end_date = (empty($end_date)) ? date('Y-m-d') : $end_date;
         $end = new DateTime($end_date);
         $date = $start_date;
         do {
-            $this->cleanDay($member, $date);
+            $this->cleanDay($location, $date);
             $start_date = new DateTime($date);
             date_add($start_date, date_interval_create_from_date_string('1 days'));
             $date = date_format($start_date, 'Y-m-d');
@@ -200,10 +200,10 @@ SQL;
 
     public function getOptionParser() {
         $parser = parent::getOptionParser();
-        $parser->addOption('member_id', array(
+        $parser->addOption('location_id', array(
             'short' => 'm',
             'default' => 'all',
-            'help' => "Member ID's to rebuild"
+            'help' => "Location ID's to rebuild"
         ));
         $parser->addOption('start_date', array(
             'short' => 's',
@@ -228,7 +228,7 @@ SQL;
         $parser->addOption('part', array(
             'short' => 'p',
             'default' => '1/1',
-            'help' => 'Slice of members that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
+            'help' => 'Slice of locations that you like to process (1/1 means all 1/2 means the first half, 2/2 the second half...)'
         ));
         return $parser;
     }
