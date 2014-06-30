@@ -60,7 +60,7 @@ class APIController extends AppController {
             if ($this->Auth->login()) {
                 if (empty($redirect)) {
                     $res = array();
-                    $res['member_id'] = $this->Session->read("Auth.User.member_id");
+                    $res['location_id'] = $this->Session->read("Auth.User.location_id");
                     $res['username'] = $this->Session->read("Auth.User.username");
                     $res['uuid'] = $this->Session->read("Auth.User.uuid");
                     echo json_encode($res);
@@ -224,7 +224,7 @@ class APIController extends AppController {
             }
         }         
          */
-        if ($this->rollups && $component == 'store') {
+        if ($this->rollups && $component == 'location') {
             $oModel = new Model(false, 'cache', 'mongodb');
             $conditions = array("params" => array());
             foreach ($params as $k => $v) {
@@ -281,7 +281,7 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if (!empty($result) && $component . '/' . $method != 'member/data') {
+        if (!empty($result) && $component . '/' . $method != 'location/data') {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
@@ -303,7 +303,7 @@ class APIController extends AppController {
             }             
              */
             if ($this->rollups) {
-                if (!$from_mongo && $component == 'store') {
+                if (!$from_mongo && $component == 'location') {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
                     $conditions = array("params" => array());
