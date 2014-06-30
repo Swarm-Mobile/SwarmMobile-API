@@ -17,10 +17,8 @@ App::uses('SettingGroup', 'Model');
 //ONE for every component that extends from APIComponent
 App::uses('PortalComponent', 'Controller/Component');
 App::uses('ConsumerComponent', 'Controller/Component');
-App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('OAuthClientComponent', 'Controller/Component');
-App::uses('StoreComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
 App::uses('AnalyticsComponent', 'Controller/Component');
 
