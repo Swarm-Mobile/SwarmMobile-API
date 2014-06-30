@@ -60,11 +60,11 @@ class StoreComponent extends APIComponent {
         ];
         if ($params['start_date'] != $params['end_date']) {
             $result = $this->iterativeTotals('store', __FUNCTION__, $params);
-            $result['dwell'] = round($result['timeInShop'] / $result['traffic'],2);
-            $result['windowConversion'] = round(($result['traffic'] / $result['devices'])*100,2);
-            $result['conversionRate'] = round(($result['transactions'] / $result['footTraffic'])*100,2);
-            $result['itemsPerTransaction'] = round($result['totalItems'] / $result['transactions'],2);
-            $result['avgTicket'] = round($result['revenue'] / $result['transactions'],2);
+            $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'],1),2);
+            $result['windowConversion'] = round(($result['traffic'] / coalesce($result['devices'],coalesce($result['traffic'], 1)))*100,2);
+            $result['conversionRate'] = round(($result['transactions'] / coalesce($result['footTraffic'],  coalesce($result['transactions'], 1)))*100,2);
+            $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'],1),2);
+            $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'],1),2);
             return $result;
         } else {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
