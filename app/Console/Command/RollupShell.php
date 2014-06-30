@@ -55,6 +55,9 @@ SQL;
     }
 
     public function main($console = true) {
+		$hash = uniqid();
+		$log = fopen(__DIR__.DS.'rollup.log', 'a');
+		fwrite($log, 'INI:'.date('Y-m-d H:i:s').$this->params['part'].' HASH:'.$hash);
         $this->console = $console;
         $this->setEnvironment();
         $member_id = (empty($this->params['member_id'])) ? 'all' : $this->params['member_id'];
@@ -153,6 +156,7 @@ SQL;
             }
         }
         $this->output("Done!");
+		fwrite($log, 'END:'.date('Y-m-d H:i:s').$this->params['part'].' HASH:'.$hash);
     }
 
     private function mongoResults($member, $start_date = false) {
