@@ -7,28 +7,11 @@ class DATABASE_CONFIG {
     public $swarmdata = array();
     public $swarmdataRead = array();
     public $pos = array();
-    public $mongodb = array();
-    public $consumerAPI = array();
+    public $rollups = array();    
     public $oauth = array();
     public $backstage = array();
     public $portal = array();
     public $local = array(
-        'consumerAPI' => array(
-            'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
-            'database' => 'Swarm_BI_POS',
-            'port' => 27017,
-            'prefix' => '',
-            'persistent' => true
-        ),
-        'mongodb' => array(
-            'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
-            'database' => 'API',
-            'port' => 27017,
-            'prefix' => '',
-            'persistent' => true
-        ),
         'oauth' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
@@ -94,22 +77,6 @@ class DATABASE_CONFIG {
         )
     );
     public $int = array(
-        'consumerAPI' => array(
-            'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
-            'database' => 'Swarm_BI_POS',
-            'port' => 27017,
-            'prefix' => '',
-            'persistent' => true
-        ),
-        'mongodb' => array(
-            'datasource' => 'Mongodb.MongodbSource',
-            'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
-            'database' => 'API',
-            'port' => 27017,
-            'prefix' => '',
-            'persistent' => true
-        ),
         'oauth' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
@@ -175,24 +142,6 @@ class DATABASE_CONFIG {
         )
     );
     public $live = array(
-        'consumerAPI' => array(
-            'datasource' => 'Mongodb.MongodbSource',
-            'host' => '54.241.21.4',
-            'database' => 'Swarm_BI_POS',
-            'port' => 27017,
-            'prefix' => '',
-            'persistent' => true
-        ),
-        'mongodb' => array(
-            'datasource' => 'Mongodb.MongodbSource',
-            'host' => '54.241.21.4',
-            'login' => 'mongouser',
-            'password' => 'Swarmap!',
-            'database' => 'API',
-            'port' => 27017,
-            'prefix' => '',
-            'persistent' => true
-        ),
         'oauth' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
@@ -211,15 +160,6 @@ class DATABASE_CONFIG {
             'database' => 'ee_prod',
             'prefix' => '',
         ),
-//        'pos' => array(
-//            'datasource' => 'Database/Mysql',
-//            'persistent' => true,
-//            'host' => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
-//            'login' => 'swarmdev',
-//            'password' => 'dev2DaMax',
-//            'database' => 'pos_test',
-//            'prefix' => '',
-//        ),
         'pos' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
@@ -264,6 +204,15 @@ class DATABASE_CONFIG {
             'password' => '+uPaSeQeru5a',
             'database' => 'portal',
             'prefix' => '',
+        ),
+        'rollups' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmrollups',
+            'password' => 'f4uwrapR',
+            'database' => 'rollups',
+            'prefix' => '',
         )
     );
 
@@ -273,11 +222,10 @@ class DATABASE_CONFIG {
             'ee',
             'swarmdata',
             'swarmdataRead',
-            'pos',
-            'mongodb',
+            'pos',            
             'oauth',
-            'backstage',
-            'consumerAPI',
+            'backstage',            
+            'rollups',            
             'portal',
         );
         $env = ((!empty($env) && isset($this->$env)) ? $env : 'local');

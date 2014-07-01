@@ -42,7 +42,7 @@ class LocationComponent extends APIComponent {
          *  2. swarmdata     => Sessions Data
          *  3. swarmdataRead => Read-Replica of swarmdata
          *  4. pos           => POS Info
-         *  5. mongodb       => Saves aggregate data for StoreComponent (mongodb)
+         *  5. rollups       => Saves aggregate data for StoreComponent
          *  6. consumerAPI   => Saves aggregate data for ConsumerAPIComponent (mongodb)
          *  7. oauth         => OAuth tokens and this stuff
          *  8. backstage     => Locations, resellers, campaigns...major instance
