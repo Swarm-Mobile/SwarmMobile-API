@@ -237,6 +237,14 @@ SQL;
                 ]
             );
             if(!empty($aRes)){
+                $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+                $weekday = new DateTime($params['start_date']);
+                $weekday = strtolower(date_format($weekday, 'l'));                
+                $tmp = $data['data'][$weekday . '_open'];
+                $isOpen = $tmp !== 0;
+                $open = ($isOpen)?(int) strstr($tmp, ':', true):-1;
+                $tmp = $data['data'][$weekday . '_close'];
+                $close = ($isOpen)?(int) strstr($tmp, ':', true):-1;
                 return [
                   'data' => [
                     'totals' => [
@@ -247,32 +255,33 @@ SQL;
                     'breakdown' => [
                         $params['start_date'] => [
                             'hours' => [
-                                '00'=> $aRes[0][$method]['h00'],
-                                '01'=> $aRes[0][$method]['h01'],
-                                '02'=> $aRes[0][$method]['h02'],
-                                '03'=> $aRes[0][$method]['h03'],
-                                '04'=> $aRes[0][$method]['h04'],
-                                '05'=> $aRes[0][$method]['h05'],
-                                '06'=> $aRes[0][$method]['h06'],
-                                '07'=> $aRes[0][$method]['h07'],
-                                '08'=> $aRes[0][$method]['h08'],
-                                '09'=> $aRes[0][$method]['h09'],
-                                '10'=> $aRes[0][$method]['h10'],
-                                '11'=> $aRes[0][$method]['h11'],
-                                '12'=> $aRes[0][$method]['h12'],
-                                '13'=> $aRes[0][$method]['h13'],
-                                '14'=> $aRes[0][$method]['h14'],
-                                '15'=> $aRes[0][$method]['h15'],
-                                '16'=> $aRes[0][$method]['h16'],
-                                '17'=> $aRes[0][$method]['h17'],
-                                '18'=> $aRes[0][$method]['h18'],
-                                '19'=> $aRes[0][$method]['h19'],
-                                '20'=> $aRes[0][$method]['h20'],
-                                '21'=> $aRes[0][$method]['h21'],
-                                '22'=> $aRes[0][$method]['h22'],
-                                '23'=> $aRes[0][$method]['h23'],
+                                '00'=> ['open'=>($isOpen?(0>=$open&&0<=$close):false), 'total'=>$aRes[0][$method]['h00']],
+                                '01'=> ['open'=>($isOpen?(1>=$open&&1<=$close):false), 'total'=>$aRes[0][$method]['h01']],
+                                '02'=> ['open'=>($isOpen?(2>=$open&&2<=$close):false), 'total'=>$aRes[0][$method]['h02']],
+                                '03'=> ['open'=>($isOpen?(3>=$open&&3<=$close):false), 'total'=>$aRes[0][$method]['h03']],
+                                '04'=> ['open'=>($isOpen?(4>=$open&&4<=$close):false), 'total'=>$aRes[0][$method]['h04']],
+                                '05'=> ['open'=>($isOpen?(5>=$open&&5<=$close):false), 'total'=>$aRes[0][$method]['h05']],
+                                '06'=> ['open'=>($isOpen?(6>=$open&&6<=$close):false), 'total'=>$aRes[0][$method]['h06']],
+                                '07'=> ['open'=>($isOpen?(7>=$open&&7<=$close):false), 'total'=>$aRes[0][$method]['h07']],
+                                '08'=> ['open'=>($isOpen?(8>=$open&&8<=$close):false), 'total'=>$aRes[0][$method]['h08']],
+                                '09'=> ['open'=>($isOpen?(9>=$open&&9<=$close):false), 'total'=>$aRes[0][$method]['h09']],
+                                '10'=> ['open'=>($isOpen?(10>=$open&&10<=$close):false), 'total'=>$aRes[0][$method]['h10']],
+                                '11'=> ['open'=>($isOpen?(11>=$open&&11<=$close):false), 'total'=>$aRes[0][$method]['h11']],
+                                '12'=> ['open'=>($isOpen?(12>=$open&&12<=$close):false), 'total'=>$aRes[0][$method]['h12']],
+                                '13'=> ['open'=>($isOpen?(13>=$open&&13<=$close):false), 'total'=>$aRes[0][$method]['h13']],
+                                '14'=> ['open'=>($isOpen?(14>=$open&&14<=$close):false), 'total'=>$aRes[0][$method]['h14']],
+                                '15'=> ['open'=>($isOpen?(15>=$open&&15<=$close):false), 'total'=>$aRes[0][$method]['h15']],
+                                '16'=> ['open'=>($isOpen?(16>=$open&&16<=$close):false), 'total'=>$aRes[0][$method]['h16']],
+                                '17'=> ['open'=>($isOpen?(17>=$open&&17<=$close):false), 'total'=>$aRes[0][$method]['h17']],
+                                '18'=> ['open'=>($isOpen?(18>=$open&&18<=$close):false), 'total'=>$aRes[0][$method]['h18']],
+                                '19'=> ['open'=>($isOpen?(19>=$open&&19<=$close):false), 'total'=>$aRes[0][$method]['h19']],
+                                '20'=> ['open'=>($isOpen?(20>=$open&&20<=$close):false), 'total'=>$aRes[0][$method]['h20']],
+                                '21'=> ['open'=>($isOpen?(21>=$open&&21<=$close):false), 'total'=>$aRes[0][$method]['h21']],
+                                '22'=> ['open'=>($isOpen?(22>=$open&&22<=$close):false), 'total'=>$aRes[0][$method]['h22']],
+                                '23'=> ['open'=>($isOpen?(23>=$open&&23<=$close):false), 'total'=>$aRes[0][$method]['h23']],
                             ],
-                            'totals' => [                                
+                            'totals' => [      
+                                'isOpen' => $isOpen,
                                 'close' => $aRes[0][$method]['total_close'],
                                 'total' =>  $aRes[0][$method]['total_open'],
                                 'open' => $aRes[0][$method]['total_total'],
