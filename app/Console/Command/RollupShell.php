@@ -55,11 +55,11 @@ SQL;
     }
 
     public function main($console = true) {
-		$hash = uniqid();
-		$log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-		fwrite($log, 'INI:'.date('Y-m-d H:i:s').' '.$this->params['part'].' HASH:'.$hash."\n");
+        $hash = uniqid();
+        $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
+        fwrite($log, 'INI:' . date('Y-m-d H:i:s') . ' ' . $this->params['part'] . ' HASH:' . $hash . "\n");
         fclose($log);
-		$this->console = $console;
+        $this->console = $console;
         $this->setEnvironment();
         $location_id = (empty($this->params['location_id'])) ? 'all' : $this->params['location_id'];
         $parts = explode('/', $this->params['part']);
@@ -154,7 +154,7 @@ SQL;
             }
         }
         $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-		fwrite($log, 'END:'.date('Y-m-d H:i:s').' '.$this->params['part'].' HASH:'.$hash."\n");
+        fwrite($log, 'END:' . date('Y-m-d H:i:s') . ' ' . $this->params['part'] . ' HASH:' . $hash . "\n");
         fclose($log);
     }
 

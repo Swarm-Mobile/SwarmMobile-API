@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Component/APIComponent.php';
-require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
+//require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
 require_once __DIR__ . '/Component/CompressedFunctions.php';
 
 App::uses('SettingComponent', 'Controller/Component');
