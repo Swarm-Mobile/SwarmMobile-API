@@ -440,7 +440,7 @@ INSERT INTO $method
         windowConversion    = {$result['windowConversion']},
         avgTicket           = {$result['avgTicket']},
         conversionRate      = {$result['conversionRate']},
-        dwell               = {$result['dwell']},
+        dwell               = {$result['dwell']}
 SQL;
                         }
                         $oDb->query($sSQL);
