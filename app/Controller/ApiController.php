@@ -237,7 +237,7 @@ SQL;
                 ]
             );
             if(!empty($aRes)){
-                $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+                $data = $this->internalCall('location', 'data', array('location_id' => $params['location_id']));
                 $weekday = new DateTime($params['start_date']);
                 $weekday = strtolower(date_format($weekday, 'l'));                
                 $tmp = $data['data'][$weekday . '_open'];
