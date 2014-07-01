@@ -426,7 +426,9 @@ SQL;
                         } else {
                             $sSQL = <<<SQL
 INSERT INTO $method
-    SET walkbys             = {$result['walkbys']},
+    SET 
+        date                = '{$params['start_date']}',
+        walkbys             = {$result['walkbys']},
         sensorTraffic       = {$result['sensorTraffic']},
         transactions        = {$result['transactions']},
         revenue             = {$result['revenue']},
@@ -440,7 +442,9 @@ INSERT INTO $method
         windowConversion    = {$result['windowConversion']},
         avgTicket           = {$result['avgTicket']},
         conversionRate      = {$result['conversionRate']},
-        dwell               = {$result['dwell']}
+        dwell               = {$result['dwell']},
+        ts_creation         = NOW(),        
+        ts_update           = NOW()        
 SQL;
                         }
                         $oDb->query($sSQL);
