@@ -427,6 +427,7 @@ SQL;
                             $sSQL = <<<SQL
 INSERT INTO $method
     SET 
+        location_id         = {$params['location_id']},
         date                = '{$params['start_date']}',
         walkbys             = {$result['walkbys']},
         sensorTraffic       = {$result['sensorTraffic']},
