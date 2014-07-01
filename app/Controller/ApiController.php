@@ -222,10 +222,22 @@ class APIController extends AppController {
         } else if ($this->rollups && $component == 'location' && !in_array($method,['data','totals'])) {
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
-            $sSQL = "SELECT * FROM $method WHERE location_id = :location_id AND `date` = :date";
-            $aRes = $oDb->fetchAll($sSQL, [':location_id'=>$params['location_id'], ':date'=>$params['start_date']]);
+            $sSQL = <<<SQL
+SELECT * 
+FROM $method  
+WHERE location_id = :location_id  
+  AND `date` = :start_date,
+  AND `date` = :end_date
+SQL;
+            $aRes = $oDb->fetchAll($sSQL, 
+                [
+                    ':location_id'=>$params['location_id'], 
+                    ':start_date'=>$params['start_date'],
+                    ':end_date'=>$params['end_date']
+                ]
+            );
             if(!empty($aRes)){
-                $to_return = [
+                return [
                   'data' => [
                     'totals' => [
                         'open'  => $aRes[0][$method]['total_open'],
@@ -274,8 +286,7 @@ class APIController extends AppController {
                       'start_date'=>$params['start_date'],
                       'end_date'=>$params['end_date']
                   ]
-                ];
-                return $to_return;
+                ];                
             }            
         }
         return false;
