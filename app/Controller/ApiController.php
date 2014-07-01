@@ -223,7 +223,7 @@ class APIController extends AppController {
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = "SELECT * FROM $method WHERE location_id = :location_id AND `date` = :date";
-            $aRes = $oModel->fetchAll($sSQL, [':location_id'=>$params['location_id'], ':date'=>$params['start_date']]);
+            $aRes = $oDb->fetchAll($sSQL, [':location_id'=>$params['location_id'], ':date'=>$params['start_date']]);
             if(!empty($aRes)){
                 $to_return = [
                   'data' => [
