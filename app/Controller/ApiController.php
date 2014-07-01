@@ -301,7 +301,7 @@ class APIController extends AppController {
             }             
              */
             if ($this->rollups) {
-                if (!$from_mongo && $component == 'location') {
+                if (!$from_mongo && $component == 'location' && $method != 'data') {
                     $oModel = new Model(false, 'cache', 'mongodb');
                     $result['params'] = array();
                     $conditions = array("params" => array());
