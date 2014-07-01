@@ -298,21 +298,21 @@ SQL;
                     ];
                 } else {
                     return [
-                        'walkbys' => $aRes[0]['walkbys'],
-                        'sensorTraffic' => $aRes[0]['sensorTraffic'],
-                        'transactions' => $aRes[0]['transactions'],
-                        'revenue' => $aRes[0]['revenue'],
-                        'totalItems' => $aRes[0]['totalItems'],
-                        'returning' => $aRes[0]['returning'],
-                        'footTraffic' => $aRes[0]['footTraffic'],
-                        'timeInShop' => $aRes[0]['timeInShop'],
-                        'traffic' => $aRes[0]['traffic'],
-                        'devices' => $aRes[0]['devices'],
-                        'itemsPerTransaction' => $aRes[0]['itemsPerTransaction'],
-                        'windowConversion' => $aRes[0]['windowConversion'],
-                        'avgTicket' => $aRes[0]['avgTicket'],
-                        'conversionRate' => $aRes[0]['conversionRate'],
-                        'dwell' => $aRes[0]['dwell'],
+                        'walkbys' => $aRes[0][$method]['walkbys'],
+                        'sensorTraffic' => $aRes[0][$method]['sensorTraffic'],
+                        'transactions' => $aRes[0][$method]['transactions'],
+                        'revenue' => $aRes[0][$method]['revenue'],
+                        'totalItems' => $aRes[0][$method]['totalItems'],
+                        'returning' => $aRes[0][$method]['returning'],
+                        'footTraffic' => $aRes[0][$method]['footTraffic'],
+                        'timeInShop' => $aRes[0][$method]['timeInShop'],
+                        'traffic' => $aRes[0][$method]['traffic'],
+                        'devices' => $aRes[0][$method]['devices'],
+                        'itemsPerTransaction' => $aRes[0][$method]['itemsPerTransaction'],
+                        'windowConversion' => $aRes[0][$method]['windowConversion'],
+                        'avgTicket' => $aRes[0][$method]['avgTicket'],
+                        'conversionRate' => $aRes[0][$method]['conversionRate'],
+                        'dwell' => $aRes[0][$method]['dwell'],
                     ];
                 }
             }
