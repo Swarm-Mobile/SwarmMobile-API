@@ -214,6 +214,7 @@ SQL;
             ['location', 'windowConversion', 'open'],
             ['location', 'returning', 'total'],
             ['location', 'footTraffic', 'total'],
+            ['location', 'sensorTraffic', 'total'],
             ['location', 'revenue', $open_total],
             ['location', 'avgTicket', $open_total],
             ['location', 'totalItems', $open_total],

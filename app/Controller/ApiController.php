@@ -208,7 +208,7 @@ class APIController extends AppController {
         unset($params['access_token']);
         unset($params['norollups']);
         unset($params['nocache']);
-        unset($params['rollup']);        
+        unset($params['rollup']);
         //if ($this->cache) {
         if ($component == 'location' && $method == 'purchaseInfo') {
             $filename = $this->getCacheFilePath($component, $method, $params);
@@ -219,7 +219,7 @@ class APIController extends AppController {
                     return $result;
                 }
             }
-        } else if ($this->rollups && $component == 'location' && !in_array($method,['data','totals'])) {
+        } else if ($this->rollups && $component == 'location' && !in_array($method, ['data'])) {
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
@@ -229,74 +229,93 @@ WHERE location_id = :location_id
   AND `date` = :start_date
   AND `date` = :end_date
 SQL;
-            $aRes = $oDb->fetchAll($sSQL, 
-                [
-                    ':location_id'=>$params['location_id'], 
-                    ':start_date'=>$params['start_date'],
-                    ':end_date'=>$params['end_date']
-                ]
+            $aRes = $oDb->fetchAll($sSQL, [
+                ':location_id' => $params['location_id'],
+                ':start_date' => $params['start_date'],
+                ':end_date' => $params['end_date']
+                    ]
             );
-            if(!empty($aRes)){
-                $data = $this->internalCall('location', 'data', array('location_id' => $params['location_id']));
-                $weekday = new DateTime($params['start_date']);
-                $weekday = strtolower(date_format($weekday, 'l'));                
-                $tmp = $data['data'][$weekday . '_open'];
-                $isOpen = $tmp !== 0;
-                $open = ($isOpen)?(int) strstr($tmp, ':', true):-1;
-                $tmp = $data['data'][$weekday . '_close'];
-                $close = ($isOpen)?(int) strstr($tmp, ':', true):-1;
-                return [
-                  'data' => [
-                    'totals' => [
-                        'open'  => $aRes[0][$method]['total_open'],
-                        'close' => $aRes[0][$method]['total_close'],
-                        'total' => $aRes[0][$method]['total_total']
-                    ],
-                    'breakdown' => [
-                        $params['start_date'] => [
-                            'hours' => [
-                                '00'=> ['open'=>($isOpen?(0>=$open&&0<=$close):false), 'total'=>$aRes[0][$method]['h00']],
-                                '01'=> ['open'=>($isOpen?(1>=$open&&1<=$close):false), 'total'=>$aRes[0][$method]['h01']],
-                                '02'=> ['open'=>($isOpen?(2>=$open&&2<=$close):false), 'total'=>$aRes[0][$method]['h02']],
-                                '03'=> ['open'=>($isOpen?(3>=$open&&3<=$close):false), 'total'=>$aRes[0][$method]['h03']],
-                                '04'=> ['open'=>($isOpen?(4>=$open&&4<=$close):false), 'total'=>$aRes[0][$method]['h04']],
-                                '05'=> ['open'=>($isOpen?(5>=$open&&5<=$close):false), 'total'=>$aRes[0][$method]['h05']],
-                                '06'=> ['open'=>($isOpen?(6>=$open&&6<=$close):false), 'total'=>$aRes[0][$method]['h06']],
-                                '07'=> ['open'=>($isOpen?(7>=$open&&7<=$close):false), 'total'=>$aRes[0][$method]['h07']],
-                                '08'=> ['open'=>($isOpen?(8>=$open&&8<=$close):false), 'total'=>$aRes[0][$method]['h08']],
-                                '09'=> ['open'=>($isOpen?(9>=$open&&9<=$close):false), 'total'=>$aRes[0][$method]['h09']],
-                                '10'=> ['open'=>($isOpen?(10>=$open&&10<=$close):false), 'total'=>$aRes[0][$method]['h10']],
-                                '11'=> ['open'=>($isOpen?(11>=$open&&11<=$close):false), 'total'=>$aRes[0][$method]['h11']],
-                                '12'=> ['open'=>($isOpen?(12>=$open&&12<=$close):false), 'total'=>$aRes[0][$method]['h12']],
-                                '13'=> ['open'=>($isOpen?(13>=$open&&13<=$close):false), 'total'=>$aRes[0][$method]['h13']],
-                                '14'=> ['open'=>($isOpen?(14>=$open&&14<=$close):false), 'total'=>$aRes[0][$method]['h14']],
-                                '15'=> ['open'=>($isOpen?(15>=$open&&15<=$close):false), 'total'=>$aRes[0][$method]['h15']],
-                                '16'=> ['open'=>($isOpen?(16>=$open&&16<=$close):false), 'total'=>$aRes[0][$method]['h16']],
-                                '17'=> ['open'=>($isOpen?(17>=$open&&17<=$close):false), 'total'=>$aRes[0][$method]['h17']],
-                                '18'=> ['open'=>($isOpen?(18>=$open&&18<=$close):false), 'total'=>$aRes[0][$method]['h18']],
-                                '19'=> ['open'=>($isOpen?(19>=$open&&19<=$close):false), 'total'=>$aRes[0][$method]['h19']],
-                                '20'=> ['open'=>($isOpen?(20>=$open&&20<=$close):false), 'total'=>$aRes[0][$method]['h20']],
-                                '21'=> ['open'=>($isOpen?(21>=$open&&21<=$close):false), 'total'=>$aRes[0][$method]['h21']],
-                                '22'=> ['open'=>($isOpen?(22>=$open&&22<=$close):false), 'total'=>$aRes[0][$method]['h22']],
-                                '23'=> ['open'=>($isOpen?(23>=$open&&23<=$close):false), 'total'=>$aRes[0][$method]['h23']],
-                            ],
-                            'totals' => [      
-                                'isOpen' => $isOpen,
+            if (!empty($aRes)) {
+                if ($method != 'totals') {
+                    $data = $this->internalCall('location', 'data', array('location_id' => $params['location_id']));
+                    $weekday = new DateTime($params['start_date']);
+                    $weekday = strtolower(date_format($weekday, 'l'));
+                    $tmp = $data['data'][$weekday . '_open'];
+                    $isOpen = $tmp !== 0;
+                    $open = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
+                    $tmp = $data['data'][$weekday . '_close'];
+                    $close = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
+                    return [
+                        'data' => [
+                            'totals' => [
+                                'open' => $aRes[0][$method]['total_open'],
                                 'close' => $aRes[0][$method]['total_close'],
-                                'total' =>  $aRes[0][$method]['total_open'],
-                                'open' => $aRes[0][$method]['total_total'],
-                            ]
+                                'total' => $aRes[0][$method]['total_total']
+                            ],
+                            'breakdown' => [
+                                $params['start_date'] => [
+                                    'hours' => [
+                                        '00' => ['open' => ($isOpen ? (0 >= $open && 0 <= $close) : false), 'total' => $aRes[0][$method]['h00']],
+                                        '01' => ['open' => ($isOpen ? (1 >= $open && 1 <= $close) : false), 'total' => $aRes[0][$method]['h01']],
+                                        '02' => ['open' => ($isOpen ? (2 >= $open && 2 <= $close) : false), 'total' => $aRes[0][$method]['h02']],
+                                        '03' => ['open' => ($isOpen ? (3 >= $open && 3 <= $close) : false), 'total' => $aRes[0][$method]['h03']],
+                                        '04' => ['open' => ($isOpen ? (4 >= $open && 4 <= $close) : false), 'total' => $aRes[0][$method]['h04']],
+                                        '05' => ['open' => ($isOpen ? (5 >= $open && 5 <= $close) : false), 'total' => $aRes[0][$method]['h05']],
+                                        '06' => ['open' => ($isOpen ? (6 >= $open && 6 <= $close) : false), 'total' => $aRes[0][$method]['h06']],
+                                        '07' => ['open' => ($isOpen ? (7 >= $open && 7 <= $close) : false), 'total' => $aRes[0][$method]['h07']],
+                                        '08' => ['open' => ($isOpen ? (8 >= $open && 8 <= $close) : false), 'total' => $aRes[0][$method]['h08']],
+                                        '09' => ['open' => ($isOpen ? (9 >= $open && 9 <= $close) : false), 'total' => $aRes[0][$method]['h09']],
+                                        '10' => ['open' => ($isOpen ? (10 >= $open && 10 <= $close) : false), 'total' => $aRes[0][$method]['h10']],
+                                        '11' => ['open' => ($isOpen ? (11 >= $open && 11 <= $close) : false), 'total' => $aRes[0][$method]['h11']],
+                                        '12' => ['open' => ($isOpen ? (12 >= $open && 12 <= $close) : false), 'total' => $aRes[0][$method]['h12']],
+                                        '13' => ['open' => ($isOpen ? (13 >= $open && 13 <= $close) : false), 'total' => $aRes[0][$method]['h13']],
+                                        '14' => ['open' => ($isOpen ? (14 >= $open && 14 <= $close) : false), 'total' => $aRes[0][$method]['h14']],
+                                        '15' => ['open' => ($isOpen ? (15 >= $open && 15 <= $close) : false), 'total' => $aRes[0][$method]['h15']],
+                                        '16' => ['open' => ($isOpen ? (16 >= $open && 16 <= $close) : false), 'total' => $aRes[0][$method]['h16']],
+                                        '17' => ['open' => ($isOpen ? (17 >= $open && 17 <= $close) : false), 'total' => $aRes[0][$method]['h17']],
+                                        '18' => ['open' => ($isOpen ? (18 >= $open && 18 <= $close) : false), 'total' => $aRes[0][$method]['h18']],
+                                        '19' => ['open' => ($isOpen ? (19 >= $open && 19 <= $close) : false), 'total' => $aRes[0][$method]['h19']],
+                                        '20' => ['open' => ($isOpen ? (20 >= $open && 20 <= $close) : false), 'total' => $aRes[0][$method]['h20']],
+                                        '21' => ['open' => ($isOpen ? (21 >= $open && 21 <= $close) : false), 'total' => $aRes[0][$method]['h21']],
+                                        '22' => ['open' => ($isOpen ? (22 >= $open && 22 <= $close) : false), 'total' => $aRes[0][$method]['h22']],
+                                        '23' => ['open' => ($isOpen ? (23 >= $open && 23 <= $close) : false), 'total' => $aRes[0][$method]['h23']],
+                                    ],
+                                    'totals' => [
+                                        'isOpen' => $isOpen,
+                                        'close' => $aRes[0][$method]['total_close'],
+                                        'total' => $aRes[0][$method]['total_open'],
+                                        'open' => $aRes[0][$method]['total_total'],
+                                    ]
+                                ]
+                            ],
+                        ],
+                        'options' => [
+                            'endpoint' => $component . '/' . $method,
+                            'location_id' => $params['location_id'],
+                            'start_date' => $params['start_date'],
+                            'end_date' => $params['end_date']
                         ]
-                    ],
-                  ],
-                  'options' => [
-                      'endpoint'=>$component.'/'.$method,
-                      'location_id'=>$params['location_id'],
-                      'start_date'=>$params['start_date'],
-                      'end_date'=>$params['end_date']
-                  ]
-                ];                
-            }            
+                    ];
+                } else {
+                    return [
+                        'walkbys' => $aRes[0]['walkbys'],
+                        'sensorTraffic' => $aRes[0]['sensorTraffic'],
+                        'transactions' => $aRes[0]['transactions'],
+                        'revenue' => $aRes[0]['revenue'],
+                        'totalItems' => $aRes[0]['totalItems'],
+                        'returning' => $aRes[0]['returning'],
+                        'footTraffic' => $aRes[0]['footTraffic'],
+                        'timeInShop' => $aRes[0]['timeInShop'],
+                        'traffic' => $aRes[0]['traffic'],
+                        'devices' => $aRes[0]['devices'],
+                        'itemsPerTransaction' => $aRes[0]['itemsPerTransaction'],
+                        'windowConversion' => $aRes[0]['windowConversion'],
+                        'avgTicket' => $aRes[0]['avgTicket'],
+                        'conversionRate' => $aRes[0]['conversionRate'],
+                        'dwell' => $aRes[0]['dwell'],
+                    ];
+                }
+            }
         }
         return false;
     }
@@ -344,32 +363,33 @@ SQL;
             unset($params['nocache']);
             unset($params['rollup']);
             if (
-                isset($params['start_date']) &&
-                isset($params['end_date']) &&
-                $params['start_date'] != $params['end_date']
+                    isset($params['start_date']) &&
+                    isset($params['end_date']) &&
+                    $params['start_date'] != $params['end_date']
             ) {
                 return;
-            }            
+            }
             //if ($this->cache) {
             if ($component == 'location' && $method == 'purchaseInfo') {
-                  $this->createCacheFolders($component, $method);
-                  $cache_file = $this->getCacheFilePath($component, $method, $params);
-                  $handle = fopen($cache_file, 'w+');
-                  fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-                  fclose($handle);
+                $this->createCacheFolders($component, $method);
+                $cache_file = $this->getCacheFilePath($component, $method, $params);
+                $handle = fopen($cache_file, 'w+');
+                fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+                fclose($handle);
             } else if ($this->rollups) {
-                if (!$from_rollups && $component == 'location' && !in_array($method,['data','totals'])) {
+                if (!$from_rollups && $component == 'location' && !in_array($method, ['data'])) {
                     $date = $params['start_date'];
                     $location_id = $params['location_id'];
                     $oModel = new Model(false, 'walkbys', 'rollups');
                     $oDb = $oModel->getDataSource();
                     $sSQL = "SELECT id FROM $method WHERE location_id = :location_id AND `date` = :date";
                     $aRes = $oDb->fetchAll($sSQL, [
-                        ':location_id'=>$location_id,
-                        ':date'=>$date
+                        ':location_id' => $location_id,
+                        ':date' => $date
                     ]);
                     if (empty($aRes)) {
-                        $sSQL = <<<SQL
+                        if ($method != 'totals') {
+                            $sSQL = <<<SQL
 INSERT INTO $method
     SET date = '$date',
         location_id = $location_id,
@@ -403,6 +423,26 @@ INSERT INTO $method
         ts_creation = NOW(),
         ts_update = NOW()
 SQL;
+                        } else {
+                            $sSQL = <<<SQL
+INSERT INTO $method
+    SET walkbys             = {$result['walkbys']},
+        sensorTraffic       = {$result['sensorTraffic']},
+        transactions        = {$result['transactions']},
+        revenue             = {$result['revenue']},
+        totalItems          = {$result['totalItems']},
+        returning           = {$result['returning']},
+        footTraffic         = {$result['footTraffic']},
+        timeInShop          = {$result['timeInShop']},
+        traffic             = {$result['traffic']},
+        devices             = {$result['devices']},
+        itemsPerTransaction = {$result['itemsPerTransaction']},
+        windowConversion    = {$result['windowConversion']},
+        avgTicket           = {$result['avgTicket']},
+        conversionRate      = {$result['conversionRate']},
+        dwell               = {$result['dwell']},
+SQL;
+                        }
                         $oDb->query($sSQL);
                     } else {
                         //throw new APIException(500, 'duplicated_cache', "This request is already cached");
