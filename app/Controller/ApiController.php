@@ -358,7 +358,7 @@ SQL;
                   fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                   fclose($handle);
             } else if ($this->rollups) {
-                if (!$from_rollups && $component == 'location' && $method != 'data') {
+                if (!$from_rollups && $component == 'location' && !in_array($method,['data','totals'])) {
                     $date = $params['start_date'];
                     $location_id = $params['location_id'];
                     $oModel = new Model(false, 'walkbys', 'rollups');
