@@ -211,16 +211,16 @@ class APIController extends AppController {
         unset($params['nocache']);
         unset($params['rollup']);
         /*
-          if ($this->cache) {
-          $filename = $this->getCacheFilePath($component, $method, $params);
-          if (file_exists($filename)) {
-          $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-          if (time() - filemtime($filename) <= $cache_time) {
-          include $filename;
-          return $result;
-          }
-          }
-          }
+        if ($this->cache) {
+            $filename = $this->getCacheFilePath($component, $method, $params);
+            if (file_exists($filename)) {
+                $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
+                if (time() - filemtime($filename) <= $cache_time) {
+                    include $filename;
+                    return $result;
+                }
+            }
+        }         
          */
         if ($this->rollups && $component == 'location' && $method != 'data') {
             $oModel = new Model(false, 'cache', 'mongodb');
@@ -285,20 +285,20 @@ class APIController extends AppController {
             unset($params['nocache']);
             unset($params['rollup']);
             if (
-                    isset($params['start_date']) &&
-                    isset($params['end_date']) &&
-                    $params['start_date'] != $params['end_date']
+                isset($params['start_date']) &&
+                isset($params['end_date']) &&
+                $params['start_date'] != $params['end_date']
             ) {
                 return;
             }
             /*
-              if ($this->cache) {
-              $this->createCacheFolders($component, $method);
-              $cache_file = $this->getCacheFilePath($component, $method, $params);
-              $handle = fopen($cache_file, 'w+');
-              fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-              fclose($handle);
-              }
+            if ($this->cache) {
+                  $this->createCacheFolders($component, $method);
+                  $cache_file = $this->getCacheFilePath($component, $method, $params);
+                  $handle = fopen($cache_file, 'w+');
+                  fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+                  fclose($handle);
+            }             
              */
             if ($this->rollups) {
                 if (!$from_mongo && $component == 'location' && $method != 'data') {
@@ -306,10 +306,8 @@ class APIController extends AppController {
                     $result['params'] = array();
                     $conditions = array("params" => array());
                     foreach ($params as $k => $v) {
-                        if (!in_array($k, ['nocache', 'norollups', 'rollup', 'access_token'])) {
-                            $result['params'][$k] = $v;
-                            $conditions['params'][$k] = $v;
-                        }
+                        $result['params'][$k] = $v;
+                        $conditions['params'][$k] = $v;
                     }
                     $result['params']['endpoint'] = $component . '/' . $method;
                     $conditions['params']['endpoint'] = $component . '/' . $method;
