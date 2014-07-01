@@ -222,7 +222,7 @@ class APIController extends AppController {
             }
         }         
          */
-        if ($this->rollups && $component == 'location') {
+        if ($this->rollups && $component == 'location' && $method != 'data') {
             $oModel = new Model(false, 'cache', 'mongodb');
             $conditions = array("params" => array());
             foreach ($params as $k => $v) {
@@ -279,7 +279,7 @@ class APIController extends AppController {
     }
 
     private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if (!empty($result) && $component . '/' . $method != 'location/data') {
+        if (!empty($result) && ($component . '/' . $method) != 'location/data') {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
