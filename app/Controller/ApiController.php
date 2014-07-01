@@ -220,7 +220,7 @@ class APIController extends AppController {
                 }
             }
         } else if ($this->rollups && $component == 'location' && !in_array($method,['data','totals'])) {
-            $oModel = new Model(false, 'totals', 'rollups');
+            $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = "SELECT * FROM $method WHERE location_id = :location_id AND date = :date";
             $aRes = $oModel->fetchAll($sSQL, [':location_id'=>$params['location_id'], ':date'=>$params['start_date']]);
@@ -341,7 +341,7 @@ class APIController extends AppController {
                 if (!$from_rollups && $component == 'location' && $method != 'data') {
                     $date = $params['start_date'];
                     $location_id = $params['location_id'];
-                    $oModel = new Model(false, 'totals', 'rollups');
+                    $oModel = new Model(false, 'walkbys', 'rollups');
                     $oDb = $oModel->getDataSource();
                     $sSQL = "SELECT id FROM $method WHERE location_id = :location_id AND date = :date";
                     $aRes = $oDb->fetchAll($sSQL, [

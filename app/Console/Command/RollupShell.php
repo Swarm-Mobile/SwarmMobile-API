@@ -155,7 +155,7 @@ SQL;
     }
 
     private function cleanDay($location, $date) {
-        $oModel = new Model(false, 'totals', 'rollups');
+        $oModel = new Model(false, 'walkbys', 'rollups');
         $oDb = $oModel->getDataSource();
         $metrics = [
             'walkbys',

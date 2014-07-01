@@ -141,7 +141,7 @@ SQL;
     }
 
     private function cleanDay($location, $date, $metric) {
-        $oModel = new Model(false, 'totals', 'rollups');
+        $oModel = new Model(false, 'walkbys', 'rollups');
         $oDb = $oModel->getDataSource();
         $sSQL = "DELETE FROM $metric WHERE location_id = :location_id AND date = :date";
         $oDb->query($sSQL, [':location_id'=>$location, ':date'=>$date]);
