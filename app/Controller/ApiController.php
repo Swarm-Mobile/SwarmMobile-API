@@ -390,7 +390,7 @@ SQL;
                     if (empty($aRes)) {
                         if ($method != 'totals') {
                             $sSQL = <<<SQL
-INSERT INTO $method
+INSERT IGNORE INTO $method
     SET date = '$date',
         location_id = $location_id,
         total_open = {$result['data']['breakdown'][$date]['totals']['open']},
@@ -425,7 +425,7 @@ INSERT INTO $method
 SQL;
                         } else {
                             $sSQL = <<<SQL
-INSERT INTO $method
+INSERT IGNORE INTO $method
     SET 
         location_id         = {$params['location_id']},
         date                = '{$params['start_date']}',
