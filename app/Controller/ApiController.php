@@ -225,7 +225,7 @@ class APIController extends AppController {
             $sSQL = <<<SQL
 SELECT * 
 FROM $method  
-WHERE location_id = :location_id  
+WHERE location_id = :location_id,  
   AND `date` = :start_date,
   AND `date` = :end_date
 SQL;
