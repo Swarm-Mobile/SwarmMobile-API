@@ -56,9 +56,6 @@ SQL;
 
     public function main($console = true) {
         $hash = uniqid();
-        $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-        fwrite($log, 'INI:' . date('Y-m-d H:i:s') . ' ' . $this->params['part'] . ' HASH:' . $hash . "\n");
-        fclose($log);
         $this->console = $console;
         $this->setEnvironment();
         $location_id = (empty($this->params['location_id'])) ? 'all' : $this->params['location_id'];
@@ -67,6 +64,10 @@ SQL;
         $minute = $minute % 30;
         $parts[0] = $parts[0] == 'start' ? $minute + 1 : $parts[0];
         $parts[0] = $parts[0] == 'end' ? 60 - $minute : $parts[0];
+        $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
+        fwrite($log, 'INI:' . date('Y-m-d H:i:s') . ' ' . $parts[0] . '/' . $parts[1] . ' HASH:' . $hash . "\n");
+        fclose($log);
+
         if ($location_id == 'all') {
             $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
@@ -155,7 +156,7 @@ SQL;
             }
         }
         $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-        fwrite($log, 'END:' . date('Y-m-d H:i:s') . ' ' . $this->params['part'] . ' HASH:' . $hash . "\n");
+        fwrite($log, 'END:' . date('Y-m-d H:i:s') . ' ' . $parts[0] . '/' . $parts[1] . ' HASH:' . $hash . "\n");
         fclose($log);
     }
 
