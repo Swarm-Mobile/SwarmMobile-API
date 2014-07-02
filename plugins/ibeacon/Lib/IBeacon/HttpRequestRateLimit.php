@@ -6,9 +6,9 @@
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
 
-APP::import('Model', 'IBeaconRestApiRateLimit');
+APP::import('Model', 'ibeacon.IBeaconRestApiRateLimit');
 
-APP::import('Model', 'IBeaconBlacklistIp');
+APP::import('Model', 'ibeacon.IBeaconBlacklistIp');
 
 
 class HttpRequestRateLimit  {
@@ -154,7 +154,7 @@ class HttpRequestRateLimit  {
         if($this->settings === null){
             $setings = Cache::read('rest_api_rate_limit',  "_cake_core_");
             if(!is_array($setings)){
-                $model = new RestApiRateLimit();
+                $model = new IBeaconRestApiRateLimit();
                 $setings = $model->find("all");
                 Cache::write('rest_api_rate_limit',$setings);
             }
@@ -171,9 +171,9 @@ class HttpRequestRateLimit  {
         if($this->blackListIP === null){
             $blackListIP  = Cache::read('rest_api_black_list_api',  "_cake_core_");
             if(!is_array($blackListIP)){
-                $model = new RestApiBlackListIp();
+                $model = new IBeaconBlacklistIp();
                 $blackListIP = $model->find("list",array(
-                    'fields' => array('RestApiBlackListIp.ip')
+                    'fields' => array('IBeaconBlacklistIp.ip')
                     )
                 );
                 Cache::write('rest_api_black_list_api',$blackListIP,  "_cake_core_");

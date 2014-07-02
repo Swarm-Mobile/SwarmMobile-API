@@ -13,12 +13,11 @@
 
 App::uses('Controller', 'Controller');
 
-class IBeconController {
+class IBeaconController extends Controller {
 
     public $components = array(
-        'RequestHandler',
-        'DebugKit.Toolbar',
-        'IBeacon'
+       'RequestHandler',
+        'ibeacon.IBeacon'
     );
 
     public function beforeFilter() {

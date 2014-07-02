@@ -73,6 +73,7 @@ Cache::config('default', array(
  *
  */
 CakePlugin::load('Mongodb');
+CakePlugin::load('ibeacon',array('routes' => true));
 CakePlugin::loadAll(array('OAuth' => array('routes' => true)));
 
 /**

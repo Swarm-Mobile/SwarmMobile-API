@@ -10,7 +10,7 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
-App::uses('HttpRequestRateLimit', 'Lib/IBeacon');
+App::uses('HttpRequestRateLimit', 'ibeacon.IBeacon');
 
 
 

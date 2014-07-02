@@ -12,14 +12,15 @@
  */
 
 
-App::uses('IBeconController', 'Controller');
+App::uses('IBeaconController', 'ibeacon.Controller');
 
-App::uses("IBeaconCampaign", "Model");
+class IBeaconCouponsController  extends IBeaconController {
 
-App::uses("IBeaconCouponConfiguration", "Model");
 
-class IBeaconCouponsController  extends IBeconController {
 
+    public function index  () {
+        echo "a";
+    }
 
 
     /**
@@ -29,7 +30,7 @@ class IBeaconCouponsController  extends IBeconController {
      */
     public function __construct($request = null, $response = null) {
         parent::__construct($request, $response);
-        $this->loadModel('Coupons');
+       $this->loadModel('IBeaconCoupons');
     }
 
     /**
@@ -49,9 +50,9 @@ class IBeaconCouponsController  extends IBeconController {
     }
     /**
      * Proof of status
-     * @param integer $id
+     * @param int $id
      */
-    public function confirmation ($id) {
+    public function reactToCoupon ($id) {
         if(!$this->Coupons->exists($id)){
             throw new NotFoundException(__('Could not find that coupon'));
         }
@@ -61,9 +62,10 @@ class IBeaconCouponsController  extends IBeconController {
     }
     /**
      *
-     * @param integer $campaigning
+     * @param int $campaigning
      */
-    public function createByCampaigningId ($campaigningId) {
+    public function couponForCampaign ($campaigningId) {
+        echo $campaigningId;exit;
         $campaignModel =  new Campaigns();
         $cutomerId = isset($this->params['url']['userid']) ? $this->params['url']['userid'] : null;
         $exists = (bool)$campaignModel->find("active",array(

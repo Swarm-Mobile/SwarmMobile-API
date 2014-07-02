@@ -2,10 +2,10 @@
 
     //POST /services/my/coupon/{couponId}
     Router::connect(
-        '/services/my/coupon/:couponId',
+        '/my/coupon/:couponId',
         array(
-            'controller' => 'CouponsRest',
-            'action' => 'confirmation',
+            'controller' => 'IBeaconCouponsController',
+            'action' => 'reactToCoupon',
             '[method]' => 'POST',
         ),
         array(
@@ -13,12 +13,13 @@
             'pass' => array('couponId')
         )
     );
-    //GET /services/coupon/campaign/4?userid=1
+    //GET /coupon/campaign/4?userid=1
     Router::connect(
-        '/services/coupon/campaign/:campaignId',
+        '/coupon/campaign/:campaignId',
         array(
-            'controller' => 'CouponsRest',
-            'action' => 'createByCampaigningId',
+            'plugin' => 'ibeacon',
+            'controller' => 'IBeaconCoupons',
+            'action' => 'couponForCampaign',
             '[method]' => 'GET'
         ),
         array(
@@ -33,9 +34,9 @@
      */
     //POST /services/api/login
     Router::connect(
-        '/services/api/login',
+        '/api/login',
         array(
-            'controller' => 'CustomersRest',
+            'controller' => 'IBeaconCustomersController',
             'action' => 'login',
             '[method]' => 'POST'
          )

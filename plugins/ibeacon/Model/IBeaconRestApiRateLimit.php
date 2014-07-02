@@ -10,6 +10,9 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
+
+App::uses('IBeaconModel','ibeacon.Model');
+
 class IBeaconRestApiRateLimit extends IBeaconModel {
 
     /**

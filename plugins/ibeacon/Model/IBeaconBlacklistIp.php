@@ -10,6 +10,9 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
+
+App::uses('IBeaconModel','ibeacon.Model');
+
 class IBeaconBlacklistIp extends IBeaconModel {
 
     /**
@@ -30,9 +33,4 @@ class IBeaconBlacklistIp extends IBeaconModel {
      */
     public $id = 'id';
 
-    /**
-     *
-     * @var string
-     */
-    public $useDbConfig = 'backstage';
 }

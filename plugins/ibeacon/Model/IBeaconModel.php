@@ -14,7 +14,7 @@
 App::uses('Model', 'Model');
 
 
-class IBeaconModel extends IBeaconModel {
+class IBeaconModel extends Model {
 
 
     /**
