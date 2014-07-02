@@ -10,6 +10,8 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
+App::uses('IBeaconModel','ibeacon.Model');
+
 class IBeaconCustomerSsv extends IBeaconModel {
 
 
@@ -25,7 +27,7 @@ class IBeaconCustomerSsv extends IBeaconModel {
      * @var string
      */
     public $id = 'id';
-    
+
     /**
      *
      * @var string

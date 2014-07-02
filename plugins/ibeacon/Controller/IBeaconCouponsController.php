@@ -14,13 +14,9 @@
 
 App::uses('IBeaconController', 'ibeacon.Controller');
 
+App::uses('IBeaconCampaign', 'ibeacon.Model');
+
 class IBeaconCouponsController  extends IBeaconController {
-
-
-
-    public function index  () {
-        echo "a";
-    }
 
 
     /**
@@ -30,7 +26,7 @@ class IBeaconCouponsController  extends IBeaconController {
      */
     public function __construct($request = null, $response = null) {
         parent::__construct($request, $response);
-       $this->loadModel('IBeaconCoupons');
+       $this->loadModel('ibeacon.IBeaconCoupons');
     }
 
     /**
@@ -65,12 +61,11 @@ class IBeaconCouponsController  extends IBeaconController {
      * @param int $campaigning
      */
     public function couponForCampaign ($campaigningId) {
-        echo $campaigningId;exit;
-        $campaignModel =  new Campaigns();
+        $campaignModel =  new IBeaconCampaign();
         $cutomerId = isset($this->params['url']['userid']) ? $this->params['url']['userid'] : null;
         $exists = (bool)$campaignModel->find("active",array(
             'conditions' => array(
-               'Campaigns.id' => $campaigningId,
+               'IBeaconCampaign.id' => $campaigningId,
             )
         ));
         if(!$exists){

@@ -10,15 +10,16 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
+App::uses('IBeaconController', 'ibeacon.Controller');
 
-App::uses('IBeconController', 'Controller');
 
 
-class IBeaconCustomersController extends  IBeconController  {
+
+class IBeaconCustomersController extends  IBeaconController  {
 
     public function __construct($request = null, $response = null) {
         parent::__construct($request, $response);
-        $this->loadModel("Customers");
+        $this->loadModel("ibeacon.IBeaconCustomers");
     }
 
     /**
@@ -28,18 +29,18 @@ class IBeaconCustomersController extends  IBeconController  {
     public function login () {
         $cutomerData = $this->request->data;
         if(isset($cutomerData['customerSwarmId']) && $cutomerData['customerSwarmId'] == 0){
-            $id = $this->Customers->addNew($cutomerData);
+            $id = $this->IBeaconCustomers->addNew($cutomerData);
         }
         else if(isset($cutomerData['customerSwarmId'])){
             $id = $cutomerData['customerSwarmId'];
-            $this->Customers->id = $id;
-            if (!$this->Customers->exists()) {
+            $this->IBeaconCustomers->id = $id;
+            if (!$this->IBeaconCustomers->exists()) {
                 throw new NotFoundException(__('Could not find that customer'));
             }
-            $this->Customers->updateInfo($cutomerData);
+            $this->IBeaconCustomers->updateInfo($cutomerData);
         }
-        $customer = $this->Customers->findById($id);
-        $response = $this->Customers->DBKeysToSDK($customer['Customers']);
+        $customer = $this->IBeaconCustomers->findById($id);
+        $response = $this->IBeaconCustomers->DBKeysToSDK($customer['IBeaconCustomers']);
         $response['ssv'] = $cutomerData['ssv'];
         echo json_encode($response);
         exit;

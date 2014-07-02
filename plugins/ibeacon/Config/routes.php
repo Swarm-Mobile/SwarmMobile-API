@@ -1,9 +1,10 @@
 <?php
 
-    //POST /services/my/coupon/{couponId}
+    //POST /my/coupon/{couponId}
     Router::connect(
         '/my/coupon/:couponId',
         array(
+            'plugin' => 'ibeacon',
             'controller' => 'IBeaconCouponsController',
             'action' => 'reactToCoupon',
             '[method]' => 'POST',
@@ -36,7 +37,8 @@
     Router::connect(
         '/api/login',
         array(
-            'controller' => 'IBeaconCustomersController',
+            'plugin' => 'ibeacon',
+            'controller' => 'IBeaconCustomers',
             'action' => 'login',
             '[method]' => 'POST'
          )

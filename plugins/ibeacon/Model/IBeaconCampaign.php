@@ -10,6 +10,8 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
+App::uses('IBeaconModel','ibeacon.Model');
+
 class IBeaconCampaign extends IBeaconModel {
 
     /**
@@ -23,6 +25,7 @@ class IBeaconCampaign extends IBeaconModel {
      * @var string
      */
     public $id = 'id';
+
 
     /**
      *
@@ -43,36 +46,37 @@ class IBeaconCampaign extends IBeaconModel {
      */
     public $belongsTo = array(
         'Location' => array(
-            'className' => 'Location',
+            'className' => 'ibeacon.Location',
             'foreignKey' => 'location_id'
         )
     );
-
     /**
      *
      * @var array
      */
     public $hasOne = array(
         'CouponConfiguration' => array(
-            'className' => 'IBeaconCouponConfiguration',
+            'className' => 'ibeacon.IBeaconCouponConfiguration',
             'foreignKey' => 'campaign_id'
         )
     );
+
     /**
      *
      * @var array
      */
     public $hasMany = array(
         'ProximityRules' => array(
-            'className' => 'IBeaconCampaignProximityRules',
+            'className' => 'ibeacon.IBeaconCampaignProximityRule',
             'foreignKey' => 'campaign_id'
         ),
         'ScoringRules' => array(
-            'className' => 'IBeaconCampaignScoringRules',
+            'className' => 'ibeacon.IBeaconCampaignScoringRule',
             'foreignKey' => 'campaign_id'
         )
 
     );
+
 
     /**
      * List of validation rules. It must be an array with the field name as key and using
@@ -145,10 +149,10 @@ class IBeaconCampaign extends IBeaconModel {
     public function _findActive($state, $query, $results = array()) {
         if ($state === 'before') {
             $currentDate = date('Y-m-d H:i:s');
-            $query['conditions']['Campaigns.active'] = 1;
-            $query['conditions'][] = array("Campaigns.total_coupons >= ?" => array(1));
-            $query['conditions'][] = array('Campaigns.start_date <= ?'=> array( $currentDate ));
-            $query['conditions'][] = array('Campaigns.end_date >= ?' => array( $currentDate ));
+            $query['conditions']['IBeaconCampaign.active'] = 1;
+            $query['conditions'][] = array("IBeaconCampaign.total_coupons >= ?" => array(1));
+            $query['conditions'][] = array('IBeaconCampaign.start_date <= ?'=> array( $currentDate ));
+            $query['conditions'][] = array('IBeaconCampaign.end_date >= ?' => array( $currentDate ));
             return $query;
         }
         return $results;

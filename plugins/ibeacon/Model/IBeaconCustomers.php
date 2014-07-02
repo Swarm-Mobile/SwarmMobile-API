@@ -10,6 +10,9 @@
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
+App::uses('IBeaconModel','ibeacon.Model');
+
+App::uses('IBeaconCustomerSsv','ibeacon.Model');
 
 
 class IBeaconCustomers extends IBeaconModel {
@@ -38,7 +41,7 @@ class IBeaconCustomers extends IBeaconModel {
      */
     public $hasMany = array(
         'CustomerSsv' => array(
-            'className' => 'IBeaconCustomerSsv',
+            'className' => 'ibeacon.IBeaconCustomerSsv',
             'foreignKey' => 'customer_id'
         )
     );
@@ -111,7 +114,8 @@ class IBeaconCustomers extends IBeaconModel {
         }
         else{
             $errors = current ($this->validationErrors);
-            throw new InternalErrorException($errors[0]);
+            print_R($errors);
+            ///throw new InternalErrorException($errors[0]);
         }
     }
 
@@ -153,7 +157,7 @@ class IBeaconCustomers extends IBeaconModel {
                 'value' => $val[0]
             );
         }
-        $customerSsv = new CustomerSsv();
+        $customerSsv = new IBeaconCustomerSsv();
         $customerSsv->saveMany($ssvDB);
         //pr($customerSsv->validationErrors);
     }
@@ -163,7 +167,7 @@ class IBeaconCustomers extends IBeaconModel {
      * @param integer $id
      */
     private function updateSsv ($ssv,$id) {
-        $customerSsv = new CustomerSsv();
+        $customerSsv = new IBeaconCustomerSsv();
         foreach ($ssv as $key => $val){
             $exists = $customerSsv->find('first',array(
                 'conditions' => array(

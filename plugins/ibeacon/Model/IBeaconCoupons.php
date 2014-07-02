@@ -13,6 +13,8 @@
 
 App::uses("UUID", "Lib");
 
+App::uses('IBeaconModel','ibeacon.Model');
+
 class IBeaconCoupons extends IBeaconModel {
      /**
      *
@@ -36,11 +38,11 @@ class IBeaconCoupons extends IBeaconModel {
 
     public $belongsTo = array(
         'customer' => array(
-            'className' => 'IBeaconCustomers',
+            'className' => 'ibeacon.IBeaconCustomers',
             'foreignKey' => 'customer_id',
         ),
         'campaign' => array(
-            'className' => 'IBeaconCampaign',
+            'className' => 'ibeacon.IBeaconCampaign',
             'foreignKey' => 'campaign_id'
         )
     );
