@@ -219,7 +219,7 @@ class APIController extends AppController {
                     return $result;
                 }
             }
-        } else if ($this->rollups && $component == 'location' && !in_array($method, ['data'])) {
+        } else if ($this->rollups && $component == 'location' && !in_array($method, ['data', 'purchaseInfo'])) {
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
@@ -377,7 +377,7 @@ SQL;
                 fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                 fclose($handle);
             } else if ($this->rollups) {
-                if (!$from_rollups && $component == 'location' && !in_array($method, ['data'])) {
+                if (!$from_rollups && $component == 'location' && !in_array($method, ['data', 'purchaseInfo'])) {
                     $date = $params['start_date'];
                     $location_id = $params['location_id'];
                     $oModel = new Model(false, 'walkbys', 'rollups');
@@ -426,8 +426,7 @@ SQL;
                         } else {
                             $sSQL = <<<SQL
 INSERT IGNORE INTO $method
-    SET 
-        location_id         = {$params['location_id']},
+    SET location_id         = {$params['location_id']},
         date                = '{$params['start_date']}',
         walkbys             = {$result['walkbys']},
         sensorTraffic       = {$result['sensorTraffic']},

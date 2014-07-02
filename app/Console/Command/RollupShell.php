@@ -63,6 +63,10 @@ SQL;
         $this->setEnvironment();
         $location_id = (empty($this->params['location_id'])) ? 'all' : $this->params['location_id'];
         $parts = explode('/', $this->params['part']);
+        $minute = date('i');
+        $minute = $minute % 30;
+        $parts[0] = $parts[0] == 'start' ? $minute + 1 : $parts[0];
+        $parts[0] = $parts[0] == 'end' ? 60 - $minute : $parts[0];
         if ($location_id == 'all') {
             $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
@@ -89,6 +93,7 @@ SQL;
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->output("Full Rebuild                  : $rebuild_text");
+        $this->output("Section                       : {$parts[0]} of {$parts[1]}");
         if (!$rebuild) {
             $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time() + 2 * 24 * 3600) : $this->params['start_date'];
             $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
@@ -173,7 +178,7 @@ SQL;
             'avgTicket',
             'conversionRate',
             'dwell'
-        ];        
+        ];
         foreach ($metrics as $metric) {
             $sSQL = "DELETE FROM $metric WHERE location_id = :location_id AND date = :date";
             $oDb->query($sSQL, [':location_id' => $location, ':date' => $date]);
