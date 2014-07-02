@@ -290,7 +290,7 @@ SQL;
                             ],
                         ],
                         'options' => [
-                            'endpoint' => $component . '/' . $method,
+                            'endpoint' => '/'.$component . '/' . $method,
                             'location_id' => $params['location_id'],
                             'start_date' => $params['start_date'],
                             'end_date' => $params['end_date']

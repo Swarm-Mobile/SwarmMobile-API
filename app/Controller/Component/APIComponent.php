@@ -291,8 +291,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array(),
-                'options' => array()
+                'breakdown' => array()                
             )
         );
         foreach ($aResults as $cResult) {
@@ -322,8 +321,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array(),
-                'options' => array()
+                'breakdown' => array()                
             )
         );
         foreach ($aResults as $cResult) {
