@@ -164,6 +164,7 @@ SQL;
         $oModel = new Model(false, 'walkbys', 'rollups');
         $oDb = $oModel->getDataSource();
         $metrics = [
+            'totals',
             'walkbys',
             'sensorTraffic',
             'transactions',
