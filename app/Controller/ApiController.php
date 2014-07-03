@@ -283,8 +283,8 @@ SQL;
                                     'totals' => [
                                         'isOpen' => $isOpen,
                                         'close' => $aRes[0][$method]['total_close'],
-                                        'total' => $aRes[0][$method]['total_open'],
-                                        'open' => $aRes[0][$method]['total_total'],
+                                        'total' => $aRes[0][$method]['total_total'],
+                                        'open' => $aRes[0][$method]['total_open'],
                                     ]
                                 ]
                             ],
