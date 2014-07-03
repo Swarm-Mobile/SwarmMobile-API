@@ -107,8 +107,8 @@ class APIComponent {
         return $params['group_by'];
     }
 
-    public function countWorkDays($start_date, $end_date, $member_id) {
-        $data = $this->api->internalCall('member', 'data', array('member_id' => $member_id));
+    public function countWorkDays($start_date, $end_date, $location_id) {
+        $data = $this->api->internalCall('location', 'data', array('location_id' => $location_id));
         $end = new DateTime($end_date);
         $d = 0;
         $new_start_date = new DateTime($start_date);
@@ -178,7 +178,7 @@ class APIComponent {
         return $tzLocal;
     }
 
-    public function storeOpenCompare($data, $timezone) {
+    public function locationOpenCompare($data, $timezone) {
         $return = "(";
         $i = 0;
         $or = '';
@@ -291,8 +291,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array(),
-                'options' => array()
+                'breakdown' => array()                
             )
         );
         foreach ($aResults as $cResult) {
@@ -322,8 +321,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array(),
-                'options' => array()
+                'breakdown' => array()                
             )
         );
         foreach ($aResults as $cResult) {
@@ -466,7 +464,7 @@ SQL;
         }
         $cResult['options'] = array(
             'endpoint' => $endpoint,
-            'member_id' => $params['member_id'],
+            'location_id' => $params['location_id'],
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
         );
@@ -499,7 +497,7 @@ SQL;
     /**
      * Formats results array for use on the dashboard
      * @param $aRes Results array to format
-     * @param $data Member data
+     * @param $data location data
      * @param $params Parameters that generated the results
      * @param $start_date
      * @param $end_date
@@ -542,7 +540,7 @@ SQL;
         }
         $cResult['options'] = array(
             'endpoint' => $endpoint,
-            'member_id' => $params['member_id'],
+            'location_id' => $params['location_id'],
             'start_date' => $params['start_date'],
             'end_date' => $params['end_date'],
         );
@@ -646,10 +644,10 @@ SQL;
         return $result;
     }
 
-    public function getSessionsTableName($start_time, $end_time, $member_id, $ap_id) {
+    public function getSessionsTableName($start_time, $end_time, $location_id, $ap_id) {
         $start_date = substr($start_time, 0, 10);
         $end_date = substr($end_time, 0, 10);
-        $suffix = $member_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
+        $suffix = $location_id . '_' . str_replace('-', '_', $start_date . '_' . $end_date);
         $tmp_table = 'sessions_' . $suffix;
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
         return $table;

@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Component/APIComponent.php';
-require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
+//require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
 require_once __DIR__ . '/Component/CompressedFunctions.php';
 
 App::uses('SettingComponent', 'Controller/Component');
@@ -17,12 +17,9 @@ App::uses('SettingGroup', 'Model');
 //ONE for every component that extends from APIComponent
 App::uses('PortalComponent', 'Controller/Component');
 App::uses('ConsumerComponent', 'Controller/Component');
-App::uses('MemberComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('OAuthClientComponent', 'Controller/Component');
-App::uses('StoreComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
-App::uses('AnalyticsComponent', 'Controller/Component');
 
 App::uses('UserComponent', 'Controller/Component');
 App::uses('CouponComponent', 'Controller/Component');
@@ -60,11 +57,11 @@ class APIController extends AppController {
             if ($this->Auth->login()) {
                 if (empty($redirect)) {
                     $res = array();
-                    $res['member_id'] = $this->Session->read("Auth.User.member_id");
+                    $res['location_id'] = $this->Session->read("Auth.User.location_id");
                     $res['username'] = $this->Session->read("Auth.User.username");
                     $res['uuid'] = $this->Session->read("Auth.User.uuid");
                     echo json_encode($res);
-                    $this->call_log();
+                    //$this->call_log();
                     exit();
                 } else {
                     $this->redirect($redirect);
@@ -74,7 +71,7 @@ class APIController extends AppController {
                     $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
                     $this->response_code = $e->error_no;
                     $this->response_message = $e->error;
-                    $this->call_log();
+                    //$this->call_log();
                     $e->_displayError();
                     return false;
                 }
@@ -120,40 +117,40 @@ class APIController extends AppController {
             }
             $this->endpoint = $path[0] . '/' . $path[1];
             echo json_encode($this->internalCall($path[0], $path[1], $params));
-            $this->call_log();
+            //$this->call_log();
             exit();
         } catch (OAuth2AuthenticateException $e) {
             $this->response_code = $e->getCode();
             $this->response_message = $e->getMessage();
-            $this->call_log();
+            //$this->call_log();
             $e->sendHttpResponse();
             return false;
         } catch (APIException $e) {
             $this->response_code = $e->error_no;
             $this->response_message = $e->error;
-            $this->call_log();
+            //$this->call_log();
             $e->_displayError();
             return false;
         }
     }
 
     // Internal functions
-    private function call_log() {
-        $this->request_end = date('Y-m-d H:i:s');
-        $oModel = new Model(false, 'calls', 'mongodb');
-        $call = array(
-            'id_user' => $this->user['id_user'],
-            'username' => $this->user['username'],
-            'endpoint' => $this->endpoint,
-            'request_start' => $this->request_start,
-            'request_end' => $this->request_end,
-            'response_time' => microtime(true) - $this->microtime,
-            'response_code' => $this->response_code,
-            'response_message' => $this->response_message,
-            'params' => $this->params
-        );
-        $oModel->save($call);
-    }
+//    private function call_log() {
+//        $this->request_end = date('Y-m-d H:i:s');
+//        $oModel = new Model(false, 'calls', 'rollups');
+//        $call = array(
+//            'id_user' => $this->user['id_user'],
+//            'username' => $this->user['username'],
+//            'endpoint' => $this->endpoint,
+//            'request_start' => $this->request_start,
+//            'request_end' => $this->request_end,
+//            'response_time' => microtime(true) - $this->microtime,
+//            'response_code' => $this->response_code,
+//            'response_message' => $this->response_message,
+//            'params' => $this->params
+//        );
+//        $oModel->save($call);
+//    }
 
     public function __construct($request = null, $response = null) {
         parent::__construct($request, $response);
@@ -212,8 +209,8 @@ class APIController extends AppController {
         unset($params['norollups']);
         unset($params['nocache']);
         unset($params['rollup']);
-        /*
-        if ($this->cache) {
+        //if ($this->cache) {
+        if ($component == 'location' && $method == 'purchaseInfo') {
             $filename = $this->getCacheFilePath($component, $method, $params);
             if (file_exists($filename)) {
                 $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
@@ -222,23 +219,102 @@ class APIController extends AppController {
                     return $result;
                 }
             }
-        }         
-         */
-        if ($this->rollups && $component == 'store') {
-            $oModel = new Model(false, 'cache', 'mongodb');
-            $conditions = array("params" => array());
-            foreach ($params as $k => $v) {
-                $conditions['params'][$k] = $v;
-            }
-            $conditions['params']['endpoint'] = $component . '/' . $method;
-            $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
-            if (isset($aRes['Model'])) {
-                unset($aRes['Model']['id']);
-                unset($aRes['Model']['params']);
-                unset($aRes['Model']['modified']);
-                unset($aRes['Model']['created']);
-                $this->cache($component, $method, $params, $aRes['Model'], true);
-                return $aRes['Model'];
+        } else if ($this->rollups && $component == 'location' && !in_array($method, ['data', 'purchaseInfo'])) {
+            $oModel = new Model(false, 'walkbys', 'rollups');
+            $oDb = $oModel->getDataSource();
+            $sSQL = <<<SQL
+SELECT * 
+FROM $method  
+WHERE location_id = :location_id  
+  AND `date` = :start_date
+  AND `date` = :end_date
+SQL;
+            $aRes = $oDb->fetchAll($sSQL, [
+                ':location_id' => $params['location_id'],
+                ':start_date' => $params['start_date'],
+                ':end_date' => $params['end_date']
+                    ]
+            );
+            if (!empty($aRes)) {
+                if ($method != 'totals') {
+                    $data = $this->internalCall('location', 'data', array('location_id' => $params['location_id']));
+                    $weekday = new DateTime($params['start_date']);
+                    $weekday = strtolower(date_format($weekday, 'l'));
+                    $tmp = $data['data'][$weekday . '_open'];
+                    $isOpen = $tmp !== 0;
+                    $open = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
+                    $tmp = $data['data'][$weekday . '_close'];
+                    $close = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
+                    return [
+                        'data' => [
+                            'totals' => [
+                                'open' => $aRes[0][$method]['total_open'],
+                                'close' => $aRes[0][$method]['total_close'],
+                                'total' => $aRes[0][$method]['total_total']
+                            ],
+                            'breakdown' => [
+                                $params['start_date'] => [
+                                    'hours' => [
+                                        '00' => ['open' => ($isOpen ? (0 >= $open && 0 <= $close) : false), 'total' => $aRes[0][$method]['h00']],
+                                        '01' => ['open' => ($isOpen ? (1 >= $open && 1 <= $close) : false), 'total' => $aRes[0][$method]['h01']],
+                                        '02' => ['open' => ($isOpen ? (2 >= $open && 2 <= $close) : false), 'total' => $aRes[0][$method]['h02']],
+                                        '03' => ['open' => ($isOpen ? (3 >= $open && 3 <= $close) : false), 'total' => $aRes[0][$method]['h03']],
+                                        '04' => ['open' => ($isOpen ? (4 >= $open && 4 <= $close) : false), 'total' => $aRes[0][$method]['h04']],
+                                        '05' => ['open' => ($isOpen ? (5 >= $open && 5 <= $close) : false), 'total' => $aRes[0][$method]['h05']],
+                                        '06' => ['open' => ($isOpen ? (6 >= $open && 6 <= $close) : false), 'total' => $aRes[0][$method]['h06']],
+                                        '07' => ['open' => ($isOpen ? (7 >= $open && 7 <= $close) : false), 'total' => $aRes[0][$method]['h07']],
+                                        '08' => ['open' => ($isOpen ? (8 >= $open && 8 <= $close) : false), 'total' => $aRes[0][$method]['h08']],
+                                        '09' => ['open' => ($isOpen ? (9 >= $open && 9 <= $close) : false), 'total' => $aRes[0][$method]['h09']],
+                                        '10' => ['open' => ($isOpen ? (10 >= $open && 10 <= $close) : false), 'total' => $aRes[0][$method]['h10']],
+                                        '11' => ['open' => ($isOpen ? (11 >= $open && 11 <= $close) : false), 'total' => $aRes[0][$method]['h11']],
+                                        '12' => ['open' => ($isOpen ? (12 >= $open && 12 <= $close) : false), 'total' => $aRes[0][$method]['h12']],
+                                        '13' => ['open' => ($isOpen ? (13 >= $open && 13 <= $close) : false), 'total' => $aRes[0][$method]['h13']],
+                                        '14' => ['open' => ($isOpen ? (14 >= $open && 14 <= $close) : false), 'total' => $aRes[0][$method]['h14']],
+                                        '15' => ['open' => ($isOpen ? (15 >= $open && 15 <= $close) : false), 'total' => $aRes[0][$method]['h15']],
+                                        '16' => ['open' => ($isOpen ? (16 >= $open && 16 <= $close) : false), 'total' => $aRes[0][$method]['h16']],
+                                        '17' => ['open' => ($isOpen ? (17 >= $open && 17 <= $close) : false), 'total' => $aRes[0][$method]['h17']],
+                                        '18' => ['open' => ($isOpen ? (18 >= $open && 18 <= $close) : false), 'total' => $aRes[0][$method]['h18']],
+                                        '19' => ['open' => ($isOpen ? (19 >= $open && 19 <= $close) : false), 'total' => $aRes[0][$method]['h19']],
+                                        '20' => ['open' => ($isOpen ? (20 >= $open && 20 <= $close) : false), 'total' => $aRes[0][$method]['h20']],
+                                        '21' => ['open' => ($isOpen ? (21 >= $open && 21 <= $close) : false), 'total' => $aRes[0][$method]['h21']],
+                                        '22' => ['open' => ($isOpen ? (22 >= $open && 22 <= $close) : false), 'total' => $aRes[0][$method]['h22']],
+                                        '23' => ['open' => ($isOpen ? (23 >= $open && 23 <= $close) : false), 'total' => $aRes[0][$method]['h23']],
+                                    ],
+                                    'totals' => [
+                                        'isOpen' => $isOpen,
+                                        'close' => $aRes[0][$method]['total_close'],
+                                        'total' => $aRes[0][$method]['total_open'],
+                                        'open' => $aRes[0][$method]['total_total'],
+                                    ]
+                                ]
+                            ],
+                        ],
+                        'options' => [
+                            'endpoint' => '/'.$component . '/' . $method,
+                            'location_id' => $params['location_id'],
+                            'start_date' => $params['start_date'],
+                            'end_date' => $params['end_date']
+                        ]
+                    ];
+                } else {
+                    return [
+                        'walkbys' => $aRes[0][$method]['walkbys'],
+                        'sensorTraffic' => $aRes[0][$method]['sensorTraffic'],
+                        'transactions' => $aRes[0][$method]['transactions'],
+                        'revenue' => $aRes[0][$method]['revenue'],
+                        'totalItems' => $aRes[0][$method]['totalItems'],
+                        'returning' => $aRes[0][$method]['returning'],
+                        'footTraffic' => $aRes[0][$method]['footTraffic'],
+                        'timeInShop' => $aRes[0][$method]['timeInShop'],
+                        'traffic' => $aRes[0][$method]['traffic'],
+                        'devices' => $aRes[0][$method]['devices'],
+                        'itemsPerTransaction' => $aRes[0][$method]['itemsPerTransaction'],
+                        'windowConversion' => $aRes[0][$method]['windowConversion'],
+                        'avgTicket' => $aRes[0][$method]['avgTicket'],
+                        'conversionRate' => $aRes[0][$method]['conversionRate'],
+                        'dwell' => $aRes[0][$method]['dwell'],
+                    ];
+                }
             }
         }
         return false;
@@ -280,42 +356,98 @@ class APIController extends AppController {
         return $oOAuth->user();
     }
 
-    private function cache($component, $method, $params, $result, $from_mongo = false) {
-        if (!empty($result) && $component . '/' . $method != 'member/data') {
+    private function cache($component, $method, $params, $result, $from_rollups = false) {
+        if (!empty($result) && ($component . '/' . $method) != 'location/data') {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
             unset($params['rollup']);
             if (
-                isset($params['start_date']) &&
-                isset($params['end_date']) &&
-                $params['start_date'] != $params['end_date']
+                    isset($params['start_date']) &&
+                    isset($params['end_date']) &&
+                    $params['start_date'] != $params['end_date']
             ) {
                 return;
             }
-            /*
-            if ($this->cache) {
-                  $this->createCacheFolders($component, $method);
-                  $cache_file = $this->getCacheFilePath($component, $method, $params);
-                  $handle = fopen($cache_file, 'w+');
-                  fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
-                  fclose($handle);
-            }             
-             */
-            if ($this->rollups) {
-                if (!$from_mongo && $component == 'store') {
-                    $oModel = new Model(false, 'cache', 'mongodb');
-                    $result['params'] = array();
-                    $conditions = array("params" => array());
-                    foreach ($params as $k => $v) {
-                        $result['params'][$k] = $v;
-                        $conditions['params'][$k] = $v;
-                    }
-                    $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params']['endpoint'] = $component . '/' . $method;
-                    $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
+            //if ($this->cache) {
+            if ($component == 'location' && $method == 'purchaseInfo') {
+                $this->createCacheFolders($component, $method);
+                $cache_file = $this->getCacheFilePath($component, $method, $params);
+                $handle = fopen($cache_file, 'w+');
+                fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
+                fclose($handle);
+            } else if ($this->rollups) {
+                if (!$from_rollups && $component == 'location' && !in_array($method, ['data', 'purchaseInfo'])) {
+                    $date = $params['start_date'];
+                    $location_id = $params['location_id'];
+                    $oModel = new Model(false, 'walkbys', 'rollups');
+                    $oDb = $oModel->getDataSource();
+                    $sSQL = "SELECT id FROM $method WHERE location_id = :location_id AND `date` = :date";
+                    $aRes = $oDb->fetchAll($sSQL, [
+                        ':location_id' => $location_id,
+                        ':date' => $date
+                    ]);
                     if (empty($aRes)) {
-                        $oModel->save($result);
+                        if ($method != 'totals') {
+                            $sSQL = <<<SQL
+INSERT IGNORE INTO $method
+    SET date = '$date',
+        location_id = $location_id,
+        total_open = {$result['data']['breakdown'][$date]['totals']['open']},
+        total_close = {$result['data']['breakdown'][$date]['totals']['close']},
+        total_total = {$result['data']['breakdown'][$date]['totals']['total']},
+        h00 = {$result['data']['breakdown'][$date]['hours']['00']['total']},
+        h01 = {$result['data']['breakdown'][$date]['hours']['01']['total']},
+        h02 = {$result['data']['breakdown'][$date]['hours']['02']['total']},
+        h03 = {$result['data']['breakdown'][$date]['hours']['03']['total']},
+        h04 = {$result['data']['breakdown'][$date]['hours']['04']['total']},
+        h05 = {$result['data']['breakdown'][$date]['hours']['05']['total']},
+        h06 = {$result['data']['breakdown'][$date]['hours']['06']['total']},
+        h07 = {$result['data']['breakdown'][$date]['hours']['07']['total']},
+        h08 = {$result['data']['breakdown'][$date]['hours']['08']['total']},
+        h09 = {$result['data']['breakdown'][$date]['hours']['09']['total']},
+        h10 = {$result['data']['breakdown'][$date]['hours']['10']['total']},
+        h11 = {$result['data']['breakdown'][$date]['hours']['11']['total']},
+        h12 = {$result['data']['breakdown'][$date]['hours']['12']['total']},
+        h13 = {$result['data']['breakdown'][$date]['hours']['13']['total']},
+        h14 = {$result['data']['breakdown'][$date]['hours']['14']['total']},
+        h15 = {$result['data']['breakdown'][$date]['hours']['15']['total']},
+        h16 = {$result['data']['breakdown'][$date]['hours']['16']['total']},
+        h17 = {$result['data']['breakdown'][$date]['hours']['17']['total']},
+        h18 = {$result['data']['breakdown'][$date]['hours']['18']['total']},
+        h19 = {$result['data']['breakdown'][$date]['hours']['19']['total']},
+        h20 = {$result['data']['breakdown'][$date]['hours']['20']['total']},
+        h21 = {$result['data']['breakdown'][$date]['hours']['21']['total']},
+        h22 = {$result['data']['breakdown'][$date]['hours']['22']['total']},
+        h23 = {$result['data']['breakdown'][$date]['hours']['23']['total']},
+        ts_creation = NOW(),
+        ts_update = NOW()
+SQL;
+                        } else {
+                            $sSQL = <<<SQL
+INSERT IGNORE INTO $method
+    SET location_id         = {$params['location_id']},
+        date                = '{$params['start_date']}',
+        walkbys             = {$result['walkbys']},
+        sensorTraffic       = {$result['sensorTraffic']},
+        transactions        = {$result['transactions']},
+        revenue             = {$result['revenue']},
+        totalItems          = {$result['totalItems']},
+        returning           = {$result['returning']},
+        footTraffic         = {$result['footTraffic']},
+        timeInShop          = {$result['timeInShop']},
+        traffic             = {$result['traffic']},
+        devices             = {$result['devices']},
+        itemsPerTransaction = {$result['itemsPerTransaction']},
+        windowConversion    = {$result['windowConversion']},
+        avgTicket           = {$result['avgTicket']},
+        conversionRate      = {$result['conversionRate']},
+        dwell               = {$result['dwell']},
+        ts_creation         = NOW(),        
+        ts_update           = NOW()        
+SQL;
+                        }
+                        $oDb->query($sSQL);
                     } else {
                         //throw new APIException(500, 'duplicated_cache', "This request is already cached");
                     }

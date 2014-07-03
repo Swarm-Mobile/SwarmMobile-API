@@ -128,11 +128,11 @@ function settDefaults($setting_name, $setting_array) {
 
 function logoURL($location_id) {
     $extensions = array('jpg', 'jpeg', 'png', 'gif');
-    $file = WEBROOT_DIR . '/images/member_photos/photo_' . $location_id;
+    $file = WEBROOT_DIR . '/images/location_photos/photo_' . $location_id;
     $src = Router::url('/images/new-logo.png', true);
     foreach ($extensions as $ext) {
         if (file_exists($file . '.' . $ext)) {
-            $src = Router::url('/images/member_photos/photo_' . $location_id . '.' . $ext, true);
+            $src = Router::url('/images/location_photos/photo_' . $location_id . '.' . $ext, true);
             break;
         }
     }
