@@ -176,7 +176,7 @@ SQL;
     public function whereAmI($params) {}  
     public function whatIsHere($params){}
     
-    public function monthlyResume($params){        
+    public function monthlyTotals($params){        
         $rules = array(
             'location_id' => array('required', 'int'),
             'year' => array('required', 'int'),
