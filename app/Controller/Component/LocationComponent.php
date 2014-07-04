@@ -216,7 +216,7 @@ SQL;
                 ]
             ],
             'options'=>[
-                'endpoint'=>'/location/monthlyResume',
+                'endpoint'=>'/location/monthlyTotals',
                 'year'=>$params['year'],
                 'month'=>$params['month'],
                 'location_id'=>$params['location_id']
@@ -305,7 +305,7 @@ SQL;
                 ]
             ],
             'options'=>[
-                'endpoint'=>'/location/historicalResume',
+                'endpoint'=>'/location/historicalTotals',
                 'location_id'=>$params['location_id']
             ]
         ];
