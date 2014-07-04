@@ -22,6 +22,10 @@ App::uses('IBeaconLocation', 'ibeacon.Model');
 
 App::uses('IBeaconCouponConfiguration', 'ibeacon.Model');
 
+App::uses('IBeaconCampaignProximityRule', 'ibeacon.Model');
+
+
+
 class IBeaconCouponsController  extends IBeaconController {
 
 
@@ -117,27 +121,30 @@ class IBeaconCouponsController  extends IBeaconController {
         $locationModel = new IBeaconLocation();
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
-            $location = $locationModel->findByUUID(
+            $locations = $locationModel->findByUUID(
                     $LocationIdentifier['uuid'],
                     $LocationIdentifier['major'],
                     $LocationIdentifier['minor']
             );
-            if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])){
-                //TODO update coordinates
-                $location = array_merge($location['IBeaconLocation'],$LocationIdentifierList);
-                $brands = $locationModel->findBrandById($location['id']);
-                $categorys = $locationModel->findCategoryById($location['id']);
-                $location['brands'] = array(
-                    'list' => $brands
-                );
-                $location['categorization'] = $categorys;
-                $campaigns = $this->campaignIdentifiers($location,$customer);
-                $response['locations'][] = $location;
-                $response['campaigns'] = $campaigns;
-                /*if(!empty()){
+            foreach ($locations as $location){
+                if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])){
+                    //TODO update coordinates
+                    $location = array_merge($LocationIdentifier,$location['IBeaconLocation']);
+                    $brands = $locationModel->findBrandById($location['id']);
+                    $categorys = $locationModel->findCategoryById($location['id']);
+                    $campaigns = $this->campaignIdentifiers($location,$customer);
+                    $location['brands'] = array(
+                        'list' => $brands
+                    );
+                    $location['categorization'] = $categorys;
+                    $response['locations'][] = $location;
+                    $response['campaigns'] = $campaigns;
+                    /*if(!empty()){
 
-                }*/
+                    }*/
+                }
             }
+
         }
         return $response;
     }
@@ -151,7 +158,7 @@ class IBeaconCouponsController  extends IBeaconController {
     private function campaignIdentifiers ($location,$customer) {
         $campaignModel =  new IBeaconCampaign();
         $campaignProximityRuleModel =  new IBeaconCampaignProximityRule();
-        $suitableCampaign = array();
+        $suitableCampaigns = array();
         $campaigns = $campaignModel->find('active',array(
             'conditions' => array(
                 'location_id' => $location['id']
@@ -166,13 +173,14 @@ class IBeaconCouponsController  extends IBeaconController {
             $previous = $location['prex'];
             $current = $location['pr'];
             if($campaignProximityRuleModel->fits($campaignId, $previous, $current)){
-                $minimumScore = empty($campaign['IBeaconCampaign']['minimum_score'])
-                                    ? 0
-                                    : $campaign['IBeaconCampaign']['minimum_score'];
                 //TODO calculateS core
-                $suitableCampaign[] = $campaign;
+                /*$minimumScore = empty($campaign['IBeaconCampaign']['minimum_score'])
+                                    ? 0
+                                    : $campaign['IBeaconCampaign']['minimum_score'];*/
+
+                $suitableCampaigns[] = $campaign['IBeaconCampaign'];
             }
         }
-        return $suitableCampaign;
+        return $suitableCampaigns;
     }
 }
