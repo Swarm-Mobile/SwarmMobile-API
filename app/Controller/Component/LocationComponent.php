@@ -265,16 +265,16 @@ SQL;
         foreach($days['byWeek'] as $w=>$c){
             $result['data']['breakdown'][$w]['start_date'] = $weeks[$w]['start'];
             $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
-            $result['data']['breakdown'][$w]['avgRevenueDaily'] = $result['data']['breakdown'][$w]['revenue'] / $c;
-            $result['data']['breakdown'][$w]['avgVisitorsDaily'] = $result['data']['breakdown'][$w]['visitors'] / $c;            
+            $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c,2);
+            $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c,2);            
         }
         
-        $result['data']['totals']['avgRevenueDaily'] = $result['data']['totals']['revenue'] / $days['total'];
-        $result['data']['totals']['avgVisitorsDaily'] = $result['data']['totals']['visitors'] / $days['total'];
+        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'],2);
+        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'],2);
         
         return $result;
     }
-    public function historicalResume($params){
+    public function historicalTotals($params){
         $rules = array('location_id' => array('required', 'int'));        
         $this->validate($params, $rules);
         
@@ -339,8 +339,8 @@ SQL;
             
         } while ($start <= $end);      
         
-        $result['data']['totals']['avgRevenueDaily'] = $result['data']['totals']['revenue'] / $days['total'];
-        $result['data']['totals']['avgVisitorsDaily'] = $result['data']['totals']['visitors'] / $days['total'];
+        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'],2);
+        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'],2);
         
         return $result;
     }
