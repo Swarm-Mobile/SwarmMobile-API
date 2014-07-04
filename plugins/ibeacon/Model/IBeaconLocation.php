@@ -47,7 +47,7 @@ class IBeaconLocation extends IBeaconModel {
      * @return array
      */
     public function findByUUID($UUID,$major,$minor) {
-        return $this->field('all',array(
+        return $this->find('all',array(
             'joins' => array(
                 array(
                     'alias' => 'd',
@@ -83,8 +83,6 @@ class IBeaconLocation extends IBeaconModel {
         $settingModel = new IBeaconSetting();
         $locationSettingModel = new IBeaconLocationSetting();
         $brandIDs = $settingModel->getBrandIds();
-        echo '<pre>'.print_r($brandIDs,true).'</pre>';
-        echo max($brandIDs);
         return $locationSettingModel->find('list',array(
             'conditions' => array(
                 'setting_id between ? and ?' => array(min($brandIDs),max($brandIDs)),

@@ -54,7 +54,16 @@
             '[method]' => 'POST'
          )
     );
-
+    //POST /where_am_i
+    Router::connect(
+        '/where_am_i',
+        array(
+            'plugin' => 'ibeacon',
+            'controller' => 'IBeaconeLocation',
+            'action' => 'whereAmI',
+            '[method]' => 'POST'
+        )
+    );
     Router::connect(
         '/test',
         array(
