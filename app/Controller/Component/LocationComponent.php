@@ -196,6 +196,11 @@ SQL;
         $revenue    = array();
         $visitors   = array();
         
+		unset($params['month']);
+		unset($params['year']);
+		$params['start_date'] = $start_date;
+		$params['end_date'] = $end_date;
+		
         $slave_params = $params;
         $while_closed = $data['data']['transactions_while_closed'];
         $open_total = $while_closed == 'no' ? 'open' : 'total';
