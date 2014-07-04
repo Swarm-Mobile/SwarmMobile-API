@@ -39,5 +39,15 @@ class IBeaconComponent  extends Component {
             throw new ForbiddenException($ratelimit->lastError);
         }
     }
+    /**
+     *
+     */
+    protected function setHeader () {
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: POST, GET");
+        header("Access-Control-Allow-Headers: X-PINGOTHER");
+        header("Access-Control-Max-Age: 1728000");
+        header("Content-Type: application/json; charset=UTF-8");
+    }
 
 }

@@ -5,7 +5,7 @@
         '/my/coupon/:couponId',
         array(
             'plugin' => 'ibeacon',
-            'controller' => 'IBeaconCouponsController',
+            'controller' => 'IBeaconCoupons',
             'action' => 'reactToCoupon',
             '[method]' => 'POST',
         ),
@@ -41,5 +41,26 @@
             'controller' => 'IBeaconCustomers',
             'action' => 'login',
             '[method]' => 'POST'
+         )
+    );
+
+    //POST /what_is_here?userid=1
+    Router::connect(
+        '/what_is_here',
+        array(
+            'plugin' => 'ibeacon',
+            'controller' => 'IBeaconCoupons',
+            'action' => 'whatIsHere',
+            '[method]' => 'POST'
+         )
+    );
+
+    Router::connect(
+        '/test',
+        array(
+            'plugin' => 'ibeacon',
+            'controller' => 'IBeacon',
+            'action' => 'index',
+            '[method]' => 'GET'
          )
     );

@@ -11,12 +11,14 @@
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
 
-App::uses("UUID", "Lib");
+App::uses("UUID", "ibeacon.Lib");
 
 App::uses('IBeaconModel','ibeacon.Model');
 
 class IBeaconCoupons extends IBeaconModel {
-     /**
+
+
+    /**
      *
      * @var string
      */
@@ -76,7 +78,11 @@ class IBeaconCoupons extends IBeaconModel {
         ),
         'status' => array(
             'maxLength' => array(
-                'rule' => array('maxLength',100)
+                'rule' => array('inList',array(
+                    'new',
+                    'accept',
+                    'reject'
+                ))
             )
         )
     );
@@ -91,7 +97,8 @@ class IBeaconCoupons extends IBeaconModel {
         'title' => 'title',
         'text' => 'text',
         'code' => 'code',
-        'status' => 'status'
+        'status' => 'status',
+        'delivery_text' => 'deliveryText'
     );
     /**
      *
@@ -114,7 +121,9 @@ class IBeaconCoupons extends IBeaconModel {
             'customer_id' => $cutomerId,
             'campaign_id' => $campaigningId,
             'code' => $code,
-            'status' => 'new'
+            'status' => 'new',
+            'ts_create' => date('Y-m-d H:i:s'),
+            'ts_update' => date('Y-m-d H:i:s')
         ));
         if($this->validates()){
             $this->save();
@@ -124,5 +133,19 @@ class IBeaconCoupons extends IBeaconModel {
             $errors = current ($this->validationErrors);
             throw new InternalErrorException($errors[0]);
         }
+    }
+
+    /**
+     * considers the number of used
+     * @param int $campaignId
+     * @return int
+     */
+    public function getCountUsedByCampaignId ($campaignId) {
+        return $this->find("count",array(
+            'conditions' => array(
+                'campaign_id' => $campaignId,
+                'status' => 'accept'
+            )
+        ));
     }
 }

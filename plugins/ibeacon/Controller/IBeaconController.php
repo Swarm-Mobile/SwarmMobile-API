@@ -13,6 +13,8 @@
 
 App::uses('Controller', 'Controller');
 
+App::uses('IBeaconLocation','ibeacon.Model');
+
 class IBeaconController extends Controller {
 
     public $components = array(
@@ -22,5 +24,15 @@ class IBeaconController extends Controller {
 
     public function beforeFilter() {
         parent::beforeFilter();
+    }
+
+    /**
+     *
+     */
+    public function index () {
+        $locationModel = new IBeaconLocation();
+        //echo '<pre>'.print_r($locationModel->findBrandById(3),true).'</pre>';
+        echo '<pre>'.print_r($locationModel->findCategoryById(3),true).'</pre>';
+        exit;
     }
 }

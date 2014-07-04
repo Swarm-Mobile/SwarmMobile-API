@@ -46,7 +46,7 @@ class IBeaconCampaign extends IBeaconModel {
      */
     public $belongsTo = array(
         'Location' => array(
-            'className' => 'ibeacon.Location',
+            'className' => 'ibeacon.IBeaconLocation',
             'foreignKey' => 'location_id'
         )
     );

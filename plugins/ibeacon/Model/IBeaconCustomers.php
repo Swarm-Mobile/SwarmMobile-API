@@ -114,8 +114,8 @@ class IBeaconCustomers extends IBeaconModel {
         }
         else{
             $errors = current ($this->validationErrors);
-            print_R($errors);
-            ///throw new InternalErrorException($errors[0]);
+            //print_R($errors);
+            throw new InternalErrorException($errors[0]);
         }
     }
 

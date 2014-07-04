@@ -16,6 +16,12 @@ App::uses('IBeaconController', 'ibeacon.Controller');
 
 App::uses('IBeaconCampaign', 'ibeacon.Model');
 
+App::uses('IBeaconCustomers', 'ibeacon.Model');
+
+App::uses('IBeaconLocation', 'ibeacon.Model');
+
+App::uses('IBeaconCouponConfiguration', 'ibeacon.Model');
+
 class IBeaconCouponsController  extends IBeaconController {
 
 
@@ -49,12 +55,13 @@ class IBeaconCouponsController  extends IBeaconController {
      * @param int $id
      */
     public function reactToCoupon ($id) {
-        if(!$this->Coupons->exists($id)){
+        if(!$this->IBeaconCoupons->exists($id)){
             throw new NotFoundException(__('Could not find that coupon'));
         }
         // TODO узнать что такое userId
         $data = $this->request->data;
-        $this->Coupons->confirmation($id,$data['action']);
+        $this->IBeaconCoupons->confirmation($id,$data['action']);
+        exit;
     }
     /**
      *
@@ -71,18 +78,101 @@ class IBeaconCouponsController  extends IBeaconController {
         if(!$exists){
             throw new NotFoundException(__('Could not find that campaigning'));
         }
-        $id = $this->Coupons->createNew($campaigningId,$cutomerId);
-        $coupon = $this->Coupons->findById($id);
-        $couponConfigurationModel = new CouponConfiguration();
+        $id = $this->IBeaconCoupons->createNew($campaigningId,$cutomerId);
+        $coupon = $this->IBeaconCoupons->findById($id);
+        $couponConfigurationModel = new IBeaconCouponConfiguration();
         $configuration = $couponConfigurationModel->find('first', array(
             'conditions' => array(
                'campaign_id' => $campaigningId,
             )
         ));
-        $response = array_merge($coupon['Coupons'],$configuration['CouponConfiguration']);
-        $responseSDK = $this->Coupons->DBKeysToSDK($response);
+        $response = array_merge($configuration['IBeaconCouponConfiguration'],$coupon['IBeaconCoupons']);
+        $responseSDK = $this->IBeaconCoupons->DBKeysToSDK($response);
         echo json_encode($responseSDK);
         exit;
+    }
+    /**
+     *
+     */
+    public function whatIsHere () {
+        $custmerModel = new IBeaconCustomers();
+        $customerId = $_GET['userid'];
+        $customer = $custmerModel->findById($customerId);
+        if(!isset($customer['IBeaconCustomers']) || empty($customer['IBeaconCustomers'])){
+            throw new NotFoundException(__('Could not find that cutomer'));
+        }
+        $LocationIdentifierList = $this->request->data['locations'];
+        $response = $this->locationIdentifiers($LocationIdentifierList,$customer);
+        echo json_encode($response);
+        exit;
+    }
 
+    /**
+     *
+     * @param array $LocationIdentifierList
+     * @param array $customer
+     * @return array
+     */
+    private function locationIdentifiers ($LocationIdentifierList,$customer) {
+        $locationModel = new IBeaconLocation();
+        $response = array();
+        foreach ($LocationIdentifierList as $LocationIdentifier){
+            $location = $locationModel->findByUUID(
+                    $LocationIdentifier['uuid'],
+                    $LocationIdentifier['major'],
+                    $LocationIdentifier['minor']
+            );
+            if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])){
+                //TODO update coordinates
+                $location = array_merge($location['IBeaconLocation'],$LocationIdentifierList);
+                $brands = $locationModel->findBrandById($location['id']);
+                $categorys = $locationModel->findCategoryById($location['id']);
+                $location['brands'] = array(
+                    'list' => $brands
+                );
+                $location['categorization'] = $categorys;
+                $campaigns = $this->campaignIdentifiers($location,$customer);
+                $response['locations'][] = $location;
+                $response['campaigns'] = $campaigns;
+                /*if(!empty()){
+
+                }*/
+            }
+        }
+        return $response;
+    }
+
+
+    /**
+     *
+     * @param array $location
+     * @param array $customer
+     */
+    private function campaignIdentifiers ($location,$customer) {
+        $campaignModel =  new IBeaconCampaign();
+        $campaignProximityRuleModel =  new IBeaconCampaignProximityRule();
+        $suitableCampaign = array();
+        $campaigns = $campaignModel->find('active',array(
+            'conditions' => array(
+                'location_id' => $location['id']
+            )
+        ));
+        foreach ($campaigns as $campaign){
+            $campaignId = $campaign['IBeaconCampaign']['id'];
+            $countUsedCoupons = $this->IBeaconCoupons->getCountUsedByCampaignId($campaignId);
+            if($countUsedCoupons >= $campaign['IBeaconCampaign']['total_coupons']){
+                continue;
+            }
+            $previous = $location['prex'];
+            $current = $location['pr'];
+            if($campaignProximityRuleModel->fits($campaignId, $previous, $current)){
+                $minimumScore = empty($campaign['IBeaconCampaign']['minimum_score'])
+                                    ? 0
+                                    : $campaign['IBeaconCampaign']['minimum_score'];
+                //TODO calculateS core
+                $suitableCampaign[] = $campaign;
+            }
+        }
+        return $suitableCampaign;
     }
 }

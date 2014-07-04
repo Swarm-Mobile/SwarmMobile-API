@@ -6,7 +6,7 @@
  */
 
 /**
- * Description of Location
+ * Description of IBeaconLocationSetting
  *
  * @author Zotov Maxim <zotov_mv@groupbwt.com>
  */
@@ -14,13 +14,14 @@
 
 App::uses('IBeaconModel','ibeacon.Model');
 
-class Location extends IBeaconModel {
+
+class IBeaconLocationSetting extends IBeaconModel {
 
     /**
      *
      * @var string
      */
-    public $useTable = 'location';
+    public $useTable = 'location_setting';
 
     /**
      *
