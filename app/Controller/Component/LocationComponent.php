@@ -212,7 +212,7 @@ SQL;
                     'revenue'=>0,
                     'visitors'=>0,
                     'avgRevenueDaily'=>0,
-                    'avgVisitorDaily'=>0
+                    'avgVisitorsDaily'=>0
                 ]
             ],
             'options'=>[
@@ -301,7 +301,7 @@ SQL;
                     'revenue'=>0,
                     'visitors'=>0,
                     'avgRevenueDaily'=>0,
-                    'avgVisitorDaily'=>0
+                    'avgVisitorsDaily'=>0
                 ]
             ],
             'options'=>[
