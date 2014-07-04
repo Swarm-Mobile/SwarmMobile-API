@@ -16,6 +16,7 @@ class NetworkComponent extends APIComponent {
         } else {
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $ap_id = $data['data']['ap_id'];
+			$ap_id = empty($ap_id)?-1:$ap_id;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'logins';
@@ -125,6 +126,7 @@ SQL;
         $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
         $timezone = $data['data']['timezone'];        
         $ap_id = $data['data']['ap_id'];
+		$ap_id = empty($ap_id)?-1:$ap_id;
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         $table = 'analytics';
         $oModel = new Model(false, $table, 'swarmdata');
