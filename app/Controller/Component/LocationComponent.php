@@ -275,7 +275,74 @@ SQL;
         return $result;
     }
     public function historicalResume($params){
+        $rules = array('location_id' => array('required', 'int'));        
+        $this->validate($params, $rules);
         
+        $start_date = $params['year'].'-'.$params['month'].'-01';
+        $end_date = date('Y-m-d');    
+        
+        $start = new DateTime($start_date);
+        
+        $revenue    = array();
+        $visitors   = array();
+        
+		unset($params['month']);
+		unset($params['year']);
+		$params['start_date'] = $start_date;
+		$params['end_date'] = $end_date;
+		
+        $slave_params = $params;
+        $while_closed = $data['data']['transactions_while_closed'];
+        $open_total = $while_closed == 'no' ? 'open' : 'total';
+        
+        $result = [
+            'data'=>[
+                'totals'=>[
+                    'revenue'=>0,
+                    'visitors'=>0,
+                    'avgRevenueDaily'=>0,
+                    'avgVisitorDaily'=>0
+                ]
+            ],
+            'options'=>[
+                'endpoint'=>'/location/historicalResume',
+                'location_id'=>$params['location_id']
+            ]
+        ];
+        
+        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+        $days = ['byWeek'=>[],'total'=>0];
+        $weeks = [];
+        do {
+            $slave_params['end_date'] = $slave_params['start_date'];            
+            
+            $tmp = $this->api->internalCall('location','revenue', $slave_params);            
+            $revenue  = $tmp['data']['totals'][$open_total];
+            
+            $tmp = $this->api->internalCall('location','footTraffic', $slave_params);            
+            $visitors  = $tmp['data']['totals']['open']; 
+            
+            $days['total']++;
+            
+            if(!isset($days['byWeek'][date_format($start,'W')])){
+                $days['byWeek'][date_format($start,'W')] = 0;
+                $weeks[date_format($start,'W')]['start'] = date_format($start, 'Y-m-d');
+            }
+            $weeks[date_format($start,'W')]['end'] = date_format($start, 'Y-m-d');
+            
+            $days['byWeek'][date_format($start,'W')]++;                    
+            $result['data']['totals']['revenue'] += $revenue;            
+            $result['data']['totals']['visitors'] += $visitors;            
+            
+            date_add($start, date_interval_create_from_date_string('1 days'));          
+            $slave_params['start_date'] = date_format($start, 'Y-m-d');
+            
+        } while ($start <= $end);      
+        
+        $result['data']['totals']['avgRevenueDaily'] = $result['data']['totals']['revenue'] / $days['total'];
+        $result['data']['totals']['avgVisitorsDaily'] = $result['data']['totals']['visitors'] / $days['total'];
+        
+        return $result;
     }
     
     //OTHER ENDPOINTS
