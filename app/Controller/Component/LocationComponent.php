@@ -239,9 +239,9 @@ SQL;
             
             if(!isset($days['byWeek'][date_format($start,'W')])){
                 $days['byWeek'][date_format($start,'W')] = 0;
-                $weeks[[date_format($start,'W')]]['start'] = date_format($start, 'Y-m-d');
+                $weeks[date_format($start,'W')]['start'] = date_format($start, 'Y-m-d');
             }
-            $weeks[[date_format($start,'W')]]['end'] = date_format($start, 'Y-m-d');
+            $weeks[date_format($start,'W')]['end'] = date_format($start, 'Y-m-d');
             
             $days['byWeek'][date_format($start,'W')]++;            
             if(!isset($result['data']['breakdown'][date_format($start,'W')])){
