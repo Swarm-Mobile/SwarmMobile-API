@@ -30,6 +30,24 @@ class APIController extends AppController {
 
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
+	public $cache_methods = [
+		'avgTicket',
+		'conversionRate',
+		'devices',
+		'dwell',
+		'footTraffic',
+		'itemsPerTransaction',
+		'returning',
+		'revenue',
+		'sensorTraffic',
+		'timeInShop',
+		'totalItems',
+		'totals',
+		'traffic',
+		'transactions',
+		'walkbys',
+		'windowConversion',
+	];
     public $uses = array('Inbox');
     public $debug = false;
     public $cache = true;
@@ -219,7 +237,7 @@ class APIController extends AppController {
                     return $result;
                 }
             }
-        } else if ($this->rollups && $component == 'location' && !in_array($method, ['data', 'purchaseInfo'])) {
+        } else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods)) {
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
@@ -377,7 +395,7 @@ SQL;
                 fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                 fclose($handle);
             } else if ($this->rollups) {
-                if (!$from_rollups && $component == 'location' && !in_array($method, ['data', 'purchaseInfo'])) {
+                if (!$from_rollups && $component == 'location' && in_array($method, $this->cache_methods)) {
                     $date = $params['start_date'];
                     $location_id = $params['location_id'];
                     $oModel = new Model(false, 'walkbys', 'rollups');
