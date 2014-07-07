@@ -12,7 +12,7 @@
  */
 App::uses('HttpRequestRateLimit', 'ibeacon.IBeacon');
 
-
+App::uses('HmacOauth', 'ibeacon.IBeacon');
 
 class IBeaconComponent  extends Component {
 
@@ -20,10 +20,13 @@ class IBeaconComponent  extends Component {
 
 
     public function initialize(\Controller $controller) {
+        $controller->viewClass = 'Json';
+        $this->setHeader();
         $this->controller = $controller;
+        $this->authorization();
         $this->checkRequest();
         parent::initialize($controller);
-        $controller->viewClass = 'Json';
+
     }
 
     /**
@@ -48,6 +51,16 @@ class IBeaconComponent  extends Component {
         header("Access-Control-Allow-Headers: X-PINGOTHER");
         header("Access-Control-Max-Age: 1728000");
         header("Content-Type: application/json; charset=UTF-8");
+    }
+
+    /**
+     *
+     */
+    protected function authorization  ()  {
+        $hmacOauth = new HmacOauth($this->controller->request);
+        if(!$hmacOauth->check()){
+            throw new UnauthorizedException();
+        }
     }
 
 }

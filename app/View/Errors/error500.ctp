@@ -29,13 +29,3 @@ $this->assign('title', 'Swarm Mobile - API Login');
         </div>
     </div>
 </div>
-<h2><?php echo $message; ?></h2>
-<p class="error">
-	<strong><?php echo __d('cake', 'Error'); ?>: </strong>
-	<?php echo __d('cake', 'An Internal Error Has Occurred.'); ?>
-</p>
-<?php
-
-	echo $this->element('exception_stack_trace');
-
-?>

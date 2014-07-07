@@ -15,6 +15,9 @@ App::uses('Controller', 'Controller');
 
 App::uses('IBeaconLocation','ibeacon.Model');
 
+App::uses('HmacOauth', 'ibeacon.IBeacon');
+
+
 class IBeaconController extends Controller {
 
     public $components = array(
@@ -30,13 +33,10 @@ class IBeaconController extends Controller {
      *
      */
     public function index () {
-        $locationModel = new IBeaconLocation();
-        $test = $locationModel->findByUUID('45FB2AE1-A73B-4ECC-852D-DB5BDFCB4F1C', 40, 2210);
-        echo '<pre>'.print_R($test,true).'</pre>';
+        $HmacOauth = new HmacOauth();
+
+        echo $HmacOauth->getHMACSignature("steve", "", "Thu, 29 Mar 2012 18:19:50", "D57092AC-DFAA-446C-8EF3-C81AA22815B5");
+    //    print_R($this->request->header('Swarm-Api-Challange'));
         exit;
-        //$locationModel = new IBeaconLocation();
-        //echo '<pre>'.print_r($locationModel->findBrandById(3),true).'</pre>';
-      //  echo '<pre>'.print_r($locationModel->findCategoryById(3),true).'</pre>';
-      //  exit;
     }
 }

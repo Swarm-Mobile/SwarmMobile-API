@@ -150,12 +150,13 @@ class IBeaconCustomers extends IBeaconModel {
      */
     private function createSsv ($ssv,$id) {
         foreach ($ssv as $key => $val){
-            $ssvDB[]= array(
-                'customer_id' => $id,
-                'name' => $key,
-                // TODO понять там масив занчении???
-                'value' => $val[0]
-            );
+            foreach ($val as $k => $v){
+                $ssvDB[]= array(
+                    'customer_id' => $id,
+                    'name' => $key,
+                    'value' => $v
+                );
+            }
         }
         $customerSsv = new IBeaconCustomerSsv();
         $customerSsv->saveMany($ssvDB);
