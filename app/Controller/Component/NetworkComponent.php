@@ -16,7 +16,7 @@ class NetworkComponent extends APIComponent {
         } else {
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $ap_id = $data['data']['ap_id'];
-			$ap_id = empty($ap_id)?-1:$ap_id;
+            $ap_id = empty($ap_id) ? -1 : $ap_id;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = 'logins';
@@ -101,12 +101,12 @@ SQL;
         $aRes = $oDb->fetchAll($sSQL);
         $result = array();
         $result['data'] = array();
-        foreach($aRes as $oRow){            
+        foreach ($aRes as $oRow) {
             $result['data'][] = array(
-                'email'=>$oRow['ws_user_profile']['emailId'], 
-                'time'=>$oRow[0]['date']
+                'email' => $oRow['ws_user_profile']['emailId'],
+                'time' => $oRow[0]['date']
             );
-        }        
+        }
         $result['options'] = array(
             'endpoint' => '/network/emails',
             'location_id' => $params['location_id'],
@@ -124,9 +124,9 @@ SQL;
         );
         $this->validate($params, $rules);
         $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
-        $timezone = $data['data']['timezone'];        
+        $timezone = $data['data']['timezone'];
         $ap_id = $data['data']['ap_id'];
-		$ap_id = empty($ap_id)?-1:$ap_id;
+        $ap_id = empty($ap_id) ? -1 : $ap_id;
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         $table = 'analytics';
         $oModel = new Model(false, $table, 'swarmdata');
@@ -147,12 +147,12 @@ SQL;
         $aRes = $oDb->fetchAll($sSQL);
         $result = array();
         $result['data'] = array();
-        foreach($aRes as $oRow){            
+        foreach ($aRes as $oRow) {
             $result['data'][] = array(
-                'domain'=>$oRow['analytics']['domain'], 
-                'count'=>$oRow[0]['count']
+                'domain' => $oRow['analytics']['domain'],
+                'count' => $oRow[0]['count']
             );
-        }        
+        }
         $result['options'] = array(
             'endpoint' => '/network/websites',
             'location_id' => $params['location_id'],
