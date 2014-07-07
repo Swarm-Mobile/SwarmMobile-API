@@ -139,9 +139,6 @@ class IBeaconCouponsController  extends IBeaconController {
                     $location['categorization'] = $categorys;
                     $response['locations'][] = $location;
                     $response['campaigns'] = $campaigns;
-                    /*if(!empty()){
-
-                    }*/
                 }
             }
 
@@ -173,7 +170,7 @@ class IBeaconCouponsController  extends IBeaconController {
             $previous = $location['prex'];
             $current = $location['pr'];
             if($campaignProximityRuleModel->fits($campaignId, $previous, $current)){
-                //TODO calculateS core
+                //TODO calculateS score
                 /*$minimumScore = empty($campaign['IBeaconCampaign']['minimum_score'])
                                     ? 0
                                     : $campaign['IBeaconCampaign']['minimum_score'];*/
