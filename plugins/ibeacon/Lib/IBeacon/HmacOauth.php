@@ -48,6 +48,12 @@ class HmacOauth {
 
     /**
      *
+     * @var int
+     */
+    private static $userId;
+
+    /**
+     *
      * @param CakeRequest $request
      */
     public function __construct($request = null) {
@@ -64,8 +70,9 @@ class HmacOauth {
      */
     public function check () {
         $modelApiKey = new IBeaconApiKey();
-        $apiKey = $modelApiKey->findApiKeyByUsername($this->partnerId);
-        $signatur = $this->getHMACSignature($this->partnerId, $this->remoteId, $this->date , $apiKey);
+        $aApiKey = $modelApiKey->findByUsername($this->partnerId);
+        self::$userId = $aApiKey['IBeaconApiKey']['user_id'];
+        $signatur = $this->getHMACSignature($this->partnerId, $this->remoteId, $this->date , $aApiKey['IBeaconApiKey']['key']);
         if($signatur == $this->key ){
             return true;
         }
@@ -90,5 +97,9 @@ class HmacOauth {
         $stepTwo = base64_encode ( hash_hmac(HmacOauth::ALGORITHM, $stepOne, $remoteId, true) );
         $stepThree = base64_encode( hash_hmac(HmacOauth::ALGORITHM, $stepTwo, $date, true) );
         return $stepThree;
+    }
+
+    public static function getUserId () {
+        return self::$userId;
     }
 }

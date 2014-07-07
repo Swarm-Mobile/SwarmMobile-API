@@ -100,12 +100,13 @@ class IBeaconCustomers extends IBeaconModel {
      *
      * @param array $data
      */
-    public function addNew ($data) {
+    public function addNew ($data,$userId) {
         $customerSsv = $data['ssv'];
         unset($data['ssv']);
         $customerData = $this->SDKKeysToDB($data);
-        //TODO get userId;
-        $customerData['user_id'] = 1;
+        $customerData['user_id'] = $userId;
+        $customerData['ts_create'] = date('Y-m-d H:i:s');
+        $customerData['ts_update'] = date('Y-m-d H:i:s');
         $this->set($customerData);
         if($this->validates()){
             $this->save();
@@ -131,6 +132,7 @@ class IBeaconCustomers extends IBeaconModel {
         $customerData = $this->SDKKeysToDB($data);
         $this->id = $customerData['id'];
         unset($customerData['id']);
+        $customerData['ts_update'] = date('Y-m-d H:i:s');
         $this->set($customerData);
         if($this->validates()){
             $this->save();
@@ -162,6 +164,7 @@ class IBeaconCustomers extends IBeaconModel {
         $customerSsv->saveMany($ssvDB);
         //pr($customerSsv->validationErrors);
     }
+
     /**
      * Update  cutomer ssv
      * @param array $ssv
@@ -169,30 +172,33 @@ class IBeaconCustomers extends IBeaconModel {
      */
     private function updateSsv ($ssv,$id) {
         $customerSsv = new IBeaconCustomerSsv();
-        foreach ($ssv as $key => $val){
-            $exists = $customerSsv->find('first',array(
-                'conditions' => array(
-                    'customer_id' => $id,
-                    'name' => $key
+        $customerSsv->deleteAll(array('customer_id' => $id));
+        return $this->createSsv($ssv, $id);
+    }
+
+
+    /**
+     *
+     * @param string $username
+     * @param string $removeId
+     * @return array
+     */
+    public function findByRemoteId ($username,$removeId) {
+        return $this->find('first',array(
+            'joins' => array(
+                array(
+                    'alias' => 'u',
+                    'table' => 'user',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'u.id = IBeaconCustomers.user_id',
+                    ),
                 )
-            ));
-            if(is_array($exists) && isset($exists['CustomerSsv'])){
-                // TODO понять там масив занчении???
-                if($exists['CustomerSsv']['value'] != $val[0]){
-                    $customerSsv->set($exists['CustomerSsv']);
-                    $customerSsv->set(array('value' => $val[0]));
-                    $customerSsv->save();
-                    //pr($customerSsv->validationErrors);
-                }
-            }
-            else{
-                $customerSsv->save(array(
-                    'customer_id' => $id,
-                    'name' => $key,
-                    'value' => $val[0]
-                ));
-                //pr($customerSsv->validationErrors);
-            }
-        }
+            ),
+            'conditions' => array(
+                'u.username' => $username,
+                'IBeaconCustomers.remote_id' => $removeId
+            )
+        ));
     }
 }

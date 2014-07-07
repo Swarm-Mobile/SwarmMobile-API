@@ -54,7 +54,11 @@ class IBeaconSetting extends IBeaconModel {
     public function getCategoryIds () {
         return $this->find('list',array(
             'conditions' => array(
-                'label LIKE' => '%Category%'
+                'OR' => array(
+                    'label LIKE' => '%Category%',
+                    'Label LIKE' => '%NAICS Code%'
+                )
+
             ),
             'fields' => array('id')
         ));

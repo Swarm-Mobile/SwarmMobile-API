@@ -62,5 +62,11 @@ class IBeaconComponent  extends Component {
             throw new UnauthorizedException();
         }
     }
+    /**
+     *
+     */
+    public function getUserId () {
+        return HmacOauth::getUserId();
+    }
 
 }

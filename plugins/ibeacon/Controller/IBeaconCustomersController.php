@@ -28,22 +28,40 @@ class IBeaconCustomersController extends  IBeaconController  {
      */
     public function login () {
         $cutomerData = $this->request->data;
-        if(isset($cutomerData['customerSwarmId']) && $cutomerData['customerSwarmId'] == 0){
-            $id = $this->IBeaconCustomers->addNew($cutomerData);
-        }
-        else if(isset($cutomerData['customerSwarmId'])){
-            $id = $cutomerData['customerSwarmId'];
-            $this->IBeaconCustomers->id = $id;
-            if (!$this->IBeaconCustomers->exists()) {
-                throw new NotFoundException(__('Could not find that customer'));
-            }
+        $existing = $this->findCustomer($cutomerData);
+        $this->IBeaconCustomers->set($existing['IBeaconCustomers']);
+        if ($this->IBeaconCustomers->exists()) {
+            $id = $cutomerData['customerSwarmId'] = $existing['IBeaconCustomers']['id'];
             $this->IBeaconCustomers->updateInfo($cutomerData);
+        }
+        else{
+            $id = $this->IBeaconCustomers->addNew($cutomerData,$this->IBeacon->getUserId());
         }
         $customer = $this->IBeaconCustomers->findById($id);
         $response = $this->IBeaconCustomers->DBKeysToSDK($customer['IBeaconCustomers']);
         $response['ssv'] = $cutomerData['ssv'];
         echo json_encode($response);
         exit;
+    }
+
+
+    /**
+     *
+     * @param array $cutomerData
+     * @return array
+     */
+    private function findCustomer ($cutomerData) {
+        if(!isset($cutomerData['customerSwarmId']) || empty($cutomerData['customerSwarmId'])){
+            return $this->IBeaconCustomers->findByRemoteId($cutomerData['sourceId'],$cutomerData['remoteId']);
+
+        }
+        else{
+            $existing = $this->IBeaconCustomers->findById($cutomerData['customerSwarmId']);
+            if(empty($existing['IBeaconCustomers'])){
+                return $this->IBeaconCustomers->findByRemoteId($cutomerData['sourceId'],$cutomerData['remoteId']);
+            }
+        }
+
     }
 
 }
