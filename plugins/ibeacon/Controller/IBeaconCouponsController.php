@@ -24,6 +24,8 @@ App::uses('IBeaconCouponConfiguration', 'ibeacon.Model');
 
 App::uses('IBeaconCampaignProximityRule', 'ibeacon.Model');
 
+App::uses('IBeaconDeviceCoordinate', 'ibeacon.Model');
+
 
 
 class IBeaconCouponsController  extends IBeaconController {
@@ -119,6 +121,7 @@ class IBeaconCouponsController  extends IBeaconController {
      */
     private function locationIdentifiers ($LocationIdentifierList,$customer) {
         $locationModel = new IBeaconLocation();
+        $deviceCoordinateModel = new IBeaconDeviceCoordinate();
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
             $locations = $locationModel->findByUUID(
@@ -128,7 +131,12 @@ class IBeaconCouponsController  extends IBeaconController {
             );
             foreach ($locations as $location){
                 if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])){
-                    //TODO update coordinates
+                    $deviceCoordinateModel->addNew(
+                            $LocationIdentifier['latitude'],
+                            $LocationIdentifier['longitude'],
+                            $location['d']['id']
+                    );
+                    unset($location['d']['id']);
                     $location = array_merge($LocationIdentifier,$location['IBeaconLocation']);
                     $brands = $locationModel->findBrandById($location['id']);
                     $categorys = $locationModel->findCategoryById($location['id']);

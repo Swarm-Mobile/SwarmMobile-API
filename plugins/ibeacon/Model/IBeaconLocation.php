@@ -70,7 +70,8 @@ class IBeaconLocation extends IBeaconModel {
                 'de.uuid' => $UUID,
                 'd.major' => $major,
                 'd.minor' => $minor
-            )
+            ),
+            'fields' => array('IBeaconLocation.*','d.id')
         ));
     }
 

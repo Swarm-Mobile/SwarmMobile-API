@@ -46,7 +46,7 @@ class IBeaconDeviceCoordinate extends  IBeaconModel{
                 'required' => true
             )
         ),
-        'latitude' => array(
+        /*'latitude' => array(
             'decimal' => array(
                 'rule' => array('decimal'),
                 'required' => true
@@ -57,6 +57,30 @@ class IBeaconDeviceCoordinate extends  IBeaconModel{
                 'rule' => array('decimal'),
                 'required' => true
             )
-        )
+        )*/
     );
+
+
+    /**
+     *
+     * @param string $latitude
+     * @param string $longitude
+     * @param int $deviceId
+     * @return boolean
+     */
+    public function addNew ($latitude,$longitude,$deviceId) {
+        if(!empty($longitude) || !empty($longitude)){
+            $this->set(array(
+                'longitude' => $longitude,
+                'device_id' => $deviceId,
+                'latitude' => $latitude
+            ));
+            // TODO Calculate the average value
+            return $this->save();
+        }
+        return true;
+
+    }
+
+
 }

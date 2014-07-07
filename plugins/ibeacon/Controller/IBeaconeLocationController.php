@@ -13,6 +13,8 @@
 
 App::uses('IBeaconController', 'ibeacon.Controller');
 
+App::uses('IBeaconDeviceCoordinate', 'ibeacon.Model');
+
 class IBeaconeLocationController extends  IBeaconController {
 
     /**
@@ -20,6 +22,7 @@ class IBeaconeLocationController extends  IBeaconController {
      */
     public function whereAmI (){
         $locationModel = new IBeaconLocation();
+        $deviceCoordinateModel = new IBeaconDeviceCoordinate();
         $LocationIdentifierList = $this->request->data['locations'];
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
@@ -30,7 +33,12 @@ class IBeaconeLocationController extends  IBeaconController {
             );
             foreach ($locations as $location){
                 if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])){
-                    //TODO update coordinates
+                    $deviceCoordinateModel->addNew(
+                            $LocationIdentifier['latitude'],
+                            $LocationIdentifier['longitude'],
+                            $location['d']['id']
+                    );
+                    unset($location['d']['id']);
                     $location = array_merge($LocationIdentifier,$location['IBeaconLocation']);
                     $brands = $locationModel->findBrandById($location['id']);
 
