@@ -232,7 +232,7 @@ SQL;
             $tmp = $this->api->internalCall('location','revenue', $slave_params);            
             $revenue  = $tmp['data']['totals'][$open_total];
             
-            $tmp = $this->api->internalCall('location','footTraffic', $slave_params);            
+            $tmp = $this->api->internalCall('location','sensorTraffic', $slave_params);            
             $visitors  = $tmp['data']['totals']['open']; 
             
             $days['total']++;
@@ -319,7 +319,7 @@ SQL;
             $tmp = $this->api->internalCall('location','revenue', $slave_params);            
             $revenue  = $tmp['data']['totals'][$open_total];
             
-            $tmp = $this->api->internalCall('location','footTraffic', $slave_params);            
+            $tmp = $this->api->internalCall('location','sensorTraffic', $slave_params);            
             $visitors  = $tmp['data']['totals']['open']; 
             
             $days['total']++;
