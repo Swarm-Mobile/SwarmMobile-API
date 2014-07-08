@@ -314,7 +314,7 @@ SQL;
                             'end_date' => $params['end_date']
                         ]
                     ];
-                    return $this->nightClubCacheFormat($data, $to_return);
+                    return APIComponent::nightClubFormat($to_return, $data);
                 } else {
                     return [
                         'walkbys' => $aRes[0][$method]['walkbys'],
@@ -337,27 +337,6 @@ SQL;
             }
         }
         return false;
-    }
-
-    private function nightClubCacheFormat($data, $result) {
-        if (@$data['data']['nightclub_hours'] == 'yes') {
-            $ncResult = array();
-            $ncResult['options'] = $result['options'];
-            $ncResult['data']['totals'] = $result['data']['totals'];
-            foreach ($result['data']['breakdown'] as $date => $values) {
-                $ncResult['data']['breakdown'][$date]['totals'] = $values['totals'];
-                foreach ($values['hours'] as $h => $v) {
-                    $tzLocal = $this->getLocalTimezone($data['data']['timezone']);
-                    $tzNC = $this->getNightClubTimezone($data);
-                    $tmp = new DateTime("2014-01-01 $h:00:00", $tzLocal);
-                    $tmp = $tmp->setTimezone(new DateTimeZone($tzNC));
-                    $h = $tmp->format('H');
-                    $ncResult['data']['breakdown'][$date]['hours'][$h] = $v;
-                }
-            }
-            return $ncResult;
-        }
-        return $result;
     }
 
     private function getCacheFilePath($component, $method, $params) {
