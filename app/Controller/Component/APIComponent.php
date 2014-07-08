@@ -159,6 +159,7 @@ class APIComponent {
                 case 'pacific_time': return 'America/Los_Angeles';
                 case 'mountain_time': return 'America/Denver';
                 case 'central_time': return 'America/Chicago';
+                case 'eastaustralian_time': return 'Australia/Brisbane';
             }
         }
         return $data['data']['timezone'];
@@ -289,8 +290,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array(),
-                'options' => array()
+                'breakdown' => array()                
             )
         );
         foreach ($aResults as $cResult) {
@@ -320,8 +320,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array(),
-                'options' => array()
+                'breakdown' => array()                
             )
         );
         foreach ($aResults as $cResult) {

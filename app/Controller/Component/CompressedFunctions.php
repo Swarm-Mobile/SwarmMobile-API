@@ -242,7 +242,8 @@ function getNightclubTZ() {
         'eastcoast_time' => 'eastcoast_time',
         'pacific_time' => 'pacific_time',
         'central_time' => 'central_time',
-        'mountain_time' => 'mountain_time'
+        'mountain_time' => 'mountain_time',
+        'eastaustralian_time' => 'eastaustralian_time'
     );
 }
 

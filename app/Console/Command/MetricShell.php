@@ -58,6 +58,10 @@ SQL;
         $this->setEnvironment();
         $location_id = (empty($this->params['location_id'])) ? 'all' : $this->params['location_id'];
         $parts = explode('/', $this->params['part']);
+        $minute = date('i');
+        $minute = $minute % 30;
+        $parts[0] = $parts[0] == 'start' ? $minute + 1 : $parts[0];
+        $parts[0] = $parts[0] == 'end' ? 60 - $minute : $parts[0];
         if ($location_id == 'all') {
             $oModel = new Model(false, 'location', 'backstage');
             $sSQL = <<<SQL
@@ -84,6 +88,7 @@ SQL;
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->output("Full Rebuild                  : $rebuild_text");
+        $this->output("Section                       : {$parts[0]} of {$parts[1]}");
         if (!$rebuild) {
             $start_date = (empty($this->params['start_date'])) ? date('Y-m-d', time() + 2 * 24 * 3600) : $this->params['start_date'];
             $end_date = (empty($this->params['end_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['end_date'];
@@ -112,13 +117,10 @@ SQL;
                     $this->output("End Date          : $end_date");
                     $this->output("");
                     $this->output("---------------------------------------------");
-                    $this->output('Elements cached before clean: ' . $this->mongoResults($location));
                     $this->clean($location, $this->params['metric'], $start_date, $end_date);
                 } else if ($override) {
-                    $this->output('Elements cached before clean: ' . $this->mongoResults($location));
                     $this->clean($location, $this->params['metric'], $start_date, $end_date);
                 }
-                $this->output('Elements cached before rebuild: ' . $this->mongoResults($location));
                 //Prevent empty rollups for customers that don't have sessions
                 $this->getFirstRegisterDate($location);
                 $this->output("Rebuilding rollups");
@@ -127,7 +129,6 @@ SQL;
                     'start_date' => $start_date,
                     'end_date' => $end_date
                 ));
-                $this->output('Elements cached after rebuild: ' . $this->mongoResults($location));
                 $this->output("---------------------------------------------");
                 $this->output("End               : " . date('H:i:s'));
                 $this->output("");
@@ -144,32 +145,11 @@ SQL;
         $this->output("Done!");
     }
 
-    private function mongoResults($location, $start_date = false) {
-        $oModel = new Model(false, 'cache', 'mongodb');
-        if ($start_date) {
-            $aRes = $oModel->find('all', array(
-                'conditions' => array(
-                    "params.location_id" => "$location",
-                    "params.start_date" => "$start_date",
-                )
-            ));
-        } else {
-            $aRes = $oModel->find('all', array(
-                'conditions' => array(
-                    "params.location_id" => "$location"
-                )
-            ));
-        }
-        return count($aRes);
-    }
-
     private function cleanDay($location, $date, $metric) {
-        $oModel = new Model(false, 'cache', 'mongodb');
-        $oModel->deleteAll(array(
-            "params.location_id" => "$location",
-            "params.start_date" => "$date",
-            "params.endpoint" => 'location/' . $metric
-        ));
+        $oModel = new Model(false, 'walkbys', 'rollups');
+        $oDb = $oModel->getDataSource();
+        $sSQL = "DELETE FROM $metric WHERE location_id = :location_id AND date = :date";
+        $oDb->query($sSQL, [':location_id' => $location, ':date' => $date]);
     }
 
     private function clean($location, $metric, $start_date = false, $end_date = false) {
@@ -215,7 +195,7 @@ SQL;
         $parser->addOption('rebuild', array(
             'short' => 'r',
             'default' => false,
-            'help' => 'Delete all the HISTORICAL mongodb info and rebuilds it again'
+            'help' => 'Delete all the HISTORICAL rollups info and rebuilds it again'
         ));
         $parser->addOption('part', array(
             'short' => 'p',
