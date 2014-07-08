@@ -4,9 +4,8 @@ App::uses('DBComponent', 'Controller/Component');
 App::uses('APIComponent', 'Controller/Component');
 
 class LocationComponent extends APIComponent {
-
     //EXAMPLES
-    
+
     /**
      * API Example method
      * @param $params Contains all the request params except access_token
@@ -173,180 +172,188 @@ SQL;
     }
 
     //IOS ENDPOINTS
-    public function whereAmI($params) {}  
-    public function whatIsHere($params){}
-    
-    public function monthlyTotals($params){        
+    public function whereAmI($params) {
+        
+    }
+
+    public function whatIsHere($params) {
+        
+    }
+
+    public function monthlyTotals($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
             'year' => array('required', 'int'),
             'month' => array('required', 'int')
-        );        
+        );
         $this->validate($params, $rules);
-        
-        $start_date = $params['year'].'-'.$params['month'].'-01';
-        $end_date = $params['year'].'-'.($params['month']+1).'-01';
-        
-        $end = new DateTime($end_date);        
-        date_sub($end, date_interval_create_from_date_string('1 days'));           
-        $end_date = date_format($end, 'Y-m-d');        
-        
+
+        $start_date = $params['year'] . '-' . $params['month'] . '-01';
+        $end_date = $params['year'] . '-' . ($params['month'] + 1) . '-01';
+
+        $end = new DateTime($end_date);
+        date_sub($end, date_interval_create_from_date_string('1 days'));
+        $end_date = date_format($end, 'Y-m-d');
+
         $start = new DateTime($start_date);
-        
-        $revenue    = array();
-        $visitors   = array();
-        
-		unset($params['month']);
-		unset($params['year']);
-		$params['start_date'] = $start_date;
-		$params['end_date'] = $end_date;
-		
+
+        $revenue = array();
+        $visitors = array();
+
+        unset($params['month']);
+        unset($params['year']);
+        $params['start_date'] = $start_date;
+        $params['end_date'] = $end_date;
+
         $slave_params = $params;
         $while_closed = $data['data']['transactions_while_closed'];
         $open_total = $while_closed == 'no' ? 'open' : 'total';
-        
+
         $result = [
-            'data'=>[
-                'breakdown'=>[],
-                'totals'=>[
-                    'revenue'=>0,
-                    'visitors'=>0,
-                    'avgRevenueDaily'=>0,
-                    'avgVisitorsDaily'=>0
-                ]
-            ],
-            'options'=>[
-                'endpoint'=>'/location/monthlyTotals',
-                'year'=>$params['year'],
-                'month'=>$params['month'],
-                'location_id'=>$params['location_id']
-            ]
-        ];
-        
-        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
-        $days = ['byWeek'=>[],'total'=>0];
-        $weeks = [];
-        do {
-            $slave_params['end_date'] = $slave_params['start_date'];            
-            
-            $tmp = $this->api->internalCall('location','revenue', $slave_params);            
-            $revenue  = $tmp['data']['totals'][$open_total];
-            
-            $tmp = $this->api->internalCall('location','sensorTraffic', $slave_params);            
-            $visitors  = $tmp['data']['totals']['open']; 
-            
-            $days['total']++;
-            
-            if(!isset($days['byWeek'][date_format($start,'W')])){
-                $days['byWeek'][date_format($start,'W')] = 0;
-                $weeks[date_format($start,'W')]['start'] = date_format($start, 'Y-m-d');
-            }
-            $weeks[date_format($start,'W')]['end'] = date_format($start, 'Y-m-d');
-            
-            $days['byWeek'][date_format($start,'W')]++;            
-            if(!isset($result['data']['breakdown'][date_format($start,'W')])){
-                $result['data']['breakdown'][date_format($start,'W')] = [
+            'data' => [
+                'breakdown' => [],
+                'totals' => [
                     'revenue' => 0,
                     'visitors' => 0,
-                    'avgRevenueDaily'=>0,
-                    'avgVisitorsDaily'=>0
-                ];
-            }            
-            $result['data']['breakdown'][date_format($start,'W')]['revenue'] += $revenue;
-            $result['data']['breakdown'][date_format($start,'W')]['visitors'] += $visitors;
-            $result['data']['totals']['revenue'] += $revenue;            
-            $result['data']['totals']['visitors'] += $visitors;            
-            
-            date_add($start, date_interval_create_from_date_string('1 days'));          
-            $slave_params['start_date'] = date_format($start, 'Y-m-d');
-            
-        } while ($start <= $end);      
-        
-        foreach($days['byWeek'] as $w=>$c){
-            $result['data']['breakdown'][$w]['start_date'] = $weeks[$w]['start'];
-            $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
-            $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c,2);
-            $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c,2);            
-        }
-        
-        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'],2);
-        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'],2);
-        
-        return $result;
-    }
-    public function historicalTotals($params){
-        $rules = array('location_id' => array('required', 'int'));        
-        $this->validate($params, $rules);
-        
-        $start_date = $params['year'].'-'.$params['month'].'-01';
-        $end_date = date('Y-m-d');    
-        
-        $start = new DateTime($start_date);
-        
-        $revenue    = array();
-        $visitors   = array();
-        
-		unset($params['month']);
-		unset($params['year']);
-		$params['start_date'] = $start_date;
-		$params['end_date'] = $end_date;
-		
-        $slave_params = $params;
-        $while_closed = $data['data']['transactions_while_closed'];
-        $open_total = $while_closed == 'no' ? 'open' : 'total';
-        
-        $result = [
-            'data'=>[
-                'totals'=>[
-                    'revenue'=>0,
-                    'visitors'=>0,
-                    'avgRevenueDaily'=>0,
-                    'avgVisitorsDaily'=>0
+                    'avgRevenueDaily' => 0,
+                    'avgVisitorsDaily' => 0
                 ]
             ],
-            'options'=>[
-                'endpoint'=>'/location/historicalTotals',
-                'location_id'=>$params['location_id']
+            'options' => [
+                'endpoint' => '/location/monthlyTotals',
+                'year' => $params['year'],
+                'month' => $params['month'],
+                'location_id' => $params['location_id']
+            ]
+        ];
+
+        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+        $days = ['byWeek' => [], 'total' => 0];
+        $weeks = [];
+        do {
+            $slave_params['end_date'] = $slave_params['start_date'];
+
+            $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
+            $revenue = $tmp['data']['totals'][$open_total];
+
+            $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
+            $visitors = $tmp['data']['totals']['open'];
+
+            $days['total'] ++;
+
+            if (!isset($days['byWeek'][date_format($start, 'W')])) {
+                $days['byWeek'][date_format($start, 'W')] = 0;
+                $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
+            }
+            $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
+
+            $days['byWeek'][date_format($start, 'W')] ++;
+            if (!isset($result['data']['breakdown'][date_format($start, 'W')])) {
+                $result['data']['breakdown'][date_format($start, 'W')] = [
+                    'revenue' => 0,
+                    'visitors' => 0,
+                    'avgRevenueDaily' => 0,
+                    'avgVisitorsDaily' => 0
+                ];
+            }
+            $result['data']['breakdown'][date_format($start, 'W')]['revenue'] += $revenue;
+            $result['data']['breakdown'][date_format($start, 'W')]['visitors'] += $visitors;
+            $result['data']['totals']['revenue'] += $revenue;
+            $result['data']['totals']['visitors'] += $visitors;
+
+            date_add($start, date_interval_create_from_date_string('1 days'));
+            $slave_params['start_date'] = date_format($start, 'Y-m-d');
+        } while ($start <= $end);
+
+        foreach ($days['byWeek'] as $w => $c) {
+            $result['data']['breakdown'][$w]['start_date'] = $weeks[$w]['start'];
+            $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
+            $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c, 2);
+            $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c, 2);
+        }
+
+        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
+        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
+
+        return $result;
+    }
+
+    public function historicalTotals($params) {
+        $rules = array('location_id' => array('required', 'int'));
+        $this->validate($params, $rules);
+        
+        $result = [
+            'data' => [
+                'totals' => [
+                    'revenue' => 0,
+                    'visitors' => 0,
+                    'avgRevenueDaily' => 0,
+                    'avgVisitorsDaily' => 0
+                ]
+            ],
+            'options' => [
+                'endpoint' => '/location/historicalTotals',
+                'location_id' => $params['location_id']
             ]
         ];
         
+        $start_date = coalesce(firstPurchase($params['location_id']), firstSensor($params['location_id']));
+        if(empty($start_date)){
+            return $result;
+        }
+        
+        $end_date = date('Y-m-d');
+
+        $start = new DateTime($start_date);
+
+        $revenue = array();
+        $visitors = array();
+
+        unset($params['month']);
+        unset($params['year']);
+        $params['start_date'] = $start_date;
+        $params['end_date'] = $end_date;
+
+        $slave_params = $params;
+        $while_closed = $data['data']['transactions_while_closed'];
+        $open_total = $while_closed == 'no' ? 'open' : 'total';       
+
         $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
-        $days = ['byWeek'=>[],'total'=>0];
+        $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
         do {
-            $slave_params['end_date'] = $slave_params['start_date'];            
-            
-            $tmp = $this->api->internalCall('location','revenue', $slave_params);            
-            $revenue  = $tmp['data']['totals'][$open_total];
-            
-            $tmp = $this->api->internalCall('location','sensorTraffic', $slave_params);            
-            $visitors  = $tmp['data']['totals']['open']; 
-            
-            $days['total']++;
-            
-            if(!isset($days['byWeek'][date_format($start,'W')])){
-                $days['byWeek'][date_format($start,'W')] = 0;
-                $weeks[date_format($start,'W')]['start'] = date_format($start, 'Y-m-d');
+            $slave_params['end_date'] = $slave_params['start_date'];
+
+            $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
+            $revenue = $tmp['data']['totals'][$open_total];
+
+            $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
+            $visitors = $tmp['data']['totals']['open'];
+
+            $days['total'] ++;
+
+            if (!isset($days['byWeek'][date_format($start, 'W')])) {
+                $days['byWeek'][date_format($start, 'W')] = 0;
+                $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
             }
-            $weeks[date_format($start,'W')]['end'] = date_format($start, 'Y-m-d');
-            
-            $days['byWeek'][date_format($start,'W')]++;                    
-            $result['data']['totals']['revenue'] += $revenue;            
-            $result['data']['totals']['visitors'] += $visitors;            
-            
-            date_add($start, date_interval_create_from_date_string('1 days'));          
+            $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
+
+            $days['byWeek'][date_format($start, 'W')] ++;
+            $result['data']['totals']['revenue'] += $revenue;
+            $result['data']['totals']['visitors'] += $visitors;
+
+            date_add($start, date_interval_create_from_date_string('1 days'));
             $slave_params['start_date'] = date_format($start, 'Y-m-d');
-            
-        } while ($start <= $end);      
-        
-        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'],2);
-        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'],2);
-        
+        } while ($start <= $end);
+
+        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
+        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
+
         return $result;
     }
-    
+
     //OTHER ENDPOINTS
-    
+
     public function openHours($params) {
         $data = $this->api->internalCall('location', 'data', $params);
         $return = $this->weekdays;
@@ -360,14 +367,15 @@ SQL;
         }
         $result = array('data' => $return);
         $result['options'] = array(
-            'endpoint'  => 'location/openHours',
+            'endpoint' => 'location/openHours',
             'location_id' => $params['location_id'],
-            'start_date'=> $params['start_date'],
-            'end_date'  => $params['end_date'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
         );
         return $result;
     }
-    public function totals($params) {        
+
+    public function totals($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
             'start_date' => array('required', 'date'),
@@ -393,20 +401,18 @@ SQL;
             ['location', 'totalItems', $open_total],
             ['location', 'conversionRate', $open_total],
             ['location', 'itemsPerTransaction', $open_total],
-            
             ['location', 'traffic', 'total'],
             ['location', 'devices', 'total'],
             ['location', 'timeInShop', 'total'],
             ['location', 'totalItems', $open_total],
-            
         ];
         if ($params['start_date'] != $params['end_date']) {
             $result = $this->iterativeTotals('location', __FUNCTION__, $params);
-            $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'],1),2);
-            $result['windowConversion'] = round(($result['traffic'] / coalesce($result['devices'],coalesce($result['traffic'], 1)))*100,2);
-            $result['conversionRate'] = round(($result['transactions'] / coalesce($result['footTraffic'],  coalesce($result['transactions'], 1)))*100,2);
-            $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'],1),2);
-            $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'],1),2);
+            $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'], 1), 2);
+            $result['windowConversion'] = round(($result['traffic'] / coalesce($result['devices'], coalesce($result['traffic'], 1))) * 100, 2);
+            $result['conversionRate'] = round(($result['transactions'] / coalesce($result['footTraffic'], coalesce($result['transactions'], 1))) * 100, 2);
+            $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'], 1), 2);
+            $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'], 1), 2);
             return $result;
         } else {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
@@ -422,6 +428,7 @@ SQL;
             return $result;
         }
     }
+
     public function walkbys($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
@@ -474,8 +481,8 @@ SQL;
         // Set validation rules and validate parameters
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
 
@@ -509,11 +516,12 @@ SQL;
         // return formatted result
         return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
     }
+
     public function purchaseInfo($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -564,11 +572,12 @@ SQL;
             return $aRes;
         }
     }
+
     public function transactions($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -581,11 +590,12 @@ SQL;
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', __FUNCTION__);
         }
     }
+
     public function revenue($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -598,11 +608,12 @@ SQL;
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', __FUNCTION__);
         }
     }
+
     public function totalItems($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -615,6 +626,7 @@ SQL;
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', 'total_items');
         }
     }
+
     private function returningByHour($start_date, $end_date, $timezone, $location_id, $ap_id, $factor) {
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
         $sSQL = <<<SQL
@@ -662,6 +674,7 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     private function returningByDate($date, $data, $timezone, $location_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
@@ -693,11 +706,12 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     public function returning($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -706,7 +720,7 @@ SQL;
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
-            $factor   = $data['data']['traffic_factor'];
+            $factor = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
@@ -714,6 +728,7 @@ SQL;
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
         }
     }
+
     private function footTrafficByHour($start_date, $end_date, $timezone, $location_id, $ap_id, $factor) {
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
         $sSQL = <<<SQL
@@ -752,6 +767,7 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     private function footTrafficByDate($date, $data, $timezone, $location_id, $ap_id, $factor) {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
@@ -772,11 +788,12 @@ SQL;
         $oDb = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
+
     public function footTraffic($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -793,11 +810,12 @@ SQL;
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
         }
     }
+
     public function timeInShop($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -844,11 +862,12 @@ SQL;
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2');
         }
     }
+
     public function traffic($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -886,11 +905,12 @@ SQL;
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0);
         }
     }
+
     public function devices($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date'  => array('required', 'date'),
-            'end_date'    => array('required', 'date')
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
@@ -930,7 +950,6 @@ SQL;
         }
     }
 
-    
     //Rates
     public function itemsPerTransaction($params) {
         $tt = $this->api->internalCall('location', 'totalItems', $params);
@@ -944,18 +963,20 @@ SQL;
         );
         return $result;
     }
+
     public function windowConversion($params) {
         $ft = $this->api->internalCall('location', 'traffic', $params);
         $nd = $this->api->internalCall('location', 'devices', $params);
         $result = $this->percentify($ft, $nd);
         $result['options'] = array(
-            'endpoint'    => '/location/' . __FUNCTION__,
+            'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date'  => $params['start_date'],
-            'end_date'    => $params['end_date'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
         );
         return $result;
     }
+
     public function avgTicket($params) {
         $re = $this->api->internalCall('location', 'revenue', $params);
         $tr = $this->api->internalCall('location', 'transactions', $params);
@@ -963,11 +984,12 @@ SQL;
         $result['options'] = array(
             'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date'  => $params['start_date'],
-            'end_date'    => $params['end_date'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
         );
         return $result;
     }
+
     public function conversionRate($params) {
         $tr = $this->api->internalCall('location', 'transactions', $params);
         $ft = $this->api->internalCall('location', 'footTraffic', $params);
@@ -975,11 +997,12 @@ SQL;
         $result['options'] = array(
             'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date'  => $params['start_date'],
-            'end_date'    => $params['end_date'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
         );
         return $result;
     }
+
     public function dwell($params) {
         $ts = $this->api->internalCall('location', 'timeInShop', $params);
         $tr = $this->api->internalCall('location', 'traffic', $params);
@@ -987,12 +1010,12 @@ SQL;
         $result['options'] = array(
             'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date'  => $params['start_date'],
-            'end_date'    => $params['end_date'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
         );
         return $result;
     }
-    
+
     //MISC
     public function data($params) {
         $rules = array('location_id' => array('required', 'int'));
@@ -1054,7 +1077,6 @@ SQL;
             }
         }
         return $tmp;
-    } 
+    }
 
-   
 }
