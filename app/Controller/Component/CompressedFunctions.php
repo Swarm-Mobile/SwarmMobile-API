@@ -276,7 +276,7 @@ function firstPurchase($location_id){
     $oLocation = $oLocation->find('first',['conditions'=>['Location.id'=>$location_id]]);
     $sSQL = <<<SQL
 SELECT DATE(ts) as first_date
-FROM stores s
+FROM invoices s
 WHERE store_id = :store_id     
 ORDER BY ts DESC
 LIMIT 1
