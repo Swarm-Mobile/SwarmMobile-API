@@ -1065,7 +1065,7 @@ SQL;
             $tmp['data']['timezone'] = 'America/Los_Angeles';
         }
         foreach (array('open', 'close') as $state) {
-            if (empty($tmp['data']['location_' . $state])) {
+            if (in_array($tmp['data']['location_' . $state], [null,''], true)) {
                 $tmp['data']['location_' . $state] = $state == 'open' ? '09:00' : '21:00';
             }
             foreach ($this->weekdays as $day) {
