@@ -532,7 +532,7 @@ SQL;
             $table = 'invoices';
             $oDb = DBComponent::getInstance($table, 'pos');
             $aRes = array();
-            if (!empty($lightspeed_id)) {
+            if (!isset($lightspeed_id)) {
                 $sSQL = <<<SQL
 SELECT 
     COUNT(*) as transactions,
