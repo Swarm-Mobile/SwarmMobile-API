@@ -30,24 +30,24 @@ class APIController extends AppController {
 
     public $default_cache_time = 300;
     public $cache_time_exceptions = array();
-	public $cache_methods = [
-		'avgTicket',
-		'conversionRate',
-		'devices',
-		'dwell',
-		'footTraffic',
-		'itemsPerTransaction',
-		'returning',
-		'revenue',
-		'sensorTraffic',
-		'timeInShop',
-		'totalItems',
-		'totals',
-		'traffic',
-		'transactions',
-		'walkbys',
-		'windowConversion',
-	];
+    public $cache_methods = [
+        'avgTicket',
+        'conversionRate',
+        'devices',
+        'dwell',
+        'footTraffic',
+        'itemsPerTransaction',
+        'returning',
+        'revenue',
+        'sensorTraffic',
+        'timeInShop',
+        'totalItems',
+        'totals',
+        'traffic',
+        'transactions',
+        'walkbys',
+        'windowConversion',
+    ];
     public $uses = array('Inbox');
     public $debug = false;
     public $cache = true;
@@ -263,7 +263,7 @@ SQL;
                     $open = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
                     $tmp = $data['data'][$weekday . '_close'];
                     $close = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
-                    return [
+                    $to_return = [
                         'data' => [
                             'totals' => [
                                 'open' => $aRes[0][$method]['total_open'],
@@ -308,12 +308,13 @@ SQL;
                             ],
                         ],
                         'options' => [
-                            'endpoint' => '/'.$component . '/' . $method,
+                            'endpoint' => '/' . $component . '/' . $method,
                             'location_id' => $params['location_id'],
                             'start_date' => $params['start_date'],
                             'end_date' => $params['end_date']
                         ]
                     ];
+                    return $this->nightClubCacheFormat($data, $to_return);
                 } else {
                     return [
                         'walkbys' => $aRes[0][$method]['walkbys'],
@@ -336,6 +337,27 @@ SQL;
             }
         }
         return false;
+    }
+
+    private function nightClubCacheFormat($data, $result) {
+        if (@$data['data']['nightclub_hours'] == 'yes') {
+            $ncResult = array();
+            $ncResult['options'] = $result['options'];
+            $ncResult['data']['totals'] = $result['data']['totals'];
+            foreach ($result['data']['breakdown'] as $date => $values) {
+                $ncResult['data']['breakdown'][$date]['totals'] = $values['totals'];
+                foreach ($values['hours'] as $h => $v) {
+                    $tzLocal = $this->getLocalTimezone($data['data']['timezone']);
+                    $tzNC = $this->getNightClubTimezone($data);
+                    $tmp = new DateTime("2014-01-01 $h:00:00", $tzLocal);
+                    $tmp = $tmp->setTimezone(new DateTimeZone($tzNC));
+                    $h = $tmp->format('H');
+                    $ncResult['data']['breakdown'][$date]['hours'][$h] = $v;
+                }
+            }
+            return $ncResult;
+        }
+        return $result;
     }
 
     private function getCacheFilePath($component, $method, $params) {
@@ -411,33 +433,33 @@ SQL;
 INSERT IGNORE INTO $method
     SET date = '$date',
         location_id = $location_id,
-        total_open = ".coalesce($result['data']['breakdown'][$date]['totals']['open'],0).",
-        total_close = ".coalesce($result['data']['breakdown'][$date]['totals']['close'],0).",
-        total_total = ".coalesce($result['data']['breakdown'][$date]['totals']['total'],0).",
-        h00 = ".coalesce($result['data']['breakdown'][$date]['hours']['00']['total'],0).",
-        h01 = ".coalesce($result['data']['breakdown'][$date]['hours']['01']['total'],0).",
-        h02 = ".coalesce($result['data']['breakdown'][$date]['hours']['02']['total'],0).",
-        h03 = ".coalesce($result['data']['breakdown'][$date]['hours']['03']['total'],0).",
-        h04 = ".coalesce($result['data']['breakdown'][$date]['hours']['04']['total'],0).",
-        h05 = ".coalesce($result['data']['breakdown'][$date]['hours']['05']['total'],0).",
-        h06 = ".coalesce($result['data']['breakdown'][$date]['hours']['06']['total'],0).",
-        h07 = ".coalesce($result['data']['breakdown'][$date]['hours']['07']['total'],0).",
-        h08 = ".coalesce($result['data']['breakdown'][$date]['hours']['08']['total'],0).",
-        h09 = ".coalesce($result['data']['breakdown'][$date]['hours']['09']['total'],0).",
-        h10 = ".coalesce($result['data']['breakdown'][$date]['hours']['10']['total'],0).",
-        h11 = ".coalesce($result['data']['breakdown'][$date]['hours']['11']['total'],0).",
-        h12 = ".coalesce($result['data']['breakdown'][$date]['hours']['12']['total'],0).",
-        h13 = ".coalesce($result['data']['breakdown'][$date]['hours']['13']['total'],0).",
-        h14 = ".coalesce($result['data']['breakdown'][$date]['hours']['14']['total'],0).",
-        h15 = ".coalesce($result['data']['breakdown'][$date]['hours']['15']['total'],0).",
-        h16 = ".coalesce($result['data']['breakdown'][$date]['hours']['16']['total'],0).",
-        h17 = ".coalesce($result['data']['breakdown'][$date]['hours']['17']['total'],0).",
-        h18 = ".coalesce($result['data']['breakdown'][$date]['hours']['18']['total'],0).",
-        h19 = ".coalesce($result['data']['breakdown'][$date]['hours']['19']['total'],0).",
-        h20 = ".coalesce($result['data']['breakdown'][$date]['hours']['20']['total'],0).",
-        h21 = ".coalesce($result['data']['breakdown'][$date]['hours']['21']['total'],0).",
-        h22 = ".coalesce($result['data']['breakdown'][$date]['hours']['22']['total'],0).",
-        h23 = ".coalesce($result['data']['breakdown'][$date]['hours']['23']['total'],0).",
+        total_open = " . coalesce($result['data']['breakdown'][$date]['totals']['open'], 0) . ",
+        total_close = " . coalesce($result['data']['breakdown'][$date]['totals']['close'], 0) . ",
+        total_total = " . coalesce($result['data']['breakdown'][$date]['totals']['total'], 0) . ",
+        h00 = " . coalesce($result['data']['breakdown'][$date]['hours']['00']['total'], 0) . ",
+        h01 = " . coalesce($result['data']['breakdown'][$date]['hours']['01']['total'], 0) . ",
+        h02 = " . coalesce($result['data']['breakdown'][$date]['hours']['02']['total'], 0) . ",
+        h03 = " . coalesce($result['data']['breakdown'][$date]['hours']['03']['total'], 0) . ",
+        h04 = " . coalesce($result['data']['breakdown'][$date]['hours']['04']['total'], 0) . ",
+        h05 = " . coalesce($result['data']['breakdown'][$date]['hours']['05']['total'], 0) . ",
+        h06 = " . coalesce($result['data']['breakdown'][$date]['hours']['06']['total'], 0) . ",
+        h07 = " . coalesce($result['data']['breakdown'][$date]['hours']['07']['total'], 0) . ",
+        h08 = " . coalesce($result['data']['breakdown'][$date]['hours']['08']['total'], 0) . ",
+        h09 = " . coalesce($result['data']['breakdown'][$date]['hours']['09']['total'], 0) . ",
+        h10 = " . coalesce($result['data']['breakdown'][$date]['hours']['10']['total'], 0) . ",
+        h11 = " . coalesce($result['data']['breakdown'][$date]['hours']['11']['total'], 0) . ",
+        h12 = " . coalesce($result['data']['breakdown'][$date]['hours']['12']['total'], 0) . ",
+        h13 = " . coalesce($result['data']['breakdown'][$date]['hours']['13']['total'], 0) . ",
+        h14 = " . coalesce($result['data']['breakdown'][$date]['hours']['14']['total'], 0) . ",
+        h15 = " . coalesce($result['data']['breakdown'][$date]['hours']['15']['total'], 0) . ",
+        h16 = " . coalesce($result['data']['breakdown'][$date]['hours']['16']['total'], 0) . ",
+        h17 = " . coalesce($result['data']['breakdown'][$date]['hours']['17']['total'], 0) . ",
+        h18 = " . coalesce($result['data']['breakdown'][$date]['hours']['18']['total'], 0) . ",
+        h19 = " . coalesce($result['data']['breakdown'][$date]['hours']['19']['total'], 0) . ",
+        h20 = " . coalesce($result['data']['breakdown'][$date]['hours']['20']['total'], 0) . ",
+        h21 = " . coalesce($result['data']['breakdown'][$date]['hours']['21']['total'], 0) . ",
+        h22 = " . coalesce($result['data']['breakdown'][$date]['hours']['22']['total'], 0) . ",
+        h23 = " . coalesce($result['data']['breakdown'][$date]['hours']['23']['total'], 0) . ",
         ts_creation = NOW(),
         ts_update = NOW()
 ";
