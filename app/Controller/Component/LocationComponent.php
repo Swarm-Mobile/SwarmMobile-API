@@ -836,6 +836,228 @@ SQL;
         return $result;
     }
     
+    /**
+     * Get location settings
+     *
+     * @param Array
+     */
+    public function getSettings($params) {
+        if(empty($params['location_id'])) {
+            throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
+        }
+        if(empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'A valid uuid is needed to fetch settings.');
+        }
+        $this->verify($params);
+        $location_id = $params['location_id'];
+        if(!Location::locationExists($location_id)) {
+            throw new APIException(400, 'bad_request', 'Location not found.');
+        }
+        
+        $oDb = DBComponent::getInstance('location_setting', 'backstage');
+        $sSQL = <<<SQL
+SELECT s.label, s.name, ls.setting_id, ls.value
+    FROM setting s JOIN location_setting ls on s.id=ls.setting_id
+    WHERE ls.location_id=$location_id
+SQL;
+        $aRes = $oDb->fetchAll($sSQL);
+        $data['data'] = array();
+        $data['data']['settings'] = array();
+        foreach ($aRes as $set) {
+            $data['data']['settings'][$set['s']['name']] = array(
+                'label'      => $set['s']['label'], 
+                'setting_id' => $set['ls']['setting_id'],
+                'value'      => $set['ls']['value']
+            );
+        }
+        $data['options'] = array(
+            'endpoint'    => '/location/'. __FUNCTION__,
+            'location_id' => $location_id
+        );
+        return $data;
+    }
+
+    /**
+     * Update location settings
+     *
+     * @param Array
+     */
+    public function updateSettings($params) {
+        if (!$this->api->request->is('post')) {
+            throw new APIException(400, 'bad_request', 'Incorrect request method');
+        }
+        if(empty($params['location_id'])) {
+            throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
+        }
+        if(empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'A valid uuid is needed to fetch settings.');
+        }
+        $this->verify($params);
+        $location_id = $params['location_id'];
+        $oSettings =  new Setting();
+        $settingIds  = $oSettings->find('list', array('fields' => array('id')));
+        $update = array();
+        if (!empty($params['Location'][$location_id])) {
+            if (!empty($params['Location']['name'])) {
+                $sSQL = <<<SQL
+UPDATE location 
+    SET name = :name
+    WHERE location_id = :location_id
+SQL;
+                $oDb->query($sSQL, array(
+                        'name' => $params['Location']['name'],
+                        'location_id'  => $location_id,
+                    ));
+            }
+
+            foreach($params['Location'][$location_id] as $key => $val) {
+                unset($settId);
+                if (!is_numeric($key)) {
+                    $sett_id = settId($key);
+                } else {
+                    if(in_array($key, $settingIds)) {
+                        $sett_id = $key;
+                    }
+                }
+                if (!empty($sett_id)) {
+                    $update[$sett_id] = $val;
+                }
+            }
+            if (!empty($update)) {
+                $oDb  = DBComponent::getInstance('location_setting', 'backstage');
+                 
+                foreach($update as $key => $val) {
+                    $sSQL = <<<SQL
+INSERT INTO location_setting 
+    SET location_id = :location_id,
+        setting_id  = :setting_id,
+        value = :value
+    ON DUPLICATE KEY UPDATE value = :value
+SQL;
+                    $ret = $oDb->query($sSQL, array(
+                        'location_id' => $location_id,
+                        'setting_id'  => $key,
+                        'value' => $val
+                    ));
+                }
+                return array(
+                    'options' => array(
+                        'endpoint' => '/location/'. __FUNCTION__,
+                        'uuid' => $params['uuid'],
+                        'location_id' => $params['uuid']
+                    ),
+                    'message' => array(
+                        'success' => 'Settings have been successfully saved.'
+                    )
+                );
+            }
+        } else {
+            return array(
+                'options' => array(
+                    'endpoint' => '/location/'. __FUNCTION__,
+                ),
+                'message' => array(
+                    'success' => 'Nothing to update.'
+                )
+            );
+        }
+    }
+
+    /**
+     * Create a new location
+     * 
+     * @param Array post data
+     */
+    public function create($params) {
+        if (!$this->api->request->is('post')) {
+            throw new APIException(400, 'bad_request', 'Incorrect request method.');
+        }
+        $uuid = '';
+        $user_id = NULL;
+        $user = array();
+        $location = new Location();
+        $location->set($params);
+        if (empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'A valid UUID is needed to create a new location.');
+        }
+
+        if (!$location->validates()) {
+            $this->handleValidationErrors($location->validationErrors);
+        }
+        if ($params['name'] == $params['address1']) {
+            throw new APIException(400, 'bad_request', "Store name and address cannot be the same.");
+        }
+        $uuid = $params['uuid'];
+        if (empty($params['user_id'])) {
+            $user = $this->getUserFromUUID($uuid);
+            $user_id = $user[0]['user']['id'];
+        }
+        
+        $locationmanager_id = $this->getLocationManagerId($user_id);
+        
+        $oDb  = DBComponent::getInstance('location_setting', 'backstage');
+        $reseller_id = (!empty($params['reseller_id'])) ? $params['reseller_id'] : NULL;
+        
+        // Create a new Location
+        $sSQL = <<<SQL
+INSERT INTO location
+    SET name = :name,
+        ts_creation = CURRENT_TIMESTAMP,
+        reseller_id = :reseller_id
+SQL;
+        $oDb->query($sSQL, array(
+            ':name' => $params['name'],
+            ':reseller_id'  => $reseller_id,
+        ));
+        $location_id = $oDb->lastInsertId();
+
+        // Add addresss location settings
+        foreach(['address1', 'address2', 'city', 'state', 'country', 'zipcode'] as $key) {
+            if (in_array($key, $params)) {
+                $sett_id = settId($key);
+                $sSQL = <<<SQL
+INSERT INTO location_setting 
+    SET location_id = :location_id,
+        setting_id  = :setting_id,
+        value = :value
+    ON DUPLICATE KEY UPDATE value = :value
+SQL;
+                $oDb->query($sSQL, array(
+                    'location_id' => $location_id,
+                    'setting_id'  => $sett_id,
+                    'value' => $params[$key]
+                ));
+            }
+        }
+
+        // Create locationmanager to location map
+        $sSQL = <<<SQL
+INSERT INTO locationmanager_location
+    SET location_id = :location_id,
+        locationmanager_id = :locationmanager_id
+SQL;
+
+        $oDb->query($sSQL, array(
+            'location_id' => $location_id,
+            'locationmanager_id'  => $locationmanager_id
+        ));
+        
+        return array(
+            'data' => array (
+                'user_id' => $user_id,
+                'locationmanager_id' => $locationmanager_id,
+                'location_id' => $location_id
+            ),
+            'options' =>  array(
+                'endpoint' => '/location/'. __FUNCTION__,
+                'uuid' => $uuid
+            ),
+            'message' => array(
+                'success' => 'Location has been successfully created.'
+            ) 
+        );
+    }
+
     public function data($params) {
         $rules = array('location_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -896,5 +1118,69 @@ SQL;
             }
         }
         return $tmp;
-    } 
+    }
+
+    /**
+     * Verify if the the user has access to the location
+     * 
+     * @param Array 
+     */
+    private function verify($params) {
+        $rules = array('location_id' => array('required', 'int'), 'uuid' => array('required'));
+        $this->validate($params, $rules);
+        $location_id = $params['location_id'];
+        $uuid = $params['uuid'];
+
+        $aRes = $this->getUserFromUUID($uuid);
+        if(empty($aRes)) throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+
+        $user_id = $aRes[0]['user']['id'];
+        $oDb  = DBComponent::getInstance('location', 'backstage');
+        // Check for location and user map
+        switch($aRes[0]['user']['usertype_id']) {
+            case 1:
+                return true;
+                break;
+            case 2:
+                return true;
+                break;
+            case 4:
+               $sSQL = <<<SQL
+SELECT  lml.location_id
+    FROM locationmanager l JOIN locationmanager_location lml
+    ON l.id=lml.locationmanager_id
+    WHERE l.user_id="$user_id"
+SQL;
+             $locations = $oDb->fetchAll($sSQL);
+             break;
+            case 5:
+                 $sSQL = <<<SQL
+SELECT  le.location_id
+    FROM employee e JOIN location_employee le
+    ON e.id=le.employee_id
+    WHERE e.user_id="$user_id"
+SQL;
+             $locations = $oDb->fetchAll($sSQL);
+             break;
+        }
+        foreach($locations as $loc) {
+            if (!empty($loc['lml']['location_id']) && $loc['lml']['location_id'] == $location_id){
+                return true;
+            }
+        }
+        
+        throw new APIException(400, 'bad_request', 'User not associated to the location provided.');
+    }
+    
+    private function getLocationManagerId($user_id) {
+        if(empty($user_id)) return false;
+        $oDb = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT id
+    FROM locationmanager
+    WHERE user_id="$user_id" LIMIT 1
+SQL;
+        $manager =  $oDb->fetchAll($sSQL);
+        return $manager[0]['locationmanager']['id'];
+    }
 }

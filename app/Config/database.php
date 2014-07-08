@@ -102,14 +102,14 @@ class DATABASE_CONFIG {
             'prefix' => '',
             'persistent' => true
         ),
-        'mongodb' => array(
+        /*'mongodb' => array(
             'datasource' => 'Mongodb.MongodbSource',
             'host' => 'ec2-50-18-84-202.us-west-1.compute.amazonaws.com',
             'database' => 'API',
             'port' => 27017,
             'prefix' => '',
             'persistent' => true
-        ),
+        ),*/
         'oauth' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
@@ -274,7 +274,7 @@ class DATABASE_CONFIG {
             'swarmdata',
             'swarmdataRead',
             'pos',
-            'mongodb',
+            //'mongodb',
             'oauth',
             'backstage',
             'consumerAPI',

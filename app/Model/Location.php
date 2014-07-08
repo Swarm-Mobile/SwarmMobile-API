@@ -32,30 +32,18 @@ class Location extends AppModel {
                 'required' => true,
             ),
         ),
-        'state' => array(
-            'notEmpty' => array(
-                'rule' => array('notEmpty'),
-                'required' => true,
-            ),
-        ),
         'zipcode' => array(
-            'numeric' => array(
-                'rule' => array('notEmpty'),
-                'required' => true,
-            ),
-        ),
-        'email' => array(
             'notEmpty' => array(
                 'rule' => array('notEmpty'),
                 'required' => true,
             ),
         ),
-        'accountmanager_id' => array(
+        'country' => array(
             'notEmpty' => array(
                 'rule' => array('notEmpty'),
-                'required' => false,
+                'required' => true,
             ),
-        ),
+        )
     );
 
 }

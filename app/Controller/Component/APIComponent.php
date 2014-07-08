@@ -1,7 +1,6 @@
 <?php
 
 require_once 'DBComponent.php';
-
 class APIComponent {
 
     public $api;
@@ -23,7 +22,6 @@ class APIComponent {
     public $archive_start_date = false;
     public $archive_end_date = false;
     public $request = false;
-
     public function __call($name, $arguments) {
         throw new APIException(404, 'endpoint_not_found', "The requested reference method don't exists");
     }
@@ -63,7 +61,7 @@ class APIComponent {
                         case 'required':
                             if (empty($params[$param])) {
                                 throw new APIException(
-                                501, 'required_param_not_found', "Param $param is required and isn't found on the request."
+                                501, 'required_param_not_found', "Param $param is required and was not found in the request."
                                 );
                             }
                             break;
@@ -654,5 +652,31 @@ SQL;
         $table = ($this->archived($start_date)) ? 'sessions_archive' : 'sessions';
         return $table;
     }
+    
+    public function handleValidationErrors($errors) {
+        foreach ($errors as $key=>$values) {
+            foreach ($values as $val) {
+                if ($val === 'notEmpty') {
+                    throw new APIException(400, 'validation_error', "$key cannot be empty.");
+                } elseif ($val === 'email') {
+                    throw new APIException(400, 'validation_error', "Please enter a valid email.");
+                } elseif ($val === 'minLength' && $key == 'username') {
+                    throw new APIException(400, 'validation_error', "Username has to be atleast 3 characters long.");
+                } elseif ($val === 'minLength' && $key == 'password') {
+                    throw new APIException(400, 'validation_error', 'Password needs to be atleast 5 characters long.');
+                }
+            }
+        }
+    }
 
+    protected function getUserFromUUID($uuid) {
+        if(empty($uuid)) return false;
+        $oDb = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT id, usertype_id, username, email
+    FROM user
+    WHERE uuid="$uuid" LIMIT 1
+SQL;
+        return $oDb->fetchAll($sSQL);
+    }
 }

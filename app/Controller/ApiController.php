@@ -9,14 +9,14 @@ App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('AppController', 'Controller');
 App::uses('Model', 'Model');
 App::uses('RequestModel', 'Model');
-
+App::uses('User', 'Model');
 App::uses('Location', 'Model');
 App::uses('Setting', 'Model');
 App::uses('SettingGroup', 'Model');
 
 //ONE for every component that extends from APIComponent
 App::uses('PortalComponent', 'Controller/Component');
-App::uses('ConsumerComponent', 'Controller/Component');
+//App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('OAuthClientComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
@@ -44,7 +44,6 @@ class APIController extends AppController {
     public $response_message = 'OK';
     public $params = array();
     public $helpers = array('Html', 'Session');
-
     // Controller Actions
     public function logout() {
         $this->Session->destroy('User');
@@ -99,7 +98,9 @@ class APIController extends AppController {
         header("Access-Control-Allow-Methods: POST, GET");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
         header("Access-Control-Max-Age: 1728000");
-        header("Content-Type: application/json; charset=UTF-8");
+        header("Access-Control-Max-Age: 1728000");
+        header("Pragma: no-cache");
+        header("Cache-Contro;: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
         try {
             if ($this->request->is('get')) {
                 $params = $_GET;
@@ -137,6 +138,7 @@ class APIController extends AppController {
 
     // Internal functions
     private function call_log() {
+        return;
         $this->request_end = date('Y-m-d H:i:s');
         $oModel = new Model(false, 'calls', 'mongodb');
         $call = array(
@@ -222,23 +224,23 @@ class APIController extends AppController {
             }
         }         
          */
-        if ($this->rollups && $component == 'location' && $method != 'data') {
-            $oModel = new Model(false, 'cache', 'mongodb');
-            $conditions = array("params" => array());
-            foreach ($params as $k => $v) {
-                $conditions['params'][$k] = $v;
-            }
-            $conditions['params']['endpoint'] = $component . '/' . $method;
-            $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
-            if (isset($aRes['Model'])) {
-                unset($aRes['Model']['id']);
-                unset($aRes['Model']['params']);
-                unset($aRes['Model']['modified']);
-                unset($aRes['Model']['created']);
-                $this->cache($component, $method, $params, $aRes['Model'], true);
-                return $aRes['Model'];
-            }
-        }
+        // if ($this->rollups && $component == 'location' && $method != 'data') {
+            // $oModel = new Model(false, 'cache', 'mongodb');
+            // $conditions = array("params" => array());
+            // foreach ($params as $k => $v) {
+                // $conditions['params'][$k] = $v;
+            // }
+            // $conditions['params']['endpoint'] = $component . '/' . $method;
+            // $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
+            // if (isset($aRes['Model'])) {
+                // unset($aRes['Model']['id']);
+                // unset($aRes['Model']['params']);
+                // unset($aRes['Model']['modified']);
+                // unset($aRes['Model']['created']);
+                // $this->cache($component, $method, $params, $aRes['Model'], true);
+                // return $aRes['Model'];
+            // }
+        // }
         return false;
     }
 
@@ -301,23 +303,23 @@ class APIController extends AppController {
             }             
              */
             if ($this->rollups) {
-                if (!$from_mongo && $component == 'location' && $method != 'data') {
-                    $oModel = new Model(false, 'cache', 'mongodb');
-                    $result['params'] = array();
-                    $conditions = array("params" => array());
-                    foreach ($params as $k => $v) {
-                        $result['params'][$k] = $v;
-                        $conditions['params'][$k] = $v;
-                    }
-                    $result['params']['endpoint'] = $component . '/' . $method;
-                    $conditions['params']['endpoint'] = $component . '/' . $method;
-                    $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
-                    if (empty($aRes)) {
-                        $oModel->save($result);
-                    } else {
-                        //throw new APIException(500, 'duplicated_cache', "This request is already cached");
-                    }
-                }
+                // if (!$from_mongo && $component == 'location' && $method != 'data') {
+                    // $oModel = new Model(false, 'cache', 'mongodb');
+                    // $result['params'] = array();
+                    // $conditions = array("params" => array());
+                    // foreach ($params as $k => $v) {
+                        // $result['params'][$k] = $v;
+                        // $conditions['params'][$k] = $v;
+                    // }
+                    // $result['params']['endpoint'] = $component . '/' . $method;
+                    // $conditions['params']['endpoint'] = $component . '/' . $method;
+                    // $aRes = $oModel->find('first', array('conditions' => $conditions, 'order' => array('_id' => -1)));
+                    // if (empty($aRes)) {
+                        // $oModel->save($result);
+                    // } else {
+                        // //throw new APIException(500, 'duplicated_cache', "This request is already cached");
+                    // }
+                // }
             }
         }
     }
