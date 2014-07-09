@@ -1007,18 +1007,29 @@ SQL;
         }
         $this->verify($params);
         $location_id = $params['location_id'];
-        if(!Location::locationExists($location_id)) {
+        $location = new Location();
+        if(!$location->locationExists($location_id)) {
             throw new APIException(400, 'bad_request', 'Location not found.');
         }
-        
+
+        $data['data'] = array();
         $oDb = DBComponent::getInstance('location_setting', 'backstage');
+        $sSQL = <<<SQL
+SELECT name
+    FROM location
+    WHERE id=$location_id
+SQL;
+    
+        $aResL = $oDb->fetchAll($sSQL);
+        if (!empty($aResL)) {
+            $data['data']['name'] = $aResL[0]['location']['name'];
+        }
         $sSQL = <<<SQL
 SELECT s.label, s.name, ls.setting_id, ls.value
     FROM setting s JOIN location_setting ls on s.id=ls.setting_id
     WHERE ls.location_id=$location_id
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-        $data['data'] = array();
         $data['data']['settings'] = array();
         foreach ($aRes as $set) {
             $data['data']['settings'][$set['s']['name']] = array(

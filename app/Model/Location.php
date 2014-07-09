@@ -46,4 +46,10 @@ class Location extends AppModel {
         )
     );
 
+    public function locationExists($location_id) {
+        if(empty($location_id)) return  true;
+        $location = $this->find('first', array('conditions' => array('Location.id' => $location_id)));
+        if(!empty($location)) return true;
+        return false;
+    }
 }

@@ -16,6 +16,7 @@ class UserComponent extends APIComponent {
         $user = new User();
         $user->set($params);
         $user_id = 0;
+        var_dump($_POST);
         if ($user->validates()) {
             if ($params['password'] != $params['confirmPassword']) {
                 throw new APIException(400, 'bad_request', 'Passwords do not match.');
@@ -112,7 +113,7 @@ SQL;
                  $ret['data']['firstname'] = $locationmanager[0]['locationmanager']['firstname'];
                  $ret['data']['lastname'] = $locationmanager[0]['locationmanager']['lastname'];
                  break;
-                 
+
                 case 5:
                     $sSQL = <<<SQL
 SELECT  firstname, lastname
@@ -201,7 +202,7 @@ SQL;
             }
             $ret = array(
                 'message' => array(
-                    'success' => 'User data saved successfully'
+                    'success' => 'User data has been successfully saved.'
                 ),
                 'options' => array(
                     'endpoint'  => '/user/'. __FUNCTION__,
