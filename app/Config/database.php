@@ -215,6 +215,80 @@ class DATABASE_CONFIG {
             'prefix' => '',
         )
     );
+    public $hex = array(
+        'oauth' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'live_admin',
+            'password' => 'TH9DrAqe4rAsta',
+            'database' => 'oauth',
+            'prefix' => '',
+        ),
+        'ee' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'live_admin',
+            'password' => 'TH9DrAqe4rAsta',
+            'database' => 'ee_prod',
+            'prefix' => '',
+        ),
+        'pos' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarmposdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'posadmin',
+            'password' => 'dUdEph94aR5fr6',
+            'database' => 'pos_production',
+            'prefix' => '',
+        ),
+        'swarmdata' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarmdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
+        ),
+        'swarmdataRead' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarmdata-read.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarmdata',
+            'password' => '4Ha2Rap4ePHe',
+            'database' => 'swarmdata',
+            'prefix' => '',
+        ),
+        'backstage' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com:3306',
+            'login' => 'swarm_ios',
+            'password' => 'F6gatRad',
+            'database' => 'swarm_backstage',
+            'prefix' => '',
+        ),
+        'portal' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarm-device-data.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => 'swarm_admin',
+            'password' => '+uPaSeQeru5a',
+            'database' => 'portal',
+            'prefix' => '',
+        ),
+        'rollups' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com:3306',
+            'login' => 'swarm_ios',
+            'password' => 'F6gatRad',
+            'database' => 'rollups',
+            'prefix' => '',
+        )
+    );
 
     function __construct() {
         $env = getenv('server_location');
