@@ -281,7 +281,7 @@ SQL;
             $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c, 2);
             
             $result['data']['breakdown'][$w]['avgConversionRateDaily'] = $result['data']['breakdown'][$w]['conversionRate'] / $c;
-            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / $result['data']['breakdown'][$w]['avgVisitorsDaily'])*100, 2);
+            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = min([100,round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / $result['data']['breakdown'][$w]['avgVisitorsDaily'])*100, 2)]);
             $result['data']['breakdown'][$w]['conversionRate'] = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
         }
         $result['data']['totals']['conversionRate'] = $result['data']['totals']['conversionRate'] / $result['data']['totals']['visitors'];
@@ -289,7 +289,7 @@ SQL;
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
         
         $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / $days['total'];
-        $result['data']['totals']['avgConversionRateDaily'] = round(($result['data']['totals']['avgConversionRateDaily'] / $result['data']['totals']['avgVisitorsDaily'])*100, 2);
+        $result['data']['totals']['avgConversionRateDaily'] = min([100,round(($result['data']['totals']['avgConversionRateDaily'] / $result['data']['totals']['avgVisitorsDaily'])*100, 2)]);
         return $result;
     }
 
@@ -387,19 +387,19 @@ SQL;
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
         
         $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / $days['total'];
-        $result['data']['totals']['avgConversionRateDaily'] = round(($result['data']['totals']['avgConversionRateDaily']  / $result['data']['totals']['avgVisitorsDaily'])*100, 2);
+        $result['data']['totals']['avgConversionRateDaily'] = min([100,round(($result['data']['totals']['avgConversionRateDaily']  / $result['data']['totals']['avgVisitorsDaily'])*100, 2)]);
 
         $result['data']['totals']['avgRevenueWeekly'] = round($result['data']['totals']['revenue'] / count($days['byWeek']), 2);
         $result['data']['totals']['avgVisitorsWeekly'] = round($result['data']['totals']['visitors'] / count($days['byWeek']), 2);
         
         $result['data']['totals']['avgConversionRateWeekly'] = $result['data']['totals']['conversionRate'] / count($days['byWeek']);
-        $result['data']['totals']['avgConversionRateWeekly'] = round(($result['data']['totals']['avgConversionRateWeekly']  / $result['data']['totals']['avgVisitorsWeekly'])*100, 2);
+        $result['data']['totals']['avgConversionRateWeekly'] = min([100,round(($result['data']['totals']['avgConversionRateWeekly']  / $result['data']['totals']['avgVisitorsWeekly'])*100, 2)]);
         
         $result['data']['totals']['avgRevenueMonthly'] = round($result['data']['totals']['revenue'] / $nMonths, 2);
-        $result['data']['totals']['avgVisitorsMonthly'] = round($result['data']['totals']['visitors'] / $nMonths, 2);
+        $result['data']['totals']['avgVisitorsMonthly'] = min([100,round($result['data']['totals']['visitors'] / $nMonths, 2)]);
         
         $result['data']['totals']['avgConversionRateMonthly'] = $result['data']['totals']['conversionRate'] / $nMonths;
-        $result['data']['totals']['avgConversionRateMonthly'] = round(($result['data']['totals']['avgConversionRateMonthly'] / $result['data']['totals']['avgVisitorsMonthly'])*100, 2);
+        $result['data']['totals']['avgConversionRateMonthly'] = min([100,round(($result['data']['totals']['avgConversionRateMonthly'] / $result['data']['totals']['avgVisitorsMonthly'])*100, 2)]);
         
         return $result;
     }
