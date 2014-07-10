@@ -373,7 +373,7 @@ SQL;
             $days['byWeek'][date_format($start, 'W')] ++;
             $result['data']['totals']['revenue'] += $revenue;
             $result['data']['totals']['visitors'] += $visitors;
-            $result['data']['totals']['conversionRate'] += $visitors;
+            $result['data']['totals']['conversionRate'] += $conversion_rate;
 
             date_add($start, date_interval_create_from_date_string('1 days'));
             $slave_params['start_date'] = date_format($start, 'Y-m-d');
