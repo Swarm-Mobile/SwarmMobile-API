@@ -16,7 +16,6 @@ class UserComponent extends APIComponent {
         $user = new User();
         $user->set($params);
         $user_id = 0;
-        var_dump($_POST);
         if ($user->validates()) {
             if ($params['password'] != $params['confirmPassword']) {
                 throw new APIException(400, 'bad_request', 'Passwords do not match.');
@@ -82,6 +81,65 @@ SQL;
             )
         );
     }
+
+    /**
+     * User login
+     *  
+     * @param Array post data
+     * @return Array
+     */
+     public function login($params) {
+        if(empty($params['username']) || empty($params['password'])) {
+            throw new APIException(400, 'bad_request', 'Supplied credentials are invalid.');
+        }
+        $oUser = new User();
+        if ($user = $oUser->authenticate($params['username'], $params['password'])) {
+            $ret['data'] = array(
+                'user_id' => $user['id'],
+                'uuid'    => $user['uuid'],
+                'usertype_id' => $user['usertype_id'],
+            );
+            $ret['data']['locations'] = array();
+            $oDb  = DBComponent::getInstance('user', 'backstage');
+            $joinTable = '';
+            $joinId = false;
+            if ($user['usertype_id'] == 4) {
+                $joinTable = 'locationmanager_location';
+                $entityCol = 'locationmanager_id';
+                $entityId = $this->getLocationManagerId($user['id']);
+            } elseif ($user['usertype_id'] == 5) {
+                $joinTable = 'location_employee';
+                $joinId    = $this->getEmployeeId($user['id']);
+                $entityCol = 'employee_id';
+            } else {
+                throw new APIException(400, 'bad_request', 'Currently only location manager and employee logins are supported.');
+            }
+
+            $sSQL = <<<SQL
+SELECT l.id, l.name 
+    FROM location l
+    JOIN $joinTable j on
+    l.id = j.location_id
+    WHERE j.$entityCol = $entityId
+SQL;
+            $locations = $oDb->fetchAll($sSQL);
+            if (!empty($locations)) {
+                foreach($locations as $key => $val) {
+                    $ret['data']['locations'][$locations[$key]['l']['id']] = $locations[$key]['l']['name'];
+                }
+            }
+            $ret['options'] = array(
+                'endpoint' => '/user/'. __FUNCTION__,
+                'username' => $user['username']
+            );
+            $ret['message'] = array(
+                'success' => 'User login successful.'
+            );
+            return $ret;
+        } else {
+            throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid.');
+        }
+     }
 
     /**
      * Get User info
@@ -213,5 +271,53 @@ SQL;
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         return $ret;
+    }
+
+    /**
+     * Get location manager id 
+     * 
+     * @param int user_id
+     * @return int locationmanager_id
+     */
+    public function getLocationManagerId($user_id) {
+        if (empty($user_id)) {
+            return false;
+        }
+        $oDb  = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT id 
+FROM locationmanager
+WHERE user_id=:user_id
+SQL;
+        $id = $oDb->fetchAll($sSQL, array(':user_id' => $user_id));
+        if (!empty($id)) {
+            return $id[0]['locationmanager']['id'];
+        } else {
+            throw new APIException(500, 'manager_not_found', 'ManagerId not found. Please contact your account manager immediately.');
+        }
+    }
+
+    /**
+     * Get employee id 
+     * 
+     * @param int user_id
+     * @return int locationmanager_id
+     */
+    public function getEmployeeId($user_id) {
+        if (empty($user_id)) {
+            return false;
+        }
+        $oDb  = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT id 
+FROM employee
+WHERE user_id=:user_id
+SQL;
+        $id = $oDb->fetchAll($sSQL, array(':user_id' => $user_id));
+        if (!empty($id)) {
+            return $id[0]['employee']['id'];
+        } else {
+            throw new APIException(500, 'employee_not_found', 'EmployeeId not found. Please contact your account manager immediately.');
+        }
     }
 }

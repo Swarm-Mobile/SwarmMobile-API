@@ -58,6 +58,34 @@ class User extends AppModel {
         ),
     );
 
+    /**
+     * Authenticate user
+     * 
+     * @param string
+     * @param string
+     * @return array
+     */
+    public function authenticate($username, $password) {
+        $user = $this->find('first', array(
+            'conditions' => array('username' => $username),
+        ));
+
+        if (empty($user))
+            return false;
+
+        $m_salt = $user['User']['salt'];
+        $m_pass = $user['User']['password'];
+        $h_byte_size = strlen($m_pass);
+
+        $hashed_pair = $this->hash_password($password, $m_salt, $h_byte_size);
+        if ($hashed_pair === FALSE OR $m_pass !== $hashed_pair['password']) {
+            return FALSE;
+        }
+        unset($user['User']['salt']);
+        unset($user['User']['password']);
+        return $user['User'];
+    }
+
     public function hash_password($password, $salt = FALSE, $h_byte_size = FALSE) {
         if (!$password OR strlen($password) > 250) {
             return FALSE;

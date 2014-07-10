@@ -139,6 +139,15 @@ class DATABASE_CONFIG {
             'password' => '+uPaSeQeru5a',
             'database' => 'portal',
             'prefix' => '',
+        ),
+        'rollups' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => '',
+            'password' => '',
+            'database' => 'rollups',
+            'prefix' => '',
         )
     );
     public $live = array(
