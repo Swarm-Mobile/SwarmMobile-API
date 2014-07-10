@@ -4,6 +4,11 @@ App::uses('DBComponent', 'Controller/Component');
 App::uses('APIComponent', 'Controller/Component');
 
 class LocationComponent extends APIComponent {
+    
+    public $post_actions    = [];
+    public $push_actions    = [];
+    public $delete_actions  = [];
+    
     //EXAMPLES
 
     /**
