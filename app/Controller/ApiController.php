@@ -106,7 +106,7 @@ class APIController extends AppController {
         $this->Inbox->save($data);
     }
 
-    public function index() {
+    public function index() {       
         $env = getenv('server_location');
         $this->debug = ($env != 'live');
         set_time_limit(3600);
@@ -135,7 +135,7 @@ class APIController extends AppController {
             }
             $this->endpoint = $path[0] . '/' . $path[1];
             $component = ucfirst($path[0]) . 'Component';
-            $component = new $path[0];
+            $component = new $component;
             $request_method = env('REQUEST_METHOD');
             switch ($request_method) {
                 case 'get':
