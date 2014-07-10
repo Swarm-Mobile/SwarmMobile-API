@@ -215,8 +215,10 @@ SQL;
                 'totals' => [
                     'revenue' => 0,
                     'visitors' => 0,
+                    'conversionRate' => 0,
                     'avgRevenueDaily' => 0,
-                    'avgVisitorsDaily' => 0
+                    'avgVisitorsDaily' => 0,
+                    'avgConversionRateDaily' => 0,
                 ]
             ],
             'options' => [
@@ -239,6 +241,9 @@ SQL;
             $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
             $visitors = $tmp['data']['totals']['open'];
 
+            $tmp = $this->api->internalCall('location', 'conversionRate', $slave_params);
+            $conversion_rate = $tmp['data']['totals'][$open_total];
+            
             $days['total'] ++;
 
             if (!isset($days['byWeek'][date_format($start, 'W')])) {
@@ -252,14 +257,18 @@ SQL;
                 $result['data']['breakdown'][date_format($start, 'W')] = [
                     'revenue' => 0,
                     'visitors' => 0,
+                    'conversionRate' => 0,
                     'avgRevenueDaily' => 0,
-                    'avgVisitorsDaily' => 0
+                    'avgVisitorsDaily' => 0,
+                    'avgConversionRateDaily' => 0
                 ];
             }
             $result['data']['breakdown'][date_format($start, 'W')]['revenue'] += $revenue;
             $result['data']['breakdown'][date_format($start, 'W')]['visitors'] += $visitors;
+            $result['data']['breakdown'][date_format($start, 'W')]['conversionRate'] += $conversion_rate;
             $result['data']['totals']['revenue'] += $revenue;
             $result['data']['totals']['visitors'] += $visitors;
+            $result['data']['totals']['conversion_rate'] += $conversion_rate;
 
             date_add($start, date_interval_create_from_date_string('1 days'));
             $slave_params['start_date'] = date_format($start, 'Y-m-d');
@@ -270,10 +279,13 @@ SQL;
             $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
             $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c, 2);
             $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c, 2);
+            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = round($result['data']['breakdown'][$w]['conversion_rate'] / $c, 2);
+            $result['data']['breakdown'][$w]['conversion_rate'] = round($result['data']['breakdown'][$w]['conversion_rate'] / $c, 2);
         }
 
         $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
+        $result['data']['totals']['avgConversionRateDaily'] = round($result['data']['totals']['conversion_rate'] / $days['total'], 2);
 
         return $result;
     }
@@ -288,7 +300,14 @@ SQL;
                     'revenue' => 0,
                     'visitors' => 0,
                     'avgRevenueDaily' => 0,
-                    'avgVisitorsDaily' => 0
+                    'avgRevenueWeekly' => 0,
+                    'avgRevenueMonthly' => 0,
+                    'avgVisitorsDaily' => 0,
+                    'avgVisitorsWeekly' => 0,
+                    'avgVisitorsMonthly' => 0,
+                    'avgConversionRateDaily' => 0,
+                    'avgConversionRateWeekly' => 0,
+                    'avgConversionRateMonthly' => 0,
                 ]
             ],
             'options' => [
@@ -321,7 +340,15 @@ SQL;
         $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
         $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
-        do {
+        $cMonth = date_format($start, 'm');
+        $tMonth = $cMonth;
+        $nMonths = 1;
+        do {            
+            if($tMonth != $cMonth){
+                $nMonths++;
+            }
+            $tMonth = $cMonth;
+            
             $slave_params['end_date'] = $slave_params['start_date'];
 
             $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
@@ -329,6 +356,9 @@ SQL;
 
             $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
             $visitors = $tmp['data']['totals']['open'];
+            
+            $tmp = $this->api->internalCall('location', 'conversionRate', $slave_params);
+            $conversion_rate = $tmp['data']['totals'][$open_total];
 
             $days['total'] ++;
 
@@ -341,14 +371,25 @@ SQL;
             $days['byWeek'][date_format($start, 'W')] ++;
             $result['data']['totals']['revenue'] += $revenue;
             $result['data']['totals']['visitors'] += $visitors;
+            $result['data']['totals']['conversionRate'] += $visitors;
 
             date_add($start, date_interval_create_from_date_string('1 days'));
             $slave_params['start_date'] = date_format($start, 'Y-m-d');
+            $cMonth = date_format($start, 'm');
         } while ($start <= $end);
 
         $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
+        $result['data']['totals']['avgConversionRateDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
 
+        $result['data']['totals']['avgRevenueWeekly'] = round($result['data']['totals']['revenue'] / count($days['byWeek']), 2);
+        $result['data']['totals']['avgVisitorsWeekly'] = round($result['data']['totals']['visitors'] / count($days['byWeek']), 2);
+        $result['data']['totals']['avgConversionRateWeekly'] = round($result['data']['totals']['conversion_rate'] / count($days['byWeek']), 2);
+        
+        $result['data']['totals']['avgRevenueMonthly'] = round($result['data']['totals']['revenue'] / $nMonths, 2);
+        $result['data']['totals']['avgVisitorsMonthly'] = round($result['data']['totals']['visitors'] / $nMonths, 2);
+        $result['data']['totals']['avgConversionRateMonthly'] = round($result['data']['totals']['conversion_rate'] / $nMonths, 2);
+        
         return $result;
     }
 
