@@ -134,6 +134,7 @@ class APIController extends AppController {
                 $path[1] = '';
             }
             $this->endpoint = $path[0] . '/' . $path[1];
+            $component = $path[0].'Component';
             $component = new $path[0];
             $request_method = env('REQUEST_METHOD');
             switch($request_method){
@@ -165,6 +166,12 @@ class APIController extends AppController {
         } catch (APIException $e) {
             $this->response_code = $e->error_no;
             $this->response_message = $e->error;
+            //$this->call_log();
+            $e->_displayError();
+            return false;
+        } catch (Exception $e){
+            $this->response_code = 500;
+            $this->response_message = 'Application Error';
             //$this->call_log();
             $e->_displayError();
             return false;
