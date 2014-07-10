@@ -99,35 +99,7 @@ SQL;
                 'uuid'    => $user['uuid'],
                 'usertype_id' => $user['usertype_id'],
             );
-            $ret['data']['locations'] = array();
-            $oDb  = DBComponent::getInstance('user', 'backstage');
-            $joinTable = '';
-            $joinId = false;
-            if ($user['usertype_id'] == 4) {
-                $joinTable = 'locationmanager_location';
-                $entityCol = 'locationmanager_id';
-                $entityId = $this->getLocationManagerId($user['id']);
-            } elseif ($user['usertype_id'] == 5) {
-                $joinTable = 'location_employee';
-                $joinId    = $this->getEmployeeId($user['id']);
-                $entityCol = 'employee_id';
-            } else {
-                throw new APIException(400, 'bad_request', 'Currently only location manager and employee logins are supported.');
-            }
-
-            $sSQL = <<<SQL
-SELECT l.id, l.name 
-    FROM location l
-    JOIN $joinTable j on
-    l.id = j.location_id
-    WHERE j.$entityCol = $entityId
-SQL;
-            $locations = $oDb->fetchAll($sSQL);
-            if (!empty($locations)) {
-                foreach($locations as $key => $val) {
-                    $ret['data']['locations'][$locations[$key]['l']['id']] = $locations[$key]['l']['name'];
-                }
-            }
+            $ret['data']['locations'] = $this->locations($user['uuid'], true);
             $ret['options'] = array(
                 'endpoint' => '/user/'. __FUNCTION__,
                 'username' => $user['username']
@@ -183,6 +155,8 @@ SQL;
                  $ret['data']['lastname']  = $employee[0]['locationmanager']['lastname'];
                  break;
             }
+
+            $ret['data']['locations'] = $this->locations($params['uuid'], true);
             $ret['options'] = array(
                 'endpoint'  => '/user/'. __FUNCTION__,
                 'uuid'      => $params['uuid'],
@@ -319,5 +293,66 @@ SQL;
         } else {
             throw new APIException(500, 'employee_not_found', 'EmployeeId not found. Please contact your account manager immediately.');
         }
+    }
+    
+    /**
+     * Get locations associated to a user 
+     * 
+     * @param int user_id
+     * @param int usertype_id
+     * @param boolean internal call or api request
+     */
+    //public function locations($user_id, $usertype_id=0, $internal=false) {
+    public function locations($uuid, $internal=false) {
+        if(empty($uuid)) {
+            throw new APIException(401, 'bad_request', 'user_id is needed to fetch locations.');
+        }
+        
+        $oUser = new User();
+        $user = $oUser->find('first', array(
+            'fields' => array('User.id', 'User.usertype_id'),
+            'conditions' => array(
+                'User.uuid' => $uuid
+            )
+        ))['User'];
+        $oDb  = DBComponent::getInstance('user', 'backstage');
+        $joinTable = '';
+        $joinId = false;
+        if ($user['usertype_id'] == 4) {
+            $joinTable = 'locationmanager_location';
+            $entityCol = 'locationmanager_id';
+            $entityId = $this->getLocationManagerId($user['id']);
+        } elseif ($user['usertype_id'] == 5) {
+            $joinTable = 'location_employee';
+            $joinId    = $this->getEmployeeId($user['id']);
+            $entityCol = 'employee_id';
+        } else {
+            throw new APIException(400, 'bad_request', 'Currently only location manager and employee logins are supported.');
+        }
+
+        $sSQL = <<<SQL
+SELECT l.id, l.name
+    FROM location l
+    JOIN $joinTable j on
+    l.id = j.location_id
+    WHERE j.$entityCol = $entityId
+SQL;
+            $locations = $oDb->fetchAll($sSQL);
+            if (!empty($locations)) {
+                foreach($locations as $key => $val) {
+                    $ret[$locations[$key]['l']['id']] = $locations[$key]['l']['name'];
+                }
+            }
+            $res = array();
+            if ($internal) {
+                return $ret;
+            } else {
+                $res['data']['locations'] = $ret;
+                $res['options'] = array(
+                    'endpoint'  => '/user/'. __FUNCTION__,
+                    'uuid'   => $uuid
+                );
+            }
+            return $res;
     }
 }
