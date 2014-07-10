@@ -305,7 +305,7 @@ SQL;
     //public function locations($user_id, $usertype_id=0, $internal=false) {
     public function locations($uuid, $internal=false) {
         if(empty($uuid)) {
-            throw new APIException(401, 'bad_request', 'user_id is needed to fetch locations.');
+            throw new APIException(401, 'bad_request', 'A valid UUID is needed to fetch locations.');
         }
         
         $oUser = new User();
