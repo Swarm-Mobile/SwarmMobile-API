@@ -279,8 +279,8 @@ SQL;
             $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
             $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c, 2);
             $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c, 2);
-            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = round($result['data']['breakdown'][$w]['conversion_rate'] / $c, 2);
-            $result['data']['breakdown'][$w]['conversionRate'] = round($result['data']['breakdown'][$w]['conversion_rate'] / $c, 2);
+            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = round($result['data']['breakdown'][$w]['conversionRate'] / $c, 2);
+            $result['data']['breakdown'][$w]['conversionRate'] = round($result['data']['breakdown'][$w]['conversionRate'] / $c, 2);
         }
 
         $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
