@@ -136,7 +136,7 @@ class APIController extends AppController {
             $this->endpoint = $path[0] . '/' . $path[1];
             $component = ucfirst($path[0]) . 'Component';
             $component = new $component;
-            $request_method = ucfirst(env('REQUEST_METHOD'));
+            $request_method = strtolower(env('REQUEST_METHOD'));
             switch ($request_method) {
                 case 'get':
                     if (

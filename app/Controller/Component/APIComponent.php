@@ -5,8 +5,8 @@ require_once 'DBComponent.php';
 class APIComponent {
 
     public $api;
-    public $post_actions = [];
-    public $push_actions = [];
+    public $post_actions   = [];
+    public $put_actions    = [];
     public $delete_actions = [];
     public static $TZ_CORRECTIONS = array(
         'Austrailia NSW' => 'Australia/NSW',
@@ -100,7 +100,7 @@ class APIComponent {
                                 501, 'param_bad_formatted', "Param $param needs to be a date greater than 2013-01-01 and lower than today."
                                 );
                             }
-                            if (!preg_match("/[0-9]{4}-[0-9]{2}-[0-9]{2}/", $params[$param])) {
+                            if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $params[$param])){
                                 throw new APIException(
                                 501, 'param_bad_formatted', "Param $param needs to have the yyyy-mm-dd format"
                                 );

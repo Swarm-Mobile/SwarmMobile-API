@@ -5,7 +5,7 @@ App::uses('APIComponent', 'Controller/Component');
 class PortalComponent extends APIComponent {
     
     public $post_actions    = [];
-    public $push_actions    = [];
+    public $put_actions     = [];
     public $delete_actions  = [];
 
     public function visitorEvent($params) {
