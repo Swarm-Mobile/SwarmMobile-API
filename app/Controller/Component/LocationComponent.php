@@ -299,6 +299,7 @@ SQL;
                 'totals' => [
                     'revenue' => 0,
                     'visitors' => 0,
+                    'conversionRate' => 0,
                     'avgRevenueDaily' => 0,
                     'avgRevenueWeekly' => 0,
                     'avgRevenueMonthly' => 0,
@@ -322,7 +323,8 @@ SQL;
         }
         
         $end_date = date('Y-m-d');
-
+        $end = new DateTime($end_date);
+        
         $start = new DateTime($start_date);
 
         $revenue = array();
