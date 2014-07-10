@@ -284,7 +284,7 @@ SQL;
             $result['data']['breakdown'][$w]['avgConversionRateDaily'] = min([100,round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / $result['data']['breakdown'][$w]['avgVisitorsDaily'])*100, 2)]);
             $result['data']['breakdown'][$w]['conversionRate'] = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
         }
-        $result['data']['totals']['conversionRate'] = $result['data']['totals']['conversionRate'] / $result['data']['totals']['visitors'];
+        $result['data']['totals']['conversionRate'] = min([100,$result['data']['totals']['conversionRate'] / $result['data']['totals']['visitors']]);
         $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
         
