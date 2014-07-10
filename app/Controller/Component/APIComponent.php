@@ -5,6 +5,10 @@ require_once 'DBComponent.php';
 class APIComponent {
 
     public $api;
+    public $post_actions    = [];
+    public $push_actions    = [];
+    public $delete_actions  = [];
+    
     public static $TZ_CORRECTIONS = array(
         'Austrailia NSW' => 'Australia/NSW',
         'Australia NSW' => 'Australia/NSW',
@@ -90,6 +94,27 @@ class APIComponent {
                                 );
                             }
                             break;
+                        case 'date_interval':
+                            $start_date = new DateTime($params['start_date']);
+                            $end_date = new DateTime($params['end_date']);
+                            if ($start_date > $end_date) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param end_date needs to be greater than start_date"
+                                );
+                            }
+                            break;
+                        case 'year':
+                            if (!is_numeric($params[$param]) || $params[$param] < 2013 || $params[$param] > date('Y')) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be a valid year after 2012"
+                                );
+                            }
+                        case 'month':
+                            if (!is_numeric($params[$param]) || $params[$param] < 1 || $params[$param] > 12) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be a valid month"
+                                );
+                            }
                         case 'datetime':
                             //TODO:
                             break;
@@ -292,7 +317,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array()                
+                'breakdown' => array()
             )
         );
         foreach ($aResults as $cResult) {
@@ -322,7 +347,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array()                
+                'breakdown' => array()
             )
         );
         foreach ($aResults as $cResult) {

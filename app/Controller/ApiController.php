@@ -134,6 +134,25 @@ class APIController extends AppController {
                 $path[1] = '';
             }
             $this->endpoint = $path[0] . '/' . $path[1];
+            $component = new $path[0];
+            $request_method = env('REQUEST_METHOD');
+            switch($request_method){
+                case 'get':
+                    if(
+                        in_array($path[1], $component->post_actions)    ||
+                        in_array($path[1], $component->put_action)      ||
+                        in_array($path[1], $component->delete_actions)
+                    ){
+                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
+                    }
+                    break;                                    
+                default:                    
+                    $actions = $request_method.'_actions';
+                    if(!in_array($path[1], $component->$actions)){
+                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
+                    }
+                    break;
+            }
             echo json_encode($this->internalCall($path[0], $path[1], $params));
             //$this->call_log();
             exit();

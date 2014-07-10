@@ -183,8 +183,8 @@ SQL;
     public function monthlyTotals($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'year' => array('required', 'int'),
-            'month' => array('required', 'int')
+            'year' => array('required', 'int', 'year'),
+            'month' => array('required', 'int', 'month')
         );
         $this->validate($params, $rules);
 
@@ -430,7 +430,7 @@ SQL;
     public function totals($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -484,7 +484,7 @@ SQL;
     public function walkbys($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -533,7 +533,7 @@ SQL;
         // Set validation rules and validate parameters
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -572,7 +572,7 @@ SQL;
     public function purchaseInfo($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -628,7 +628,7 @@ SQL;
     public function transactions($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -646,7 +646,7 @@ SQL;
     public function revenue($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -664,7 +664,7 @@ SQL;
     public function totalItems($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -762,7 +762,7 @@ SQL;
     public function returning($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -844,7 +844,7 @@ SQL;
     public function footTraffic($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -866,7 +866,7 @@ SQL;
     public function timeInShop($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -918,7 +918,7 @@ SQL;
     public function traffic($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
@@ -961,7 +961,7 @@ SQL;
     public function devices($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'start_date' => array('required', 'date'),
+            'start_date' => array('required','date','date_interval'),
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
