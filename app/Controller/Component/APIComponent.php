@@ -152,7 +152,7 @@ class APIComponent {
         return array($start_date, $end_date, $timezone);
     }
 
-    public function getNightClubTimezone($data) {
+    public static function getNightClubTimezone($data) {
         if ($data['data']['nightclub_hours'] == 'yes') {
             switch ($data['data']['nightclub_hours_location']) {
                 case 'eastcoast_time': return 'America/Detroit';
@@ -165,7 +165,7 @@ class APIComponent {
         return $data['data']['timezone'];
     }
 
-    public function getLocalTimezone($tzName) {
+    public static function getLocalTimezone($tzName) {
         $timezone = trim($tzName);
         try {
             $tzLocal = new DateTimeZone($timezone);
@@ -472,7 +472,7 @@ SQL;
         return $this->nightClubFormat($result, $data);
     }
 
-    private function nightClubFormat($result, $data) {
+    public static function nightClubFormat($result, $data) {
         if (@$data['data']['nightclub_hours'] == 'yes') {
             $ncResult = array();
             $ncResult['options'] = $result['options'];
@@ -480,8 +480,8 @@ SQL;
             foreach ($result['data']['breakdown'] as $date => $values) {
                 $ncResult['data']['breakdown'][$date]['totals'] = $values['totals'];
                 foreach ($values['hours'] as $h => $v) {
-                    $tzLocal = $this->getLocalTimezone($data['data']['timezone']);
-                    $tzNC = $this->getNightClubTimezone($data);
+                    $tzLocal = self::getLocalTimezone($data['data']['timezone']);
+                    $tzNC = self::getNightClubTimezone($data);
                     $tmp = new DateTime("2014-01-01 $h:00:00", $tzLocal);
                     $tmp = $tmp->setTimezone(new DateTimeZone($tzNC));
                     $h = $tmp->format('H');

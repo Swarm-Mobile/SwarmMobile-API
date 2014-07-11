@@ -1242,6 +1242,10 @@ SQL;
         );
     }
 
+    /**
+     * Get available settings 
+     * 
+     */
     public function availableSettings($params) {
         if (empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'A valid UUID is needed to create a new location.');
