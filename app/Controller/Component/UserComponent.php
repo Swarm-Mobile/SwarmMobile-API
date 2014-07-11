@@ -55,7 +55,7 @@ INSERT INTO locationmanager
     SET
     user_id   = :user_id,
     firstname = :firstname,
-    lastname  = :lastname,
+    lastname  = :lastname
 SQL;
             $oDb->query($sSQL, array(
                 ':user_id'   => $user_id,
