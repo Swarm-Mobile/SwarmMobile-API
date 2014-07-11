@@ -56,7 +56,6 @@ INSERT INTO locationmanager
     user_id   = :user_id,
     firstname = :firstname,
     lastname  = :lastname,
-    ts_creation = CURRENT_TIMESTAMP
 SQL;
             $oDb->query($sSQL, array(
                 ':user_id'   => $user_id,
