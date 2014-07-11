@@ -1094,7 +1094,7 @@ SQL;
             }
 
             foreach($params['Location'][$location_id] as $key => $val) {
-                unset($settId);
+                //unset($settId);
                 if (!is_numeric($key)) {
                     $sett_id = settId($key);
                 } else {
@@ -1102,6 +1102,7 @@ SQL;
                         $sett_id = $key;
                     }
                 }
+                var_dump($sett_id);
                 if (!empty($sett_id)) {
                     $update[$sett_id] = $val;
                 }
@@ -1168,7 +1169,7 @@ SQL;
             $this->handleValidationErrors($location->validationErrors);
         }
         if ($params['name'] == $params['address1']) {
-            throw new APIException(400, 'bad_request', "Store name and address cannot be the same.");
+            throw new APIException(400, 'bad_request', "Location name and address cannot be the same.");
         }
         $uuid = $params['uuid'];
         if (empty($params['user_id'])) {
@@ -1212,7 +1213,6 @@ SQL;
                 ));
             }
         }
-
         // Create locationmanager to location map
         $sSQL = <<<SQL
 INSERT INTO locationmanager_location
