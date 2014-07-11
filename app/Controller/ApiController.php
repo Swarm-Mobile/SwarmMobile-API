@@ -142,7 +142,7 @@ class APIController extends AppController {
                 case 'get':
                     if (
                         in_array($path[1], $component->post_actions)    ||
-                        in_array($path[1], $component->put_action)      ||
+                        in_array($path[1], $component->put_actions)      ||
                         in_array($path[1], $component->delete_actions)
                     ) {
                         throw new APIException(401, 'invalid_grant', "Incorrect Request Method");

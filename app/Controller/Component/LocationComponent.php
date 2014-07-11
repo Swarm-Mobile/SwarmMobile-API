@@ -6,7 +6,7 @@ App::uses('APIComponent', 'Controller/Component');
 class LocationComponent extends APIComponent {
 
     
-    public $post_actions    = [];
+    public $post_actions    = ['create', 'updateSettings'];
     public $put_actions     = [];
     public $delete_actions  = [];
     
@@ -1088,9 +1088,6 @@ SQL;
      * @param Array
      */
     public function updateSettings($params) {
-        if (!$this->api->request->is('post')) {
-            throw new APIException(400, 'bad_request', 'Incorrect request method');
-        }
         if(empty($params['location_id'])) {
             throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
         }
@@ -1175,9 +1172,6 @@ SQL;
      * @param Array post data
      */
     public function create($params) {
-        if (!$this->api->request->is('post')) {
-            throw new APIException(400, 'bad_request', 'Incorrect request method.');
-        }
         $uuid = '';
         $user_id = NULL;
         $user = array();

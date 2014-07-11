@@ -5,7 +5,7 @@ App::uses('Model', 'Model');
 
 class UserComponent extends APIComponent {
     
-    public $post_actions    = [];
+    public $post_actions    = ['register', 'updateSettings', 'login'];
     public $put_actions     = [];
     public $delete_actions  = [];
 
@@ -14,9 +14,6 @@ class UserComponent extends APIComponent {
      * 
      */
     public function register($params) {
-        if (!$this->api->request->is('post')) {
-           throw new APIException(400, 'bad_request', 'Incorrect request method.');
-        }
         $user = new User();
         $user->set($params);
         $user_id = 0;
@@ -176,10 +173,6 @@ SQL;
      * @param Array post data
      */
     public function updateSettings($params) {
-        
-        if (!$this->api->request->is('post')) {
-           throw new APIException(400, 'bad_request', 'Incorrect request method.');
-        }
         if(empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'A valid UUID needed for getching user settings');
         }
