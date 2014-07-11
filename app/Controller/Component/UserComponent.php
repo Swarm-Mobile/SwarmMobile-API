@@ -203,6 +203,7 @@ SQL;
                 $userQ .= "username=:username,";
             }
             $userQ = substr($userQ, 0, -1);
+            $userQ .= ' WHERE id='. $user[0]['user']['id'];
             $oDb  = DBComponent::getInstance('user', 'backstage');
             if ($exec == true) {
                 $oDb->query($userQ, $bind);
@@ -216,9 +217,9 @@ SQL;
                     break;
                 case 4:
                 default:
-                    $entityQ  .= 'locationmanager SET '; 
-                    
+                    $entityQ  .= 'locationmanager SET ';
             }
+            
             if (!empty($params['firstname'])) {
                 $exec = true;
                 $bind[':firstname'] = $params['firstname'];
@@ -230,6 +231,7 @@ SQL;
                 $entityQ .= 'lastname=:lastname,';
             }
             $entityQ = substr($entityQ, 0, -1);
+            $entityQ .= ' WHERE user_id=' . $user[0]['user']['id'];
             if ($exec == true) {
                 $oDb->query($entityQ, $bind);
             }
