@@ -1196,7 +1196,6 @@ SQL;
 
         // Add addresss location settings
         foreach(['address1', 'address2', 'city', 'state', 'country', 'zipcode'] as $key) {
-            var_dump($params);
             if (array_key_exists($key, $params)) {
                 $sett_id = settId($key);
                 $sSQL = <<<SQL
