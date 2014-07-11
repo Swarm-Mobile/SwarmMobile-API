@@ -105,7 +105,7 @@ class APIController extends AppController {
         $this->Inbox->save($data);
     }
 
-    public function index() {
+    public function index() {       
         $env = getenv('server_location');
         $this->debug = ($env != 'live');
         set_time_limit(3600);
@@ -135,6 +135,26 @@ class APIController extends AppController {
                 $path[1] = '';
             }
             $this->endpoint = $path[0] . '/' . $path[1];
+            $component = ucfirst($path[0]) . 'Component';
+            $component = new $component;
+            $request_method = strtolower(env('REQUEST_METHOD'));
+            switch ($request_method) {
+                case 'get':
+                    if (
+                        in_array($path[1], $component->post_actions)    ||
+                        in_array($path[1], $component->put_action)      ||
+                        in_array($path[1], $component->delete_actions)
+                    ) {
+                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
+                    }
+                    break;
+                default:
+                    $actions = $request_method . '_actions';
+                    if (!in_array($path[1], $component->$actions)) {
+                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
+                    }
+                    break;
+            }
             echo json_encode($this->internalCall($path[0], $path[1], $params));
             //$this->call_log();
             exit();
@@ -149,6 +169,17 @@ class APIController extends AppController {
             $this->response_message = $e->error;
             //$this->call_log();
             $e->_displayError();
+            return false;
+        } catch (Exception $e) {
+            header("Cache-Control: no-store");
+            header("HTTP/1.1 500");
+            echo json_encode(
+                    array(
+                        'error' => 'Application Error',
+                        'error_description' => ''
+                    )
+            );
+            die();
             return false;
         }
     }

@@ -4,6 +4,9 @@ require_once 'DBComponent.php';
 class APIComponent {
 
     public $api;
+    public $post_actions   = [];
+    public $put_actions    = [];
+    public $delete_actions = [];
     public static $TZ_CORRECTIONS = array(
         'Austrailia NSW' => 'Australia/NSW',
         'Australia NSW' => 'Australia/NSW',
@@ -80,11 +83,47 @@ class APIComponent {
                             }
                             break;
                         case 'date':
-                            $date = new DateTime($params[$param]);
-                            $swarm_born = new DateTime('2013-01-01');
-                            if ($date < $swarm_born) {
+                            try {
+                                $date = new DateTime($params[$param]);
+                            } catch (Exception $e) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be a date greather than 2013-01-01."
+                                501, 'param_bad_formatted', "Param $param needs to be a date."
+                                );
+                            }
+                            $swarm_born = new DateTime('2013-01-01');
+                            $max_date = new DateTime(date('Y-m-d'));
+                            date_add($max_date, date_interval_create_from_date_string('10 days'));
+                            if ($date < $swarm_born && $date < $max_date) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be a date greater than 2013-01-01 and lower than today."
+                                );
+                            }
+                            if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $params[$param])){
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to have the yyyy-mm-dd format"
+                                );
+                            }
+                            break;
+                        case 'date_interval':
+                            $start_date = new DateTime($params['start_date']);
+                            $end_date = new DateTime($params['end_date']);
+                            if ($start_date > $end_date) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param end_date needs to be greater than start_date"
+                                );
+                            }
+                            break;
+                        case 'year':
+                            if (!is_numeric($params[$param]) || $params[$param] < 2013 || $params[$param] > date('Y') + 1) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be a valid year after 2012"
+                                );
+                            }
+                            break;
+                        case 'month':
+                            if (!is_numeric($params[$param]) || $params[$param] < 1 || $params[$param] > 12) {
+                                throw new APIException(
+                                501, 'param_bad_formatted', "Param $param needs to be a valid month"
                                 );
                             }
                             break;
@@ -290,7 +329,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array()                
+                'breakdown' => array()
             )
         );
         foreach ($aResults as $cResult) {
@@ -320,7 +359,7 @@ SQL;
         $result = array(
             'data' => array(
                 'totals' => array('open' => 0, 'close' => 0, 'total' => 0),
-                'breakdown' => array()                
+                'breakdown' => array()
             )
         );
         foreach ($aResults as $cResult) {

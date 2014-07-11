@@ -3,8 +3,12 @@
 App::uses('APIComponent', 'Controller/Component');
 App::uses('Model', 'Model');
 
-
 class UserComponent extends APIComponent {
+    
+    public $post_actions    = [];
+    public $put_actions     = [];
+    public $delete_actions  = [];
+
     /**
      * Register a new user 
      * 
@@ -80,7 +84,7 @@ SQL;
             )
         );
     }
-//{"data":{"uuid":"53bf57bfc2241","user_id":"1463","locationmanager_id":"1421"},"options":{"endpoint":"\/user\/register"}
+
     /**
      * User login
      *  
