@@ -80,7 +80,7 @@ SQL;
             )
         );
     }
-
+//{"data":{"uuid":"53bf57bfc2241","user_id":"1463","locationmanager_id":"1421"},"options":{"endpoint":"\/user\/register"}
     /**
      * User login
      *  
@@ -192,7 +192,7 @@ SQL;
                 }
                 $bind[':email'] = $params['email'];
                 $exec = true;
-                $userQ .= "SET email=:email";
+                $userQ .= "email=:email,";
             }
             if (!empty($params['username']) && $params['username'] != $user[0]['user']['username']) {
                 if(!$oUser->checkUsernameExists($params['username'], $user[0]['user']['id'])) {
@@ -200,8 +200,9 @@ SQL;
                 }
                 $bind[':username'] = $params['username'];
                 $exec =true;
-                $userQ .= "SET username=:username";
+                $userQ .= "username=:username,";
             }
+            $userQ = substr($userQ, 0, -1);
             $oDb  = DBComponent::getInstance('user', 'backstage');
             if ($exec == true) {
                 $oDb->query($userQ, $bind);
@@ -221,13 +222,14 @@ SQL;
             if (!empty($params['firstname'])) {
                 $exec = true;
                 $bind[':firstname'] = $params['firstname'];
-                $entityQ .= 'firstname=:firstname';
+                $entityQ .= 'firstname=:firstname,';
             }
             if (!empty($params['lastname'])) {
                 $exec = true;
                 $bind[':lastname'] = $params['lastname'];
-                $entityQ .= 'lastname=:lastname';
+                $entityQ .= 'lastname=:lastname,';
             }
+            $entityQ = substr($entityQ, 0, -1);
             if ($exec == true) {
                 $oDb->query($entityQ, $bind);
             }
