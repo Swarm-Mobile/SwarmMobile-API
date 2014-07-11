@@ -678,4 +678,23 @@ SELECT id, usertype_id, username, email
 SQL;
         return $oDb->fetchAll($sSQL);
     }
+    
+    public function getDefaultSettings() {
+        $oDb = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT `id`, `label`, `name`, `default`
+    FROM setting
+    WHERE `default` !=''
+SQL;
+        $setts = $oDb->fetchAll($sSQL);
+        $ret = array();
+        foreach($setts as $set) {
+            $ret[$set['setting']['name']] = array(
+                'label' =>  $set['setting']['label'],
+                'id'    =>  $set['setting']['id'],
+                'value' => $set['setting']['default']
+            );
+        }
+        return $ret;
+    }
 }

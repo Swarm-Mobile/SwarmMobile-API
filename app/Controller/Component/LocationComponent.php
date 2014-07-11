@@ -1012,7 +1012,7 @@ SQL;
             throw new APIException(400, 'bad_request', 'Location not found.');
         }
 
-        $data['data'] = array();
+        $ret['data'] = array();
         $oDb = DBComponent::getInstance('location_setting', 'backstage');
         $sSQL = <<<SQL
 SELECT name
@@ -1022,7 +1022,7 @@ SQL;
     
         $aResL = $oDb->fetchAll($sSQL);
         if (!empty($aResL)) {
-            $data['data']['name'] = $aResL[0]['location']['name'];
+            $ret['data']['name'] = $aResL[0]['location']['name'];
         }
         $sSQL = <<<SQL
 SELECT s.label, s.name, ls.setting_id, ls.value
@@ -1030,19 +1030,34 @@ SELECT s.label, s.name, ls.setting_id, ls.value
     WHERE ls.location_id=$location_id
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-        $data['data']['settings'] = array();
-        foreach ($aRes as $set) {
-            $data['data']['settings'][$set['s']['name']] = array(
-                'label'      => $set['s']['label'], 
-                'setting_id' => $set['ls']['setting_id'],
-                'value'      => $set['ls']['value']
-            );
+        $ret['data']['settings'] = array();
+        $defaults = $this->getDefaultSettings();
+        if (!empty($aRes)) {
+            foreach ($aRes as $set) {
+                $ret['data']['settings'][$set['s']['name']] = array(
+                    'label'      => $set['s']['label'],
+                    'setting_id' => $set['ls']['setting_id'],
+                    'value'      => $set['ls']['value']
+                );
+            }
+            
+            foreach($defaults as $name => $s) {
+                if (empty($ret['data']['settings'][$name])) {
+                    $ret['data']['settings'][$name] = array(
+                        'label' => $s['label'],
+                        'id'    => $s['id'],
+                        'value' => $s['value']
+                    );
+                }
+            }
+        } else {
+            $ret['data']['settings'] = $defaults;
         }
-        $data['options'] = array(
+        $ret['options'] = array(
             'endpoint'    => '/location/'. __FUNCTION__,
             'location_id' => $location_id
         );
-        return $data;
+        return $ret;
     }
 
     /**
@@ -1181,7 +1196,8 @@ SQL;
 
         // Add addresss location settings
         foreach(['address1', 'address2', 'city', 'state', 'country', 'zipcode'] as $key) {
-            if (in_array($key, $params)) {
+            var_dump($params);
+            if (array_key_exists($key, $params)) {
                 $sett_id = settId($key);
                 $sSQL = <<<SQL
 INSERT INTO location_setting 
@@ -1191,9 +1207,9 @@ INSERT INTO location_setting
     ON DUPLICATE KEY UPDATE value = :value
 SQL;
                 $oDb->query($sSQL, array(
-                    'location_id' => $location_id,
-                    'setting_id'  => $sett_id,
-                    'value' => $params[$key]
+                    ':location_id' => $location_id,
+                    ':setting_id'  => $sett_id,
+                    ':value' => $params[$key],
                 ));
             }
         }
@@ -1224,6 +1240,28 @@ SQL;
                 'success' => 'Location has been successfully created.'
             ) 
         );
+    }
+
+    public function availableSettings($params) {
+        if (empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'A valid UUID is needed to create a new location.');
+        }
+        $oDb = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT `id`, `label`, `name`, `default`, `desc`
+    FROM setting
+SQL;
+        $settings = $oDb->fetchAll($sSQL);
+        $ret['data']['settings'] = array();
+        foreach($settings as $set) {
+            $ret['data']['settings'][$set['setting']['name']] = array(
+                'id'      => $set['setting']['id'],
+                'label'   => $set['setting']['label'],
+                'desc'    => $set['setting']['desc'],
+                'default' => $set['setting']['default']
+            );
+        }
+        return $ret;
     }
 
     public function data($params) {
