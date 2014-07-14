@@ -106,7 +106,13 @@ class APIComponent {
                             break;
                         case 'date_interval':
                             $start_date = new DateTime($params['start_date']);
-                            $end_date = new DateTime($params['end_date']);
+                            try {
+                                $end_date = new DateTime($params['end_date']);
+                            } catch (Exception $e) {
+                                throw new APIException(
+                                    501, 'param_bad_formatted', "Param end_date needs to be of the form yyyy-mm-dd"
+                                );
+                            }
                             if ($start_date > $end_date) {
                                 throw new APIException(
                                 501, 'param_bad_formatted', "Param end_date needs to be greater than start_date"
