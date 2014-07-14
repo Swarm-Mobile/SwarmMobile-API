@@ -20,7 +20,7 @@ class CleanAccessTokensShell extends AppShell {
     }
 
     public function main() {
-        setEnvironment();
+        $this->setEnvironment();
         $week = 3600 * 24 * 7;
         $sSQL = "DELETE FROM access_tokens WHERE NOW() > FROM_UNIXTIME(expires) + $week";
         $oModel = new Model(false, 'refresh_tokens', 'oauth');
