@@ -22,10 +22,13 @@ class CleanAccessTokensShell extends AppShell {
     public function main() {
         $this->setEnvironment();
         $week = 3600 * 24 * 7;
-        $sSQL = "DELETE FROM access_tokens WHERE NOW() > FROM_UNIXTIME(expires) + $week";
         $oModel = new Model(false, 'refresh_tokens', 'oauth');
         $oDb = $oModel->getDataSource();
-        $oDb->query($sSQL);
+        $tables = ['access_tokens', 'refresh_tokens', 'auth_codes'];
+        foreach($tables as $table){
+            $sSQL = "DELETE FROM $table WHERE NOW() > FROM_UNIXTIME(expires) + $week";            
+            $oDb->query($sSQL);
+        }
         $this->out("Done!");
     }
 
