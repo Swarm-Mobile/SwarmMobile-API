@@ -87,7 +87,7 @@ class APIComponent {
                                 $date = new DateTime($params[$param]);
                             } catch (Exception $e) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be a date."
+                                501, 'param_bad_formatted', "Param $param needs to be of the form yyyy-mm-dd"
                                 );
                             }
                             $swarm_born = new DateTime('2013-01-01');
