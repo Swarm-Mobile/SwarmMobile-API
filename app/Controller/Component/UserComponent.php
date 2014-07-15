@@ -5,7 +5,7 @@ App::uses('Model', 'Model');
 
 class UserComponent extends APIComponent {
     
-    public $post_actions    = ['register', 'updateSettings', 'login'];
+    public $post_actions    = ['register', 'updateSettings', 'login', 'updatePassword'];
     public $put_actions     = [];
     public $delete_actions  = [];
 
@@ -246,6 +246,60 @@ SQL;
         }
         return $ret;
     }
+
+    /**
+     * Update user password
+     * 
+     * @param Array POST
+     * @return Array
+     */
+    public function updatePassword($params) {
+        if(empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'A valid UUID needed for getching user settings');
+        }
+        if(empty($params['currentPassword'])) {
+            throw new APIException(400, 'bad_request', 'Current password provided does not match with the password in our records.');
+        }
+        if(empty($params['password']) || empty($params['confirmPassword']) || ($params['password'] != $params['confirmPassword'])) {
+            throw new APIException(400, 'bad_request', 'Password and confirmPassword do not match.');
+        }
+        if (strlen($params['password']) < 5) {
+            throw new APIException(400, 'bad_request', 'Password must be atleast 5 characters long.');
+        }
+        $user = $this->getUserFromUUID($params['uuid']);
+        if (empty($user)) {
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
+        }
+        $oUser = new User();
+        $current = $oUser->hash_password($params['currentPassword'], $user[0]['user']['salt']);
+        if ($user[0]['user']['password'] != $current['password']) {
+            throw new APIException(400, 'bad_request', 'Current password provided does not match with the password in our records.');
+        }
+
+        $password = $oUser->hash_password($params['password']);
+        $oDb  = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+UPDATE  user
+    SET `salt`=:salt,
+        `password`=:password
+    WHERE uuid=:uuid
+SQL;
+        $oDb->query($sSQL, array(
+            ':salt' => $password['salt'], 
+            ':password' => $password['password'], 
+            ':uuid' => $params['uuid'])
+        );
+        $ret = array(
+            'message' => array(
+                'success' => 'Password updated successfully.'
+            ),
+            'options' => array(
+                'endpoint'  => '/user/'. __FUNCTION__,
+                'uuid'      => $params['uuid'], 
+            )
+        );
+        return $ret;
+     }
 
     /**
      * Get location manager id 

@@ -64,21 +64,21 @@ class APIComponent {
                         case 'required':
                             if (empty($params[$param])) {
                                 throw new APIException(
-                                501, 'required_param_not_found', "Param $param is required and was not found in the request."
+                                400, 'required_param_not_found', "Param $param is required and was not found in the request."
                                 );
                             }
                             break;
                         case 'int':
                             if ((!is_numeric($params[$param])) || $params[$param] != (int) $params[$param]) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be and int."
+                                400, 'param_bad_formatted', "Param $param needs to be and int."
                                 );
                             }
                             break;
                         case 'numeric':
                             if (!is_numeric($params[$param])) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be and int."
+                                400, 'param_bad_formatted', "Param $param needs to be and int."
                                 );
                             }
                             break;
@@ -87,7 +87,7 @@ class APIComponent {
                                 $date = new DateTime($params[$param]);
                             } catch (Exception $e) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be of the form yyyy-mm-dd"
+                                400, 'param_bad_formatted', "Param $param needs to be of the form yyyy-mm-dd"
                                 );
                             }
                             $swarm_born = new DateTime('2013-01-01');
@@ -95,12 +95,12 @@ class APIComponent {
                             date_add($max_date, date_interval_create_from_date_string('10 days'));
                             if ($date < $swarm_born && $date < $max_date) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be a date greater than 2013-01-01 and lower than today."
+                                400, 'param_bad_formatted', "Param $param needs to be a date greater than 2013-01-01 and lower than today."
                                 );
                             }
                             if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $params[$param])){
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to have the yyyy-mm-dd format"
+                                400, 'param_bad_formatted', "Param $param needs to have the yyyy-mm-dd format"
                                 );
                             }
                             break;
@@ -110,26 +110,26 @@ class APIComponent {
                                 $end_date = new DateTime($params['end_date']);
                             } catch (Exception $e) {
                                 throw new APIException(
-                                    501, 'param_bad_formatted', "Param end_date needs to be of the form yyyy-mm-dd"
+                                    400, 'param_bad_formatted', "Param end_date needs to be of the form yyyy-mm-dd"
                                 );
                             }
                             if ($start_date > $end_date) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param end_date needs to be greater than start_date"
+                                400, 'param_bad_formatted', "Param end_date needs to be greater than start_date"
                                 );
                             }
                             break;
                         case 'year':
                             if (!is_numeric($params[$param]) || $params[$param] < 2013 || $params[$param] > date('Y') + 1) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be a valid year after 2012"
+                                400, 'param_bad_formatted', "Param $param needs to be a valid year after 2012"
                                 );
                             }
                             break;
                         case 'month':
                             if (!is_numeric($params[$param]) || $params[$param] < 1 || $params[$param] > 12) {
                                 throw new APIException(
-                                501, 'param_bad_formatted', "Param $param needs to be a valid month"
+                                400, 'param_bad_formatted', "Param $param needs to be a valid month"
                                 );
                             }
                             break;
@@ -717,13 +717,13 @@ SQL;
         if(empty($uuid)) return false;
         $oDb = DBComponent::getInstance('user', 'backstage');
         $sSQL = <<<SQL
-SELECT id, usertype_id, username, email
+SELECT id, usertype_id, username, email, password, salt
     FROM user
     WHERE uuid="$uuid" LIMIT 1
 SQL;
         return $oDb->fetchAll($sSQL);
     }
-    
+
     public function getDefaultSettings() {
         $oDb = DBComponent::getInstance('user', 'backstage');
         $sSQL = <<<SQL
