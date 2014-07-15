@@ -1025,7 +1025,7 @@ SQL;
             throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
         }
         if(empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid uuid is needed to fetch settings.');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $this->verify($params);
         $location_id = $params['location_id'];
@@ -1092,7 +1092,7 @@ SQL;
             throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
         }
         if(empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid uuid is needed to fetch settings.');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $this->verify($params);
         $location_id = $params['location_id'];
@@ -1178,7 +1178,7 @@ SQL;
         $location = new Location();
         $location->set($params);
         if (empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid UUID is needed to create a new location.');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
 
         if (!$location->validates()) {
@@ -1263,7 +1263,7 @@ SQL;
      */
     public function availableSettings($params) {
         if (empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid UUID is needed to create a new location.');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $oDb = DBComponent::getInstance('user', 'backstage');
         $sSQL = <<<SQL

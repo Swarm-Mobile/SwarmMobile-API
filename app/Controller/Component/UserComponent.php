@@ -1,5 +1,4 @@
 <?php
-
 App::uses('APIComponent', 'Controller/Component');
 App::uses('Model', 'Model');
 
@@ -10,7 +9,9 @@ class UserComponent extends APIComponent {
     public $delete_actions  = [];
 
     /**
-     * Register a new user 
+     * Register a new user
+     * 
+     * @param Array POST
      * 
      */
     public function register($params) {
@@ -22,11 +23,11 @@ class UserComponent extends APIComponent {
                 throw new APIException(400, 'bad_request', 'Passwords do not match.');
             }
             if(!$user->checkEmailExists($params['email'])) {
-                throw new APIException(400, 'bad_request', 'Email already exists.');
+                throw new APIException(400, 'bad_request', 'Email already exists. Please try a different email.');
             }
             
             if(!$user->checkUsernameExists($params['username'])) {
-                throw new APIException(400, 'bad_request', 'Username already exists.');
+                throw new APIException(400, 'bad_request', 'Username already exists. Please try a different username.');
             }
             $oDb  = DBComponent::getInstance('user', 'backstage');
             $password = $user->hash_password($params['password']);
@@ -121,7 +122,7 @@ SQL;
      */
     public function getSettings($params) {
         if(empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid UUID needed for getching user settings');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $user = $this->getUserFromUUID($params['uuid']);
         
@@ -163,7 +164,7 @@ SQL;
             );
             return $ret;
         } else {
-            throw new APIException(400, 'bad_request', 'A valid UUID is needed to fetch settings.');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
     }
 
@@ -174,7 +175,7 @@ SQL;
      */
     public function updateSettings($params) {
         if(empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid UUID needed for getching user settings');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $exec = false;
         $user = $this->getUserFromUUID($params['uuid']);
@@ -255,7 +256,7 @@ SQL;
      */
     public function updatePassword($params) {
         if(empty($params['uuid'])) {
-            throw new APIException(400, 'bad_request', 'A valid UUID needed for getching user settings');
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         if(empty($params['currentPassword'])) {
             throw new APIException(400, 'bad_request', 'Current password provided does not match with the password in our records.');
@@ -302,8 +303,8 @@ SQL;
      }
 
     /**
-     * Get location manager id 
-     * 
+     * Get location manager id
+     *
      * @param int user_id
      * @return int locationmanager_id
      */
@@ -356,19 +357,20 @@ SQL;
      * @param int usertype_id
      * @param boolean internal call or api request
      */
-    //public function locations($user_id, $usertype_id=0, $internal=false) {
     public function locations($uuid, $internal=false) {
         if(empty($uuid)) {
-            throw new APIException(401, 'bad_request', 'A valid UUID is needed to fetch locations.');
+            throw new APIException(401, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         
         $oUser = new User();
-        $user = $oUser->find('first', array(
+        $u = $oUser->find('first', array(
             'fields' => array('User.id', 'User.usertype_id'),
             'conditions' => array(
                 'User.uuid' => $uuid
             )
-        ))['User'];
+        ));
+        if (empty($u)) throw new APIException(401, 'bad_request', 'User not found. Please provide a valid UUID.');
+        $user = $u['User'];
         $oDb  = DBComponent::getInstance('user', 'backstage');
         $joinTable = '';
         $joinId = false;
@@ -381,7 +383,7 @@ SQL;
             $joinId    = $this->getEmployeeId($user['id']);
             $entityCol = 'employee_id';
         } else {
-            throw new APIException(400, 'bad_request', 'Currently only location manager and employee logins are supported.');
+            throw new APIException(400, 'bad_request', 'You need to be a location manager or an employee to have locations associated to you.');
         }
 
         $sSQL = <<<SQL
