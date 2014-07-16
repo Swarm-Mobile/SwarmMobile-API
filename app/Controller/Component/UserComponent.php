@@ -25,7 +25,7 @@ class UserComponent extends APIComponent {
             if(!$user->checkEmailExists($params['email'])) {
                 throw new APIException(400, 'bad_request', 'Email already exists. Please try a different email.');
             }
-            
+
             if(!$user->checkUsernameExists($params['username'])) {
                 throw new APIException(400, 'bad_request', 'Username already exists. Please try a different username.');
             }
@@ -156,7 +156,8 @@ SQL;
                  $ret['data']['lastname']  = $employee[0]['locationmanager']['lastname'];
                  break;
             }
-
+            $ret['data']['uuid'] = $params['uuid'];
+            $ret['data']['user_id'] = $user[0]['user']['id'];
             $ret['data']['locations'] = $this->locations($params['uuid'], true);
             $ret['options'] = array(
                 'endpoint'  => '/user/'. __FUNCTION__,

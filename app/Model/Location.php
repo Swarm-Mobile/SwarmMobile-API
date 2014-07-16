@@ -52,4 +52,24 @@ class Location extends AppModel {
         if(!empty($location)) return true;
         return false;
     }
+    
+    public function nameAddressCombinationExists($combination = '', $name = '') {
+        $sSQL = <<<SQL
+SELECT COUNT(*) as count FROM (
+    SELECT GROUP_CONCAT(a.value SEPARATOR ' ') full_address
+    FROM location l
+    INNER JOIN 
+    (
+    SELECT location_id, value
+    FROM location_setting ls
+    WHERE ls.setting_id IN (1,3)    
+    ) a
+    ON a.location_id = l.id
+    AND l.name ="$name"
+    GROUP BY l.id
+    HAVING full_address ="$combination"
+) b
+SQL;
+         return (int) $this->query($sSQL)[0][0]['count'];
+    }
 }

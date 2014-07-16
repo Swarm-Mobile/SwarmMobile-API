@@ -228,7 +228,7 @@ SQL;
                 'location_id'=>$params['location_id']
             ]
         ];
-        
+
         $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
         $days = ['byWeek'=>[],'total'=>0];
         $weeks = [];
@@ -1184,20 +1184,22 @@ SQL;
         if (!$location->validates()) {
             $this->handleValidationErrors($location->validationErrors);
         }
-        if ($params['name'] == $params['address1']) {
-            throw new APIException(400, 'bad_request', "Location name and address cannot be the same.");
+        
+        $combination = $params['address1']. " ". $params['city'];
+        if($location->nameAddressCombinationExists($combination, $params['name']) > 0) {
+            throw new APIException(400, 'bad_request', 'Location name, address and city combination already exists in our records.');
         }
         $uuid = $params['uuid'];
         if (empty($params['user_id'])) {
             $user = $this->getUserFromUUID($uuid);
             $user_id = $user[0]['user']['id'];
         }
-        
+
         $locationmanager_id = $this->getLocationManagerId($user_id);
-        
+
         $oDb  = DBComponent::getInstance('location_setting', 'backstage');
         $reseller_id = (!empty($params['reseller_id'])) ? $params['reseller_id'] : NULL;
-        
+
         // Create a new Location
         $sSQL = <<<SQL
 INSERT INTO location
