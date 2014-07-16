@@ -1047,7 +1047,7 @@ SQL;
             $ret['data']['name'] = $aResL[0]['location']['name'];
         }
         $sSQL = <<<SQL
-SELECT s.label, s.name, ls.setting_id, ls.value
+SELECT s.label, s.name, s.desc,ls.setting_id, ls.value
     FROM setting s JOIN location_setting ls on s.id=ls.setting_id
     WHERE ls.location_id=$location_id
 SQL;
@@ -1059,7 +1059,8 @@ SQL;
                 $ret['data']['settings'][$set['s']['name']] = array(
                     'label'      => $set['s']['label'],
                     'setting_id' => $set['ls']['setting_id'],
-                    'value'      => $set['ls']['value']
+                    'value'      => $set['ls']['value'],
+                    'description' => $set['s']['desc']
                 );
             }
             
@@ -1068,7 +1069,8 @@ SQL;
                     $ret['data']['settings'][$name] = array(
                         'label' => $s['label'],
                         'id'    => $s['id'],
-                        'value' => $s['value']
+                        'value' => $s['value'],
+                        'description' => $s['desc']
                     );
                 }
             }
@@ -1113,7 +1115,6 @@ SQL;
             }
 
             foreach($params['Location'][$location_id] as $key => $val) {
-                //unset($settId);
                 if (!is_numeric($key)) {
                     $sett_id = settId($key);
                 } else {

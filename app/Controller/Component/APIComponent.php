@@ -727,7 +727,7 @@ SQL;
     public function getDefaultSettings() {
         $oDb = DBComponent::getInstance('user', 'backstage');
         $sSQL = <<<SQL
-SELECT `id`, `label`, `name`, `default`
+SELECT `id`, `label`, `name`, `default`, `desc`
     FROM setting
     WHERE `default` !=''
 SQL;
@@ -737,7 +737,8 @@ SQL;
             $ret[$set['setting']['name']] = array(
                 'label' =>  $set['setting']['label'],
                 'id'    =>  $set['setting']['id'],
-                'value' => $set['setting']['default']
+                'value' => $set['setting']['default'],
+                'desc' => $set['setting']['desc']
             );
         }
         return $ret;
