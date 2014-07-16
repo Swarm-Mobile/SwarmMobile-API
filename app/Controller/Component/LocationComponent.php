@@ -1121,7 +1121,6 @@ SQL;
                         $sett_id = $key;
                     }
                 }
-                var_dump($sett_id);
                 if (!empty($sett_id)) {
                     $update[$sett_id] = $val;
                 }
@@ -1186,8 +1185,13 @@ SQL;
         }
         
         $combination = $params['address1']. " ". $params['city'];
-        if($location->nameAddressCombinationExists($combination, $params['name']) > 0) {
+        if($location->nameAddressCombination($combination, $params['name']) > 0) {
             throw new APIException(400, 'bad_request', 'Location name, address and city combination already exists in our records.');
+        }
+
+        $params['country'] = strtoupper($params['country']);
+        if(!$location->countryCodeExists($params['country'])) {
+            throw new APIException(400, 'bad_request', 'Country code does not exist in our database.');
         }
         $uuid = $params['uuid'];
         if (empty($params['user_id'])) {
@@ -1242,7 +1246,7 @@ SQL;
             'location_id' => $location_id,
             'locationmanager_id'  => $locationmanager_id
         ));
-        
+
         return array(
             'data' => array (
                 'user_id' => $user_id,

@@ -53,7 +53,7 @@ class Location extends AppModel {
         return false;
     }
     
-    public function nameAddressCombinationExists($combination = '', $name = '') {
+    public function nameAddressCombination($combination = '', $name = '') {
         $sSQL = <<<SQL
 SELECT COUNT(*) as count FROM (
     SELECT GROUP_CONCAT(a.value SEPARATOR ' ') full_address
@@ -71,5 +71,14 @@ SELECT COUNT(*) as count FROM (
 ) b
 SQL;
          return (int) $this->query($sSQL)[0][0]['count'];
+    }
+    
+    public function countryCodeExists($code) {
+        $sSQL = <<<SQL
+SELECT COUNT(*) as count
+    FROM country
+    WHERE code="$code"
+SQL;
+        return (int) $this->query($sSQL)[0][0]['count'];
     }
 }
