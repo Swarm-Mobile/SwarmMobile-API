@@ -180,7 +180,12 @@ class Dispatcher implements CakeEventListener {
 	protected function _invoke(Controller $controller, CakeRequest $request, CakeResponse $response) {
 		$controller->constructClasses();
 		$controller->startupProcess();
-
+        $newrelicURL = explode('/', $controller->request->url);
+        if (isset($newrelicURL[0]) && isset($newrelicURL[1])) {
+            if (extension_loaded ('newrelic')) {
+                newrelic_name_transaction ($newrelicURL[0] . '/' . $newrelicURL[1]);
+            }
+        }
 		$render = true;
 		$result = $controller->invokeAction($request);
 		if ($result instanceof CakeResponse) {

@@ -31,7 +31,7 @@ class SettingComponent {
 
     public static function value($setting_name, $setting_array) {
         $aResult = self::get($setting_name, $setting_array);
-        return (!empty($aResult[1]))?$aResult[1]:'';
+        return (isset($aResult[1]))?$aResult[1]:'';
     }
 
     public static function defaults($setting_name, $setting_array) {

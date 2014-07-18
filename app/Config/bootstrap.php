@@ -72,8 +72,8 @@ Cache::config('default', array(
  * CakePlugin::load('DebugKit'); //Loads a single plugin named DebugKit
  *
  */
-CakePlugin::load('Mongodb');
 CakePlugin::load('ibeacon',array('routes' => true));
+//CakePlugin::load('Mongodb');
 CakePlugin::loadAll(array('OAuth' => array('routes' => true)));
 
 /**

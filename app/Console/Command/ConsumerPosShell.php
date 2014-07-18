@@ -26,10 +26,10 @@ class ConsumerPosShell extends AppShell {
 
     public function getOptionParser() {
         $parser = parent::getOptionParser();
-//        $parser->addOption('member_id', array(
+//        $parser->addOption('location_id', array(
 //            'short' => 'm',
 //            'default' => 'all',
-//            'help' => "Member ID's to rebuild"
+//            'help' => "Location ID's to rebuild"
 //        ));
         return $parser;
     }
