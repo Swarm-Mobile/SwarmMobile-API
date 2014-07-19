@@ -71,7 +71,7 @@ TEXT;
     public function main() {
         $this->setEnvironment();
         $oDb = DBComponent::getInstance('requested_rollups_queue', 'rollups');
-        $aRes = $oDb->fetchAll("SELECT * FROM request_rollups_queue q");
+        $aRes = $oDb->fetchAll("SELECT * FROM requested_rollups_queue q");
         if (!empty($aRes)) {
             foreach ($aRes as $oRow) {
                 $oRollup = new RollupShell();
