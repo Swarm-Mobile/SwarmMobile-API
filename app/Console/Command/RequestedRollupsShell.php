@@ -65,7 +65,7 @@ Rebuild {$oRow['q']['rebuild']}
 Time Requested: {$oRow['q']['ts']}
 Time Processed: {$timestamp}
 TEXT;
-        $Email->send();
+        $Email->send($text);
     }
 
     public function main() {
