@@ -24,9 +24,9 @@ class RequestedRollupsShell extends AppShell {
     }
 
     public function mark_as_processed($oRow) {
-        $oDb = DBComponent::getInstance('request_rollups_queue', 'rollups');
+        $oDb = DBComponent::getInstance('requested_rollups_queue', 'rollups');
         $sSQL = <<<SQL
-INSERT INTO request_rollups_processed
+INSERT INTO requested_rollups_processed
     SET location_id     = :location_id,
         start_date      = :start_date,        
         end_date        = :end_date,        
@@ -45,7 +45,7 @@ SQL;
             ':reporter_email' => $oRow['q']['reporter_email'],
             ':ts_queue' => $oRow['q']['ts'],
         ]);
-        $oDb->query('DELETE FROM request_rollups_queue WHERE id = :id', [':id' => $oRow['q']['id']]);
+        $oDb->query('DELETE FROM requested_rollups_queue WHERE id = :id', [':id' => $oRow['q']['id']]);
     }
 
     public function send_email($oRow) {
@@ -70,7 +70,7 @@ TEXT;
 
     public function main() {
         $this->setEnvironment();
-        $oDb = DBComponent::getInstance('request_rollups_queue', 'rollups');
+        $oDb = DBComponent::getInstance('requested_rollups_queue', 'rollups');
         $aRes = $oDb->fetchAll("SELECT * FROM request_rollups_queue q");
         if (!empty($aRes)) {
             foreach ($aRes as $oRow) {
