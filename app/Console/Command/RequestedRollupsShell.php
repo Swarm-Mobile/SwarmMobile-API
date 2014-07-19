@@ -80,6 +80,7 @@ TEXT;
                 $oRollup->params['end_date'] = $oRow['q']['end_date'];
                 $oRollup->params['override'] = $oRow['q']['override'];
                 $oRollup->params['rebuild'] = $oRow['q']['rebuild'];
+                $oRollup->params['part'] = '1/1';
                 $oRollup->main();
                 $this->mark_as_processed($oRow);
                 $this->send_email($oRow);
