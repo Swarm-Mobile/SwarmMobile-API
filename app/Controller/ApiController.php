@@ -9,14 +9,14 @@ App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('AppController', 'Controller');
 App::uses('Model', 'Model');
 App::uses('RequestModel', 'Model');
-
+App::uses('User', 'Model');
 App::uses('Location', 'Model');
 App::uses('Setting', 'Model');
 App::uses('SettingGroup', 'Model');
 
 //ONE for every component that extends from APIComponent
 App::uses('PortalComponent', 'Controller/Component');
-App::uses('ConsumerComponent', 'Controller/Component');
+//App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 App::uses('OAuthClientComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
@@ -61,7 +61,6 @@ class APIController extends AppController {
     public $response_message = 'OK';
     public $params = array();
     public $helpers = array('Html', 'Session');
-
     // Controller Actions
     public function logout() {
         $this->Session->destroy('User');
@@ -106,7 +105,7 @@ class APIController extends AppController {
         $this->Inbox->save($data);
     }
 
-    public function index() {
+    public function index() {       
         $env = getenv('server_location');
         $this->debug = ($env != 'live');
         set_time_limit(3600);
@@ -116,7 +115,9 @@ class APIController extends AppController {
         header("Access-Control-Allow-Methods: POST, GET");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
         header("Access-Control-Max-Age: 1728000");
-        header("Content-Type: application/json; charset=UTF-8");
+        header("Access-Control-Max-Age: 1728000");
+        header("Pragma: no-cache");
+        header("Cache-Contro;: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
         try {
             if ($this->request->is('get')) {
                 $params = $_GET;
@@ -134,6 +135,26 @@ class APIController extends AppController {
                 $path[1] = '';
             }
             $this->endpoint = $path[0] . '/' . $path[1];
+            $component = ucfirst($path[0]) . 'Component';
+            $component = new $component;
+            $request_method = strtolower(env('REQUEST_METHOD'));
+            switch ($request_method) {
+                case 'get':
+                    if (
+                        in_array($path[1], $component->post_actions)    ||
+                        in_array($path[1], $component->put_actions)      ||
+                        in_array($path[1], $component->delete_actions)
+                    ) {
+                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
+                    }
+                    break;
+                default:
+                    $actions = $request_method . '_actions';
+                    if (!in_array($path[1], $component->$actions)) {
+                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
+                    }
+                    break;
+            }
             echo json_encode($this->internalCall($path[0], $path[1], $params));
             //$this->call_log();
             exit();
@@ -149,10 +170,22 @@ class APIController extends AppController {
             //$this->call_log();
             $e->_displayError();
             return false;
+        } catch (Exception $e) {
+            header("Cache-Control: no-store");
+            header("HTTP/1.1 500");
+            echo json_encode(
+                    array(
+                        'error' => 'Application Error',
+                        'error_description' => ''
+                    )
+            );
+            die();
+            return false;
         }
     }
 
     // Internal functions
+
 //    private function call_log() {
 //        $this->request_end = date('Y-m-d H:i:s');
 //        $oModel = new Model(false, 'calls', 'rollups');
@@ -237,6 +270,7 @@ class APIController extends AppController {
                     return $result;
                 }
             }
+
         } else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods)) {
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
@@ -388,6 +422,7 @@ SQL;
             ) {
                 return;
             }
+
             //if ($this->cache) {
             if ($component == 'location' && $method == 'purchaseInfo') {
                 $this->createCacheFolders($component, $method);
