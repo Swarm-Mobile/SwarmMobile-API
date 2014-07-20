@@ -277,7 +277,9 @@ function firstPurchase($location_id){
     $sSQL = <<<SQL
 SELECT DATE(ts) as first_date
 FROM invoices s
-WHERE store_id = :store_id     
+WHERE store_id = :store_id
+  AND ts != '0000-00-00 00:00:00'
+  AND ts IS NOT NULL
 ORDER BY ts ASC
 LIMIT 1
 SQL;
@@ -296,6 +298,8 @@ function firstSession($location_id){
 SELECT DATE(time_login) as first_date
 FROM sessions s
 WHERE network_id = :network_id
+  AND time_login != '0000-00-00 00:00:00'
+  AND time_login IS NOT NULL
 ORDER BY ts ASC
 LIMIT 1
 SQL;
@@ -311,6 +315,8 @@ function firstSensor($location_id){
 SELECT DATE(ts) as first_date
 FROM visitorEvent s
 WHERE location_id = :location_id
+  AND ts != '0000-00-00 00:00:00'
+  AND ts IS NOT NULL
 ORDER BY ts ASC
 LIMIT 1
 SQL;
