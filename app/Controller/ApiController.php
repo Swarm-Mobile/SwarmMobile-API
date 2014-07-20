@@ -170,17 +170,6 @@ class APIController extends AppController {
             //$this->call_log();
             $e->_displayError();
             return false;
-        } catch (Exception $e) {
-            header("Cache-Control: no-store");
-            header("HTTP/1.1 500");
-            echo json_encode(
-                    array(
-                        'error' => 'Application Error',
-                        'error_description' => ''
-                    )
-            );
-            die();
-            return false;
         }
     }
 
