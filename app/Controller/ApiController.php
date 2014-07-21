@@ -138,6 +138,7 @@ class APIController extends AppController {
             $component = ucfirst($path[0]) . 'Component';
             $component = new $component;
             $request_method = strtolower(env('REQUEST_METHOD'));
+            $this->call_log($path[0], $path[1], $request_method);
             switch ($request_method) {
                 case 'get':
                     if (
@@ -175,6 +176,21 @@ class APIController extends AppController {
 
     // Internal functions
 
+    private function call_log($component, $function, $request_method){
+        $file = __DIR__.'/../tmp/logs/api_calls/'.date('Y_m_d_h_i_s').
+                '_'.strtoupper($request_method).'_'.$component.'_'.$function;
+        $post = var_export($_POST);
+        $get = var_export($_GET);
+        $text = <<<TEXT
+POST:
+$post
+                
+GET:
+$get
+                
+TEXT;
+        file_put_contents($file, $text);        
+    }
 //    private function call_log() {
 //        $this->request_end = date('Y-m-d H:i:s');
 //        $oModel = new Model(false, 'calls', 'rollups');

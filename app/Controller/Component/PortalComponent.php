@@ -44,4 +44,7 @@ SQL;
         return array();
     }
 
+    public function setStatus($params){
+        return array();
+    }
 }
