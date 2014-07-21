@@ -179,8 +179,8 @@ class APIController extends AppController {
     private function call_log($component, $function, $request_method){
         $file = __DIR__.'/../tmp/logs/api_calls/'.date('Y_m_d_h_i_s').
                 '_'.strtoupper($request_method).'_'.$component.'_'.$function;
-        $post = var_export($_POST);
-        $get = var_export($_GET);
+        $post = var_export($_POST, true);
+        $get = var_export($_GET, true);
         $text = <<<TEXT
 POST:
 $post
