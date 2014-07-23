@@ -39,7 +39,7 @@ class APIController extends AppController {
         'itemsPerTransaction',
         'returning',
         'revenue',
-        'sensorTraffic',
+        //'sensorTraffic',
         'timeInShop',
         'totalItems',
         'totals',
