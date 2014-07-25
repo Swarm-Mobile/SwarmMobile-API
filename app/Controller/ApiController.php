@@ -117,7 +117,7 @@ class APIController extends AppController {
         header("Content-Type: application/json; charset=UTF-8");        
         header("Access-Control-Max-Age: 1728000");
         header("Pragma: no-cache");
-        header("Cache-Contro;: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+        header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
         try {
             if ($this->request->is('get')) {
                 $params = $_GET;
