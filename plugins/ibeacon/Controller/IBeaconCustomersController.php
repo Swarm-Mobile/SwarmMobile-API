@@ -27,7 +27,7 @@ class IBeaconCustomersController extends  IBeaconController  {
      * @throws NotFoundException
      */
     public function login () {
-        $cutomerData = $this->request->data;
+        $cutomerData = $this->getRawData();
         $existing = $this->findCustomer($cutomerData);
         $this->IBeaconCustomers->set($existing['IBeaconCustomers']);
         if ($this->IBeaconCustomers->exists()) {

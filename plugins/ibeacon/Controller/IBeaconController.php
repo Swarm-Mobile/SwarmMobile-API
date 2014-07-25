@@ -39,4 +39,28 @@ class IBeaconController extends Controller {
     //    print_R($this->request->header('Swarm-Api-Challange'));
         exit;
     }
+
+
+        /**
+     *
+     * @param int/string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    protected  function getRawData ($key = null, $default = 0) {
+        if($this->rawData === null){
+            $fh = fopen('php://input', 'r');
+			$content = stream_get_contents($fh);
+			fclose($fh);
+			$this->rawData = json_decode($content, true);
+        }
+        if($key !== null){
+            return isset($this->rawData[$key])
+                    ? $this->rawData[$key]
+                    : $default;
+        }
+        else{
+            return $this->rawData;
+        }
+    }
 }
