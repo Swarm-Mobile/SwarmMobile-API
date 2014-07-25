@@ -4,13 +4,14 @@ App::uses('DBComponent', 'Controller/Component');
 App::uses('APIComponent', 'Controller/Component');
 
 class LocationComponent extends APIComponent {
+
     
-    public $post_actions    = [];
+    public $post_actions    = ['create', 'updateSettings'];
     public $put_actions     = [];
     public $delete_actions  = [];
     
     //EXAMPLES
-
+    
     /**
      * API Example method
      * @param $params Contains all the request params except access_token
@@ -177,19 +178,14 @@ SQL;
     }
 
     //IOS ENDPOINTS
-    public function whereAmI($params) {
-        
-    }
-
-    public function whatIsHere($params) {
-        
-    }
-
-    public function monthlyTotals($params) {
+    public function whereAmI($params) {}  
+    public function whatIsHere($params){}
+    
+        public function monthlyTotals($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
-            'year' => array('required', 'int', 'year'),
-            'month' => array('required', 'int', 'month')
+            'year' => array('required', 'int'),
+            'month' => array('required', 'int')
         );
         $this->validate($params, $rules);
 
@@ -408,9 +404,9 @@ SQL;
         
         return $result;
     }
-
+ 
     //OTHER ENDPOINTS
-
+    
     public function openHours($params) {
         $data = $this->api->internalCall('location', 'data', $params);
         $return = $this->weekdays;
@@ -424,15 +420,15 @@ SQL;
         }
         $result = array('data' => $return);
         $result['options'] = array(
-            'endpoint' => 'location/openHours',
+            'endpoint'  => 'location/openHours',
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'=> $params['start_date'],
+            'end_date'  => $params['end_date'],
         );
         return $result;
     }
 
-    public function totals($params) {
+    public function totals($params) {        
         $rules = array(
             'location_id' => array('required', 'int'),
             'start_date' => array('required','date','date_interval'),
@@ -458,18 +454,20 @@ SQL;
             ['location', 'totalItems', $open_total],
             ['location', 'conversionRate', $open_total],
             ['location', 'itemsPerTransaction', $open_total],
+            
             ['location', 'traffic', 'total'],
             ['location', 'devices', 'total'],
             ['location', 'timeInShop', 'total'],
             ['location', 'totalItems', $open_total],
+            
         ];
         if ($params['start_date'] != $params['end_date']) {
             $result = $this->iterativeTotals('location', __FUNCTION__, $params);
-            $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'], 1), 2);
-            $result['windowConversion'] = round(($result['traffic'] / coalesce($result['devices'], coalesce($result['traffic'], 1))) * 100, 2);
-            $result['conversionRate'] = round(($result['transactions'] / coalesce($result['footTraffic'], coalesce($result['transactions'], 1))) * 100, 2);
-            $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'], 1), 2);
-            $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'], 1), 2);
+            $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'],1),2);
+            $result['windowConversion'] = round(($result['traffic'] / coalesce($result['devices'],coalesce($result['traffic'], 1)))*100,2);
+            $result['conversionRate'] = round(($result['transactions'] / coalesce($result['footTraffic'],  coalesce($result['transactions'], 1)))*100,2);
+            $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'],1),2);
+            $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'],1),2);
             return $result;
         } else {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
@@ -777,7 +775,7 @@ SQL;
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
-            $factor = $data['data']['traffic_factor'];
+            $factor   = $data['data']['traffic_factor'];
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
@@ -1007,6 +1005,7 @@ SQL;
         }
     }
 
+    
     //Rates
     public function itemsPerTransaction($params) {
         $tt = $this->api->internalCall('location', 'totalItems', $params);
@@ -1020,20 +1019,18 @@ SQL;
         );
         return $result;
     }
-
     public function windowConversion($params) {
         $ft = $this->api->internalCall('location', 'traffic', $params);
         $nd = $this->api->internalCall('location', 'devices', $params);
         $result = $this->percentify($ft, $nd);
         $result['options'] = array(
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
-
     public function avgTicket($params) {
         $re = $this->api->internalCall('location', 'revenue', $params);
         $tr = $this->api->internalCall('location', 'transactions', $params);
@@ -1041,12 +1038,11 @@ SQL;
         $result['options'] = array(
             'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
-
     public function conversionRate($params) {
         $tr = $this->api->internalCall('location', 'transactions', $params);
         $ft = $this->api->internalCall('location', 'footTraffic', $params);
@@ -1054,12 +1050,11 @@ SQL;
         $result['options'] = array(
             'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
-
     public function dwell($params) {
         $ts = $this->api->internalCall('location', 'timeInShop', $params);
         $tr = $this->api->internalCall('location', 'traffic', $params);
@@ -1067,13 +1062,287 @@ SQL;
         $result['options'] = array(
             'endpoint' => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
+    
+    /**
+     * Get location settings
+     *
+     * @param Array
+     */
+    public function getSettings($params) {
+        if(empty($params['location_id'])) {
+            throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
+        }
+        if(empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
+        }
+        $this->verify($params);
+        $location_id = $params['location_id'];
+        $location = new Location();
+        if(!$location->locationExists($location_id)) {
+            throw new APIException(400, 'bad_request', 'Location not found.');
+        }
 
-    //MISC
+        $ret['data'] = array();
+        $oDb = DBComponent::getInstance('location_setting', 'backstage');
+        $sSQL = <<<SQL
+SELECT name
+    FROM location
+    WHERE id=$location_id
+SQL;
+    
+        $aResL = $oDb->fetchAll($sSQL);
+        if (!empty($aResL)) {
+            $ret['data']['name'] = $aResL[0]['location']['name'];
+        }
+        $sSQL = <<<SQL
+SELECT s.label, s.name, s.desc,ls.setting_id, ls.value
+    FROM setting s JOIN location_setting ls on s.id=ls.setting_id
+    WHERE ls.location_id=$location_id
+SQL;
+        $aRes = $oDb->fetchAll($sSQL);
+        $ret['data']['settings'] = array();
+        $defaults = $this->getDefaultSettings();
+        if (!empty($aRes)) {
+            foreach ($aRes as $set) {
+                $ret['data']['settings'][$set['s']['name']] = array(
+                    'label'      => $set['s']['label'],
+                    'setting_id' => $set['ls']['setting_id'],
+                    'value'      => $set['ls']['value'],
+                    'description' => $set['s']['desc']
+                );
+            }
+            
+            foreach($defaults as $name => $s) {
+                if (empty($ret['data']['settings'][$name])) {
+                    $ret['data']['settings'][$name] = array(
+                        'label' => $s['label'],
+                        'id'    => $s['id'],
+                        'value' => $s['value'],
+                        'description' => $s['desc']
+                    );
+                }
+            }
+        } else {
+            $ret['data']['settings'] = $defaults;
+        }
+        $ret['options'] = array(
+            'endpoint'    => '/location/'. __FUNCTION__,
+            'location_id' => $location_id
+        );
+        return $ret;
+    }
+
+    /**
+     * Update location settings
+     *
+     * @param Array
+     */
+    public function updateSettings($params) {
+        if(empty($params['location_id'])) {
+            throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
+        }
+        if(empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
+        }
+        $this->verify($params);
+        $location_id = $params['location_id'];
+        $oSettings =  new Setting();
+        $settingIds  = $oSettings->find('list', array('fields' => array('id')));
+        $update = array();
+        if (!empty($params['Location'][$location_id])) {
+            if (!empty($params['Location']['name'])) {
+                $sSQL = <<<SQL
+UPDATE location 
+    SET name = :name
+    WHERE location_id = :location_id
+SQL;
+                $oDb->query($sSQL, array(
+                        'name' => $params['Location']['name'],
+                        'location_id'  => $location_id,
+                    ));
+            }
+
+            foreach($params['Location'][$location_id] as $key => $val) {
+                if (!is_numeric($key)) {
+                    $sett_id = settId($key);
+                } else {
+                    if(in_array($key, $settingIds)) {
+                        $sett_id = $key;
+                    }
+                }
+                if (!empty($sett_id)) {
+                    $update[$sett_id] = $val;
+                }
+            }
+            if (!empty($update)) {
+                $oDb  = DBComponent::getInstance('location_setting', 'backstage');
+                 
+                foreach($update as $key => $val) {
+                    $sSQL = <<<SQL
+INSERT INTO location_setting 
+    SET location_id = :location_id,
+        setting_id  = :setting_id,
+        value = :value
+    ON DUPLICATE KEY UPDATE value = :value
+SQL;
+                    $ret = $oDb->query($sSQL, array(
+                        'location_id' => $location_id,
+                        'setting_id'  => $key,
+                        'value' => $val
+                    ));
+                }
+                return array(
+                    'options' => array(
+                        'endpoint' => '/location/'. __FUNCTION__,
+                        'uuid' => $params['uuid'],
+                        'location_id' => $params['uuid']
+                    ),
+                    'message' => array(
+                        'success' => 'Settings have been successfully saved.'
+                    )
+                );
+            }
+        } else {
+            return array(
+                'options' => array(
+                    'endpoint' => '/location/'. __FUNCTION__,
+                ),
+                'message' => array(
+                    'success' => 'Nothing to update.'
+                )
+            );
+        }
+    }
+
+    /**
+     * Create a new location
+     * 
+     * @param Array post data
+     */
+    public function create($params) {
+        $uuid = '';
+        $user_id = NULL;
+        $user = array();
+        $location = new Location();
+        $location->set($params);
+        if (empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
+        }
+
+        if (!$location->validates()) {
+            $this->handleValidationErrors($location->validationErrors);
+        }
+        
+        $combination = $params['address1']. " ". $params['city'];
+        if($location->nameAddressCombination($combination, $params['name']) > 0) {
+            throw new APIException(400, 'bad_request', 'Location name, address and city combination already exists in our records.');
+        }
+
+        $params['country'] = strtoupper($params['country']);
+        if(!$location->countryCodeExists($params['country'])) {
+            throw new APIException(400, 'bad_request', 'Country code does not exist in our database.');
+        }
+        $uuid = $params['uuid'];
+        if (empty($params['user_id'])) {
+            $user = $this->getUserFromUUID($uuid);
+            $user_id = $user[0]['user']['id'];
+        }
+
+        $locationmanager_id = $this->getLocationManagerId($user_id);
+
+        $oDb  = DBComponent::getInstance('location_setting', 'backstage');
+        $reseller_id = (!empty($params['reseller_id'])) ? $params['reseller_id'] : NULL;
+
+        // Create a new Location
+        $sSQL = <<<SQL
+INSERT INTO location
+    SET name = :name,
+        ts_creation = CURRENT_TIMESTAMP,
+        reseller_id = :reseller_id
+SQL;
+        $oDb->query($sSQL, array(
+            ':name' => $params['name'],
+            ':reseller_id'  => $reseller_id,
+        ));
+        $location_id = $oDb->lastInsertId();
+
+        // Add addresss location settings
+        foreach(['address1', 'address2', 'city', 'state', 'country', 'zipcode'] as $key) {
+            if (array_key_exists($key, $params)) {
+                $sett_id = settId($key);
+                $sSQL = <<<SQL
+INSERT INTO location_setting 
+    SET location_id = :location_id,
+        setting_id  = :setting_id,
+        value = :value
+    ON DUPLICATE KEY UPDATE value = :value
+SQL;
+                $oDb->query($sSQL, array(
+                    ':location_id' => $location_id,
+                    ':setting_id'  => $sett_id,
+                    ':value' => $params[$key],
+                ));
+            }
+        }
+        // Create locationmanager to location map
+        $sSQL = <<<SQL
+INSERT INTO locationmanager_location
+    SET location_id = :location_id,
+        locationmanager_id = :locationmanager_id
+SQL;
+
+        $oDb->query($sSQL, array(
+            'location_id' => $location_id,
+            'locationmanager_id'  => $locationmanager_id
+        ));
+
+        return array(
+            'data' => array (
+                'user_id' => $user_id,
+                'locationmanager_id' => $locationmanager_id,
+                'location_id' => $location_id
+            ),
+            'options' =>  array(
+                'endpoint' => '/location/'. __FUNCTION__,
+                'uuid' => $uuid
+            ),
+            'message' => array(
+                'success' => 'Location has been successfully created.'
+            ) 
+        );
+    }
+
+    /**
+     * Get available settings 
+     * 
+     */
+    public function availableSettings($params) {
+        if (empty($params['uuid'])) {
+            throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
+        }
+        $oDb = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT `id`, `label`, `name`, `default`, `desc`
+    FROM setting
+SQL;
+        $settings = $oDb->fetchAll($sSQL);
+        $ret['data']['settings'] = array();
+        foreach($settings as $set) {
+            $ret['data']['settings'][$set['setting']['name']] = array(
+                'id'      => $set['setting']['id'],
+                'label'   => $set['setting']['label'],
+                'desc'    => $set['setting']['desc'],
+                'default' => $set['setting']['default']
+            );
+        }
+        return $ret;
+    }
+
     public function data($params) {
         $rules = array('location_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -1136,4 +1405,67 @@ SQL;
         return $tmp;
     }
 
+    /**
+     * Verify if the the user has access to the location
+     * 
+     * @param Array 
+     */
+    private function verify($params) {
+        $rules = array('location_id' => array('required', 'int'), 'uuid' => array('required'));
+        $this->validate($params, $rules);
+        $location_id = $params['location_id'];
+        $uuid = $params['uuid'];
+
+        $aRes = $this->getUserFromUUID($uuid);
+        if(empty($aRes)) throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+
+        $user_id = $aRes[0]['user']['id'];
+        $oDb  = DBComponent::getInstance('location', 'backstage');
+        // Check for location and user map
+        switch($aRes[0]['user']['usertype_id']) {
+            case 1:
+                return true;
+                break;
+            case 2:
+                return true;
+                break;
+            case 4:
+               $sSQL = <<<SQL
+SELECT  lml.location_id
+    FROM locationmanager l JOIN locationmanager_location lml
+    ON l.id=lml.locationmanager_id
+    WHERE l.user_id="$user_id"
+SQL;
+             $locations = $oDb->fetchAll($sSQL);
+             break;
+            case 5:
+                 $sSQL = <<<SQL
+SELECT  le.location_id
+    FROM employee e JOIN location_employee le
+    ON e.id=le.employee_id
+    WHERE e.user_id="$user_id"
+SQL;
+             $locations = $oDb->fetchAll($sSQL);
+             break;
+        }
+        foreach($locations as $loc) {
+            if (!empty($loc['lml']['location_id']) && $loc['lml']['location_id'] == $location_id){
+                return true;
+            }
+        }
+        
+        throw new APIException(400, 'bad_request', 'User not associated to the location provided.');
+    }
+    
+    private function getLocationManagerId($user_id) {
+        if(empty($user_id)) return false;
+        $oDb = DBComponent::getInstance('user', 'backstage');
+        $sSQL = <<<SQL
+SELECT id
+    FROM locationmanager
+    WHERE user_id="$user_id" LIMIT 1
+SQL;
+        $manager =  $oDb->fetchAll($sSQL);
+        return $manager[0]['locationmanager']['id'];
+    }
 }

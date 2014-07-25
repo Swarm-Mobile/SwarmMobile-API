@@ -29,7 +29,7 @@ class UsersController extends CrudController {
         $this->set('tables', $this->edit_tables);
         $id             = $this->request->query['id'];
         $data           = $this->{$this->model}->find('first', array('conditions' => array('id' => $id)));
-        $tables_data    = $this->Client->find('first', array('conditions' => array('client_id' => $data['Client']['client_id'])));        
+        $tables_data    = $this->Client->find('first', array('conditions' => array('client_id' => $data['Client']['client_id'])));
         if (empty($data)) {
             $this->redirect(Router::url('/' . $this->ctrl . '/view'));
         }

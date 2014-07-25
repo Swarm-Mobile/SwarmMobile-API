@@ -26,6 +26,6 @@ $this->assign('title', 'Swarm Mobile - API Login');
                 endif;
                 ?>
             </div>
-        </div>        
+        </div>
     </div>
 </div>

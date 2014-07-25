@@ -139,6 +139,15 @@ class DATABASE_CONFIG {
             'password' => '+uPaSeQeru5a',
             'database' => 'portal',
             'prefix' => '',
+        ),
+        'rollups' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login' => '',
+            'password' => '',
+            'database' => 'rollups',
+            'prefix' => '',
         )
     );
     public $live = array(
@@ -264,7 +273,7 @@ class DATABASE_CONFIG {
         'backstage' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
-            'host' => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com:3306',
+            'host' => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login' => 'swarm_ios',
             'password' => 'F6gatRad',
             'database' => 'swarm_backstage',
@@ -282,7 +291,7 @@ class DATABASE_CONFIG {
         'rollups' => array(
             'datasource' => 'Database/Mysql',
             'persistent' => true,
-            'host' => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com:3306',
+            'host' => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login' => 'swarm_ios',
             'password' => 'F6gatRad',
             'database' => 'rollups',

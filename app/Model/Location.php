@@ -32,30 +32,53 @@ class Location extends AppModel {
                 'required' => true,
             ),
         ),
-        'state' => array(
-            'notEmpty' => array(
-                'rule' => array('notEmpty'),
-                'required' => true,
-            ),
-        ),
         'zipcode' => array(
-            'numeric' => array(
-                'rule' => array('notEmpty'),
-                'required' => true,
-            ),
-        ),
-        'email' => array(
             'notEmpty' => array(
                 'rule' => array('notEmpty'),
                 'required' => true,
             ),
         ),
-        'accountmanager_id' => array(
+        'country' => array(
             'notEmpty' => array(
                 'rule' => array('notEmpty'),
-                'required' => false,
+                'required' => true,
             ),
-        ),
+        )
     );
 
+    public function locationExists($location_id) {
+        if(empty($location_id)) return  true;
+        $location = $this->find('first', array('conditions' => array('Location.id' => $location_id)));
+        if(!empty($location)) return true;
+        return false;
+    }
+    
+    public function nameAddressCombination($combination = '', $name = '') {
+        $sSQL = <<<SQL
+SELECT COUNT(*) as count FROM (
+    SELECT GROUP_CONCAT(a.value SEPARATOR ' ') full_address
+    FROM location l
+    INNER JOIN 
+    (
+    SELECT location_id, value
+    FROM location_setting ls
+    WHERE ls.setting_id IN (1,3)    
+    ) a
+    ON a.location_id = l.id
+    AND l.name ="$name"
+    GROUP BY l.id
+    HAVING full_address ="$combination"
+) b
+SQL;
+         return (int) $this->query($sSQL)[0][0]['count'];
+    }
+    
+    public function countryCodeExists($code) {
+        $sSQL = <<<SQL
+SELECT COUNT(*) as count
+    FROM country
+    WHERE code="$code"
+SQL;
+        return (int) $this->query($sSQL)[0][0]['count'];
+    }
 }

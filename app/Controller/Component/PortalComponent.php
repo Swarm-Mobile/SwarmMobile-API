@@ -4,12 +4,12 @@ App::uses('APIComponent', 'Controller/Component');
 
 class PortalComponent extends APIComponent {
     
-    public $post_actions    = [];
+    public $post_actions    = ['visitorEvent'];
     public $put_actions     = [];
     public $delete_actions  = [];
 
     public function visitorEvent($params) {
-        if (!empty($_POST)) {            
+        if (!empty($_POST['upload'])) {            
             $sSQL = <<<SQL
 INSERT INTO visitorEvent
     SET device_id = :device_id,
@@ -25,23 +25,22 @@ SQL;
             $upload = (is_array($_POST['upload']))?$_POST['upload']:json_decode($_POST['upload'],true);
             foreach ($upload as $oRow) {
                 $oModel = new Model(false, 'visitorEvent', 'portal');
-                $oDb = $oModel->getDataSource();
-                $date = new DateTime($oRow['date']);               
+                $oDb = $oModel->getDataSource();                
                 $oDb->query($sSQL, array(
                     ':device_id' => $oRow['serialNumber'],
                     ':entered' => $oRow['entered'],
                     ':location_id' => $oRow['locationID'],
                     ':exited' => $oRow['exited'],
                     ':total_count' => $oRow['totalCount'],
-                    ':user_id' => 0,
-                    ':ts' => $date->format('Y-m-d H:i:s'),
+                    ':user_id' => $oRow['userID'],
+                    ':ts' => $oRow['date'],
                 ));
             }
-            $file = realpath(__DIR__ . '/../../../../') . '/raw/' . date('Y_m_d_h_i_s_') . uniqid();
-            $content = var_export($_POST, true);
-            file_put_contents($file, $content);            
         }
         return array();
     }
 
+    public function setStatus($params){
+        return array();
+    }
 }
