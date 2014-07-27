@@ -321,8 +321,8 @@ SQL;
             ]
         ];
         
-        $start_date = coalesce(firstPurchase($params['location_id']), firstSensor($params['location_id']));
-        //$start_date = firstSensor($params['location_id']);
+        //$start_date = coalesce(firstPurchase($params['location_id']), firstSensor($params['location_id']));
+        $start_date = firstSensor($params['location_id']);
         if(empty($start_date)){
             return $result;
         }
