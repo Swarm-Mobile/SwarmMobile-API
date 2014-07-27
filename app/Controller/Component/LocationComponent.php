@@ -181,7 +181,7 @@ SQL;
     public function whereAmI($params) {}  
     public function whatIsHere($params){}
     
-        public function monthlyTotals($params) {
+    public function monthlyTotals($params) {
         $rules = array(
             'location_id' => array('required', 'int'),
             'year' => array('required', 'int'),
@@ -322,6 +322,7 @@ SQL;
         ];
         
         $start_date = coalesce(firstPurchase($params['location_id']), firstSensor($params['location_id']));
+        //$start_date = firstSensor($params['location_id']);
         if(empty($start_date)){
             return $result;
         }
@@ -349,40 +350,36 @@ SQL;
         $cMonth = date_format($start, 'm');
         $tMonth = $cMonth;
         $nMonths = 1;
-        do {            
+        do {          
             if($tMonth != $cMonth){
                 $nMonths++;
             }
             $tMonth = $cMonth;
-            
-            $slave_params['end_date'] = $slave_params['start_date'];
-
-            $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
-            $revenue = $tmp['data']['totals'][$open_total];
-
-            $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
-            $visitors = $tmp['data']['totals']['open'];
-            
-            $tmp = $this->api->internalCall('location', 'transactions', $slave_params);
-            $transactions = $tmp['data']['totals'][$open_total];
-
             $days['total'] ++;
-
             if (!isset($days['byWeek'][date_format($start, 'W')])) {
                 $days['byWeek'][date_format($start, 'W')] = 0;
                 $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
             }
             $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
-
             $days['byWeek'][date_format($start, 'W')] ++;
-            $result['data']['totals']['revenue'] += $revenue;
-            $result['data']['totals']['visitors'] += $visitors;
-            $result['data']['totals']['conversionRate'] += $transactions;
-
             date_add($start, date_interval_create_from_date_string('1 days'));
-            $slave_params['start_date'] = date_format($start, 'Y-m-d');
             $cMonth = date_format($start, 'm');
         } while ($start <= $end);
+        
+        $this->api->iterative = false;
+
+        $tmp = $this->api->internalCall('location', 'sensorTraffic', $params);
+        $visitors = $tmp['data']['totals']['open'];
+        $result['data']['totals']['visitors'] += $visitors;
+
+        $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
+        $revenue = $tmp['data']['totals'][$open_total];
+        $result['data']['totals']['revenue'] += $revenue;
+            
+        $tmp = $this->api->internalCall('location', 'transactions', $slave_params);
+        $transactions = $tmp['data']['totals'][$open_total];
+        $result['data']['totals']['conversionRate'] += $transactions;
+
 
         $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
@@ -542,7 +539,8 @@ SQL;
         $this->validate($params, $rules);
 
         // Pass method and parameters to iteration function if the dates are different
-        if ($params['start_date'] != $params['end_date']) {
+        if (($params['start_date'] != $params['end_date']) && $this->iterative) {
+            die('bad');
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
 
@@ -579,7 +577,7 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date']) {
+        if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeQuery('location', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
@@ -635,7 +633,7 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date']) {
+        if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
@@ -653,7 +651,7 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date']) {
+        if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         } else {
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));

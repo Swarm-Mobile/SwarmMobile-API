@@ -48,6 +48,7 @@ class APIController extends AppController {
         'walkbys',
         'windowConversion',
     ];
+    public $iterative = true;
     public $uses = array('Inbox');
     public $debug = false;
     public $cache = true;
