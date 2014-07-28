@@ -328,7 +328,6 @@ SQL;
         
         $end_date = date('Y-m-d');
         $end = new DateTime($end_date);
-        
         $start = new DateTime($start_date);
 
         $revenue = array();
@@ -336,6 +335,7 @@ SQL;
 
         unset($params['month']);
         unset($params['year']);
+        
         $params['start_date'] = $start_date;
         $params['end_date'] = $end_date;
 
@@ -349,6 +349,7 @@ SQL;
         $cMonth = date_format($start, 'm');
         $tMonth = $cMonth;
         $nMonths = 1;
+        
         do {          
             if($tMonth != $cMonth){
                 $nMonths++;
@@ -365,19 +366,41 @@ SQL;
             $cMonth = date_format($start, 'm');
         } while ($start <= $end);
         
-        $this->api->iterative = false;
+        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+        $timezone = $data['data']['timezone'];
 
-        $tmp = $this->api->internalCall('location', 'sensorTraffic', $params);
-        $visitors = $tmp['data']['totals']['open'];
-        $result['data']['totals']['visitors'] += $visitors;
+        $register_filter = @$data['data']['register_filter'];
+        $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
+        $outlet_filter = @$data['data']['outlet_filter'];
+        $outlet_filter = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
 
-        $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
-        $revenue = $tmp['data']['totals'][$open_total];
-        $result['data']['totals']['revenue'] += $revenue;
-            
-        $tmp = $this->api->internalCall('location', 'transactions', $slave_params);
-        $transactions = $tmp['data']['totals'][$open_total];
-        $result['data']['totals']['conversionRate'] += $transactions;
+        $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
+        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+        
+        $oDb = DBComponent::getInstance('invoices', 'pos');
+        $sSQL = <<<SQL
+SELECT SUM(total) as revenue, count(*) as transactions
+FROM invoices
+WHERE store_id = $lightspeed_id
+  $outlet_filter
+  $register_filter
+  AND ts BETWEEN '$start_date' AND '$end_date'
+SQL;
+        $aRes = $oDb->fetchAll($sSQL);
+        
+        $result['data']['totals']['revenue'] += $aRes[0][0]['revenue'];
+        $result['data']['totals']['transactions'] += $aRes[0][0]['transactions'];
+
+        $oDb = DBComponent::getInstance('visitorEvent', 'portal');
+        $sSQL = <<<SQL
+SELECT SUM(entered) as visitors
+FROM visitorEvent
+WHERE location_id = {$params['location_id']}
+  AND ts BETWEEN '$start_date' AND '$end_date'
+SQL;
+        
+        $aRes = $oDb->fetchAll($sSQL);
+        $result['data']['totals']['visitors'] += $aRes[0][0]['visitors'];
 
         $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
