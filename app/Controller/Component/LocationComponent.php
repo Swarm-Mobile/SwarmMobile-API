@@ -380,7 +380,7 @@ SQL;
         $oDb = DBComponent::getInstance('invoices', 'pos');
         $sSQL = <<<SQL
 SELECT SUM(total) as revenue, count(*) as transactions
-FROM invoices
+FROM invoices i
 WHERE store_id = $lightspeed_id
   $outlet_filter
   $register_filter
