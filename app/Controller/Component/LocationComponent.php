@@ -274,6 +274,9 @@ SQL;
         $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
         do {
+            $transactions = 0;
+            $revenue = 0;
+            $visitors = 0;
             $slave_params['end_date'] = $slave_params['start_date'];
 
             foreach($aPOS as $k=>$oRow){
