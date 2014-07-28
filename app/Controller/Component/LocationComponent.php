@@ -235,19 +235,62 @@ SQL;
         ];
 
         $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+        $timezone = $data['data']['timezone'];
+
+        $register_filter = @$data['data']['register_filter'];
+        $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
+        $outlet_filter = @$data['data']['outlet_filter'];
+        $outlet_filter = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
+
+        $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
+        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+
+        $oDb = DBComponent::getInstance('invoices', 'pos');
+        $sSQL = <<<SQL
+SELECT SUM(total) as revenue, count(*) as transactions, date(ts) as date
+FROM invoices i
+WHERE store_id = $lightspeed_id
+  $outlet_filter
+  $register_filter
+  AND i.completed 
+  AND i.total != 0 
+  AND ts BETWEEN '$start_date' AND '$end_date'
+GROUP BY date(ts)
+ORDER BY date ASC
+SQL;
+        $aPOS = $oDb->fetchAll($sSQL);
+        
+        $oDb = DBComponent::getInstance('invoices', 'pos');
+        $sSQL = <<<SQL
+SELECT SUM(entered) as visitors, date(ts) as date
+FROM visitorEvent
+WHERE location_id = {$params['location_id']}
+  AND ts BETWEEN '$start_date' AND '$end_date'
+GROUP BY date(ts)
+ORDER BY date ASC
+SQL;
+        $aPortal = $oDb->fetchAll($sSQL);
+        
         $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
         do {
             $slave_params['end_date'] = $slave_params['start_date'];
 
-            $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
-            $revenue = $tmp['data']['totals'][$open_total];
-
-            $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
-            $visitors = $tmp['data']['totals']['open'];
-
-            $tmp = $this->api->internalCall('location', 'transactions', $slave_params);
-            $transactions = $tmp['data']['totals'][$open_total];
+            foreach($aPOS as $k=>$oRow){
+                if($oRow[0]['date'] == date_format($start, 'Y-m-d')){
+                    $revenue = $oRow['revenue'];
+                    $transactions = $oRow['transactions'];
+                    unset($aPOS[$k]);
+                    break;
+                }
+            }
+            foreach($aPortal as $k=>$oRow){
+                if($oRow[0]['date'] == date_format($start, 'Y-m-d')){
+                    $visitors = $oRow['visitors'];        
+                    unset($aPortal[$k]);
+                    break;
+                }
+            }     
 
             $days['total'] ++;
 
@@ -298,119 +341,6 @@ SQL;
         return $result;
     }
 
-//    public function monthlyTotals($params) {
-//        $rules = array(
-//            'location_id' => array('required', 'int'),
-//            'year' => array('required', 'int'),
-//            'month' => array('required', 'int')
-//        );
-//        $this->validate($params, $rules);
-//
-//        $start_date = $params['year'] . '-' . $params['month'] . '-01';
-//        $end_date = $params['year'] . '-' . ($params['month'] + 1) . '-01';
-//
-//        $end = new DateTime($end_date);
-//        date_sub($end, date_interval_create_from_date_string('1 days'));
-//        $end_date = date_format($end, 'Y-m-d');
-//
-//        $start = new DateTime($start_date);
-//
-//        $revenue = array();
-//        $visitors = array();
-//
-//        unset($params['month']);
-//        unset($params['year']);
-//        $params['start_date'] = $start_date;
-//        $params['end_date'] = $end_date;
-//
-//        $slave_params = $params;
-//        $while_closed = $data['data']['transactions_while_closed'];
-//        $open_total = $while_closed == 'no' ? 'open' : 'total';
-//
-//        $result = [
-//            'data' => [
-//                'breakdown' => [],
-//                'totals' => [
-//                    'revenue' => 0,
-//                    'visitors' => 0,
-//                    'conversionRate' => 0,
-//                    'avgRevenueDaily' => 0,
-//                    'avgVisitorsDaily' => 0,
-//                    'avgConversionRateDaily' => 0,
-//                ]
-//            ],
-//            'options' => [
-//                'endpoint' => '/location/monthlyTotals',
-//                'year' => $params['year'],
-//                'month' => $params['month'],
-//                'location_id' => $params['location_id']
-//            ]
-//        ];
-//
-//        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
-//        $days = ['byWeek' => [], 'total' => 0];
-//        $weeks = [];
-//        do {
-//            $slave_params['end_date'] = $slave_params['start_date'];
-//
-//            $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
-//            $revenue = $tmp['data']['totals'][$open_total];
-//
-//            $tmp = $this->api->internalCall('location', 'sensorTraffic', $slave_params);
-//            $visitors = $tmp['data']['totals']['open'];
-//
-//            $tmp = $this->api->internalCall('location', 'transactions', $slave_params);
-//            $transactions = $tmp['data']['totals'][$open_total];
-//            
-//            $days['total']++;
-//
-//            if (!isset($days['byWeek'][date_format($start, 'W')])) {
-//                $days['byWeek'][date_format($start, 'W')] = 0;
-//                $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
-//            }
-//            $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
-//
-//            $days['byWeek'][date_format($start, 'W')]++;
-//            if (!isset($result['data']['breakdown'][date_format($start, 'W')])) {
-//                $result['data']['breakdown'][date_format($start, 'W')] = [
-//                    'revenue' => 0,
-//                    'visitors' => 0,
-//                    'conversionRate' => 0,
-//                    'avgRevenueDaily' => 0,
-//                    'avgVisitorsDaily' => 0,
-//                    'avgConversionRateDaily' => 0
-//                ];
-//            }
-//            $result['data']['breakdown'][date_format($start, 'W')]['revenue'] += $revenue;
-//            $result['data']['breakdown'][date_format($start, 'W')]['visitors'] += $visitors;
-//            $result['data']['breakdown'][date_format($start, 'W')]['conversionRate'] += $transactions;
-//            $result['data']['totals']['revenue'] += $revenue;
-//            $result['data']['totals']['visitors'] += $visitors;
-//            $result['data']['totals']['conversionRate'] += $transactions;
-//
-//            date_add($start, date_interval_create_from_date_string('1 days'));
-//            $slave_params['start_date'] = date_format($start, 'Y-m-d');
-//        } while ($start <= $end);
-//
-//        foreach ($days['byWeek'] as $w => $c) {
-//            $result['data']['breakdown'][$w]['start_date'] = $weeks[$w]['start'];
-//            $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
-//            $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c, 2);
-//            $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c, 2);
-//            
-//            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = $result['data']['breakdown'][$w]['conversionRate'] / $c;
-//            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = min([100,round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / $result['data']['breakdown'][$w]['avgVisitorsDaily'])*100, 2)]);
-//            $result['data']['breakdown'][$w]['conversionRate'] = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
-//        }
-//        $result['data']['totals']['conversionRate'] = min([100,$result['data']['totals']['conversionRate'] / $result['data']['totals']['visitors']]);
-//        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
-//        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
-//        
-//        $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / $days['total'];
-//        $result['data']['totals']['avgConversionRateDaily'] = min([100,round(($result['data']['totals']['avgConversionRateDaily'] / $result['data']['totals']['avgVisitorsDaily'])*100, 2)]);
-//        return $result;
-//    }
-
     public function historicalTotals($params) {
         $rules = array('location_id' => array('required', 'int'));
         $this->validate($params, $rules);
@@ -455,12 +385,7 @@ SQL;
 
         $params['start_date'] = $start_date;
         $params['end_date'] = $end_date;
-
-        $slave_params = $params;
-        $while_closed = $data['data']['transactions_while_closed'];
-        $open_total = $while_closed == 'no' ? 'open' : 'total';
-
-        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+        
         $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
         $cMonth = date_format($start, 'm');
@@ -542,114 +467,7 @@ SQL;
 
         return $result;
     }
-
-//    public function historicalTotals($params) {
-//        $rules = array('location_id' => array('required', 'int'));
-//        $this->validate($params, $rules);
-//        
-//        $result = [
-//            'data' => [
-//                'totals' => [
-//                    'revenue' => 0,
-//                    'visitors' => 0,
-//                    'conversionRate' => 0,
-//                    'avgRevenueDaily' => 0,
-//                    'avgRevenueWeekly' => 0,
-//                    'avgRevenueMonthly' => 0,
-//                    'avgVisitorsDaily' => 0,
-//                    'avgVisitorsWeekly' => 0,
-//                    'avgVisitorsMonthly' => 0,
-//                    'avgConversionRateDaily' => 0,
-//                    'avgConversionRateWeekly' => 0,
-//                    'avgConversionRateMonthly' => 0,
-//                ]
-//            ],
-//            'options' => [
-//                'endpoint' => '/location/historicalTotals',
-//                'location_id' => $params['location_id']
-//            ]
-//        ];
-//        
-//        //$start_date = coalesce(firstPurchase($params['location_id']), firstSensor($params['location_id']));
-//        $start_date = firstSensor($params['location_id']);
-//        if(empty($start_date)){
-//            return $result;
-//        }
-//        
-//        $end_date = date('Y-m-d');
-//        $end = new DateTime($end_date);
-//        
-//        $start = new DateTime($start_date);
-//
-//        $revenue = array();
-//        $visitors = array();
-//
-//        unset($params['month']);
-//        unset($params['year']);
-//        $params['start_date'] = $start_date;
-//        $params['end_date'] = $end_date;
-//
-//        $slave_params = $params;
-//        $while_closed = $data['data']['transactions_while_closed'];
-//        $open_total = $while_closed == 'no' ? 'open' : 'total';       
-//
-//        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
-//        $days = ['byWeek' => [], 'total' => 0];
-//        $weeks = [];
-//        $cMonth = date_format($start, 'm');
-//        $tMonth = $cMonth;
-//        $nMonths = 1;
-//        do {          
-//            if($tMonth != $cMonth){
-//                $nMonths++;
-//            }
-//            $tMonth = $cMonth;
-//            $days['total'] ++;
-//            if (!isset($days['byWeek'][date_format($start, 'W')])) {
-//                $days['byWeek'][date_format($start, 'W')] = 0;
-//                $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
-//            }
-//            $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
-//            $days['byWeek'][date_format($start, 'W')] ++;
-//            date_add($start, date_interval_create_from_date_string('1 days'));
-//            $cMonth = date_format($start, 'm');
-//        } while ($start <= $end);
-//        
-//        $this->api->iterative = false;
-//
-//        $tmp = $this->api->internalCall('location', 'sensorTraffic', $params);
-//        $visitors = $tmp['data']['totals']['open'];
-//        $result['data']['totals']['visitors'] += $visitors;
-//
-//        $tmp = $this->api->internalCall('location', 'revenue', $slave_params);
-//        $revenue = $tmp['data']['totals'][$open_total];
-//        $result['data']['totals']['revenue'] += $revenue;
-//            
-//        $tmp = $this->api->internalCall('location', 'transactions', $slave_params);
-//        $transactions = $tmp['data']['totals'][$open_total];
-//        $result['data']['totals']['conversionRate'] += $transactions;
-//
-//        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
-//        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
-//        
-//        $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / $days['total'];
-//        $result['data']['totals']['avgConversionRateDaily'] = min([100,round(($result['data']['totals']['avgConversionRateDaily']  / $result['data']['totals']['avgVisitorsDaily'])*100, 2)]);
-//
-//        $result['data']['totals']['avgRevenueWeekly'] = round($result['data']['totals']['revenue'] / count($days['byWeek']), 2);
-//        $result['data']['totals']['avgVisitorsWeekly'] = round($result['data']['totals']['visitors'] / count($days['byWeek']), 2);
-//        
-//        $result['data']['totals']['avgConversionRateWeekly'] = $result['data']['totals']['conversionRate'] / count($days['byWeek']);
-//        $result['data']['totals']['avgConversionRateWeekly'] = min([100,round(($result['data']['totals']['avgConversionRateWeekly']  / $result['data']['totals']['avgVisitorsWeekly'])*100, 2)]);
-//        
-//        $result['data']['totals']['avgRevenueMonthly'] = round($result['data']['totals']['revenue'] / $nMonths, 2);
-//        $result['data']['totals']['avgVisitorsMonthly'] = min([100,round($result['data']['totals']['visitors'] / $nMonths, 2)]);
-//        
-//        $result['data']['totals']['avgConversionRateMonthly'] = $result['data']['totals']['conversionRate'] / $nMonths;
-//        $result['data']['totals']['avgConversionRateMonthly'] = min([100,round(($result['data']['totals']['avgConversionRateMonthly'] / $result['data']['totals']['avgVisitorsMonthly'])*100, 2)]);
-//        
-//        return $result;
-//    }
-// 
+    
     //OTHER ENDPOINTS
 
     public function openHours($params) {
@@ -822,8 +640,6 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-        $nolines = (isset($params['nolines']) && $params['nolines'] == true)?true:false;
-        
         if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeQuery('location', __FUNCTION__, $params);
         } else {
@@ -841,32 +657,7 @@ SQL;
             $oDb = DBComponent::getInstance($table, 'pos');
             $aRes = array();
             if (!empty($lightspeed_id)) {
-                if ($nolines) {
-                    $sSQL = <<<SQL
-SELECT 
-    COUNT(*) as transactions,
-    SUM(revenue) as revenue,    
-    date,
-    hour
-FROM (
-    SELECT
-        i.invoice_id as transactions,
-        i.total as revenue,        
-        DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'),'%Y-%m-%d' ) AS date,
-        DATE_FORMAT(CONVERT_TZ(i.ts,'GMT','$timezone'), '%k') AS hour
-    FROM invoices i    
-    WHERE i.store_id= $lightspeed_id
-        AND i.completed 
-        AND i.total != 0 
-            $register_filter
-            $outlet_filter
-        AND i.ts BETWEEN '$start_date' AND '$end_date'
-    GROUP BY i.invoice_id
-) t2
-GROUP BY date ASC, hour ASC             
-SQL;
-                } else {
-                    $sSQL = <<<SQL
+                $sSQL = <<<SQL
 SELECT 
     COUNT(*) as transactions,
     SUM(revenue) as revenue,
@@ -892,7 +683,6 @@ FROM (
 ) t2
 GROUP BY date ASC, hour ASC             
 SQL;
-                }
                 $aRes = $oDb->fetchAll($sSQL);
             }
             return $aRes;
@@ -909,7 +699,6 @@ SQL;
         if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         } else {
-            $params['nolines'] = true;
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
             $timezone = $data['data']['timezone'];
@@ -928,7 +717,6 @@ SQL;
         if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         } else {
-            $params['nolines'] = true;
             $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
             $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
             $timezone = $data['data']['timezone'];
