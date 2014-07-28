@@ -278,15 +278,15 @@ SQL;
 
             foreach($aPOS as $k=>$oRow){
                 if($oRow[0]['date'] == date_format($start, 'Y-m-d')){
-                    $revenue = $oRow['revenue'];
-                    $transactions = $oRow['transactions'];
+                    $revenue = $oRow[0]['revenue'];
+                    $transactions = $oRow[0]['transactions'];
                     unset($aPOS[$k]);
                     break;
                 }
             }
             foreach($aPortal as $k=>$oRow){
                 if($oRow[0]['date'] == date_format($start, 'Y-m-d')){
-                    $visitors = $oRow['visitors'];        
+                    $visitors = $oRow[0]['visitors'];        
                     unset($aPortal[$k]);
                     break;
                 }
