@@ -260,7 +260,7 @@ ORDER BY date ASC
 SQL;
         $aPOS = $oDb->fetchAll($sSQL);
         
-        $oDb = DBComponent::getInstance('invoices', 'pos');
+        $oDb = DBComponent::getInstance('visitorEvent', 'portal');
         $sSQL = <<<SQL
 SELECT SUM(entered) as visitors, date(ts) as date
 FROM visitorEvent
