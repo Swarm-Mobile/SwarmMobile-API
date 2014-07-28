@@ -390,7 +390,7 @@ SQL;
         
         $result['data']['totals']['revenue'] += $aRes[0][0]['revenue'];
         $result['data']['totals']['transactions'] += $aRes[0][0]['transactions'];
-        $result['data']['totals']['conversionRate'] += $aRes[0][0]['conversionRate'];
+        $result['data']['totals']['conversionRate'] += $aRes[0][0]['transactions'];
 
         $oDb = DBComponent::getInstance('visitorEvent', 'portal');
         $sSQL = <<<SQL
