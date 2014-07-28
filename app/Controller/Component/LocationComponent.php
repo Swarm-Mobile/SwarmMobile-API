@@ -644,8 +644,7 @@ SQL;
         $this->validate($params, $rules);
 
         // Pass method and parameters to iteration function if the dates are different
-        if (($params['start_date'] != $params['end_date']) && $this->iterative) {
-            die('bad');
+        if (($params['start_date'] != $params['end_date']) && $this->iterative) {            
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
 
