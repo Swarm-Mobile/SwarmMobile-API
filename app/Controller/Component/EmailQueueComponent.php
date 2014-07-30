@@ -60,10 +60,8 @@ SQL;
                 $oEmail->subject($oRow['e']['subject']);
                 $oEmail->from([$oRow['e']['from_email']=>$oRow['e']['from_name']]);                
                 $oEmail->to([$oRow['e']['to_email']=>$oRow['e']['to_name']]);                
-                $oEmail->send($oRow['e']['message']);           
-                echo 'ok';     
-            } catch (Exception $e) {                
-                echo 'ko';
+                $oEmail->send($oRow['e']['message']);                
+            } catch (Exception $e) {                                
                 $oEmail = new CakeEmail('smtp');
                 $oEmail->emailFormat("html");
                 $oEmail->from(['info@swarm-mobile.com'=>'Info']);
