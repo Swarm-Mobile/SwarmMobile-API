@@ -74,6 +74,7 @@ TEXT;
         $aRes = $oDb->fetchAll("SELECT * FROM requested_rollups_queue q");
         if (!empty($aRes)) {
             foreach ($aRes as $oRow) {
+                $this->mark_as_processed($oRow);
                 $oRollup = new RollupShell();
                 $oRollup->params['location_id'] = $oRow['q']['location_id'];
                 $oRollup->params['start_date'] = $oRow['q']['start_date'];
@@ -82,7 +83,6 @@ TEXT;
                 $oRollup->params['rebuild'] = $oRow['q']['rebuild'];
                 $oRollup->params['part'] = '1/1';
                 $oRollup->main();
-                $this->mark_as_processed($oRow);
                 $this->send_email($oRow);
             }
         }
