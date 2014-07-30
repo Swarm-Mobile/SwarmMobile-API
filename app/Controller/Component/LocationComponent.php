@@ -2,6 +2,7 @@
 
 App::uses('DBComponent', 'Controller/Component');
 App::uses('APIComponent', 'Controller/Component');
+App::uses('CakeEmail', 'Network/Email');
 
 class LocationComponent extends APIComponent {
 
@@ -259,7 +260,7 @@ GROUP BY date(ts)
 ORDER BY date ASC
 SQL;
         $aPOS = $oDb->fetchAll($sSQL);
-        
+
         $oDb = DBComponent::getInstance('visitorEvent', 'portal');
         $sSQL = <<<SQL
 SELECT SUM(entered) as visitors, date(ts) as date
@@ -270,7 +271,7 @@ GROUP BY date(ts)
 ORDER BY date ASC
 SQL;
         $aPortal = $oDb->fetchAll($sSQL);
-        
+
         $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
         do {
@@ -279,21 +280,21 @@ SQL;
             $visitors = 0;
             $slave_params['end_date'] = $slave_params['start_date'];
 
-            foreach($aPOS as $k=>$oRow){
-                if($oRow[0]['date'] == date_format($start, 'Y-m-d')){
+            foreach ($aPOS as $k => $oRow) {
+                if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
                     $revenue = $oRow[0]['revenue'];
                     $transactions = $oRow[0]['transactions'];
                     unset($aPOS[$k]);
                     break;
                 }
             }
-            foreach($aPortal as $k=>$oRow){
-                if($oRow[0]['date'] == date_format($start, 'Y-m-d')){
-                    $visitors = $oRow[0]['visitors'];        
+            foreach ($aPortal as $k => $oRow) {
+                if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
+                    $visitors = $oRow[0]['visitors'];
                     unset($aPortal[$k]);
                     break;
                 }
-            }     
+            }
 
             $days['total'] ++;
 
@@ -388,7 +389,7 @@ SQL;
 
         $params['start_date'] = $start_date;
         $params['end_date'] = $end_date;
-        
+
         $days = ['byWeek' => [], 'total' => 0];
         $weeks = [];
         $cMonth = date_format($start, 'm');
@@ -470,7 +471,7 @@ SQL;
 
         return $result;
     }
-    
+
     //OTHER ENDPOINTS
 
     public function openHours($params) {
@@ -1367,6 +1368,40 @@ SQL;
             'location_id' => $location_id,
             'locationmanager_id' => $locationmanager_id
         ));
+
+        $oLocation = new Location();
+        $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
+
+        $address1 = settVal('address1', $oLocation['Setting']);
+        $address2 = settVal('address2', $oLocation['Setting']);
+        $city = settVal('city', $oLocation['Setting']);
+        $state = settVal('state', $oLocation['Setting']);
+        $country = settVal('country', $oLocation['Setting']);
+        $zipcode = settVal('zipcode', $oLocation['Setting']);
+
+        $email = new CakeEmail('smtp');
+        $subject = "Location #" . $location_id . ' ( ' . $oLocation['Location']['name'] . ' ) was added from API';
+        $msg = <<<TEXT
+<div>
+    Location $location_id was just added/modified on the
+    MDM using the API with the following info:
+</div>
+<ul>
+    <li>Location Name: {$oLocation['Location']['name']}</li>
+    <li>Reseller: {$oLocation['Reseller']['name']}</li>
+    <li>Address 1: $address1</li>
+    <li>Address 2: $address2</li>
+    <li>City: $city</li>
+    <li>State: $state</li>
+    <li>Country: $country</li>
+    <li>Zip: $zipcode</li>
+</ul>
+TEXT;
+        $send = $email
+                ->to("am@swarm-mobile.com")
+                ->subject($subject)
+                ->emailFormat("html")
+                ->send($msg);
 
         return array(
             'data' => array(
