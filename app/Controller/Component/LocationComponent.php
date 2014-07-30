@@ -2,7 +2,6 @@
 
 App::uses('DBComponent', 'Controller/Component');
 App::uses('APIComponent', 'Controller/Component');
-App::uses('CakeEmail', 'Network/Email');
 
 class LocationComponent extends APIComponent {
 
@@ -1378,8 +1377,7 @@ SQL;
         $state = settVal('state', $oLocation['Setting']);
         $country = settVal('country', $oLocation['Setting']);
         $zipcode = settVal('zipcode', $oLocation['Setting']);
-
-        $email = new CakeEmail('smtp');
+        
         $subject = "Location #" . $location_id . ' ( ' . $oLocation['Location']['name'] . ' ) was added from API';
         $msg = <<<TEXT
 <div>
@@ -1397,11 +1395,12 @@ SQL;
     <li>Zip: $zipcode</li>
 </ul>
 TEXT;
-        $send = $email
-                ->to("am@swarm-mobile.com")
-                ->subject($subject)
-                ->emailFormat("html")
-                ->send($msg);
+        EmailQueueComponent::queueEmail(
+            'info@swarm-mobile.com', 'Info', 
+            'am@swarm-mobile.com', 'AM', 
+            $subject,                 
+            $msg
+        );
 
         return array(
             'data' => array(
