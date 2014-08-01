@@ -3,11 +3,12 @@
 require_once('SettingComponent.php');
 require_once('rfc822.php');
 
-function scape($string){
-    $search = array("\\",  "\x00", "\n",  "\r",  "'",  '"', "\x1a");
-    $replace = array("\\\\","\\0","\\n", "\\r", "\'", '\"', "\\Z");
+function scape($string) {
+    $search = array("\\", "\x00", "\n", "\r", "'", '"', "\x1a");
+    $replace = array("\\\\", "\\0", "\\n", "\\r", "\'", '\"', "\\Z");
     return str_replace($search, $replace, $string);
 }
+
 function get_date($interval) {
     $date = new DateTime($interval);
     return $date->format('Y-m-d');
@@ -270,12 +271,15 @@ function getPosProviders() {
     );
 }
 
-/*Fist dates*/
+/* Fist dates */
+
 function firstPurchase($location_id) {
+    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+    $timezone = $data['data']['timezone'];
     $oLocation = new Location();
     $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
     $sSQL = <<<SQL
-SELECT DATE(ts) as first_date
+SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM invoices s
 WHERE store_id = :store_id
   AND ts IS NOT NULL
@@ -293,10 +297,12 @@ SQL;
 }
 
 function firstSession($location_id) {
+    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+    $timezone = $data['data']['timezone'];
     $oLocation = new Location();
     $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
     $sSQL = <<<SQL
-SELECT DATE(time_login) as first_date
+SELECT DATE(convert_tz(time_login,'GMT', '$timezone')) as first_date
 FROM sessions s
 WHERE network_id = :network_id
   AND time_login IS NOT NULL
@@ -313,8 +319,10 @@ SQL;
 }
 
 function firstSensor($location_id) {
+    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+    $timezone = $data['data']['timezone'];
     $sSQL = <<<SQL
-SELECT DATE(ts) as first_date
+SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM visitorEvent s
 WHERE location_id = :location_id
   AND ts IS NOT NULL
