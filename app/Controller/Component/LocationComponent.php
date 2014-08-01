@@ -370,8 +370,11 @@ SQL;
                 'location_id' => $params['location_id']
             ]
         ];
-
-        $start_date = firstSensor($params['location_id']);
+        
+        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
+        $timezone = $data['data']['timezone'];
+        
+        $start_date = firstSensor($params['location_id'], $timezone);
         if (empty($start_date)) {
             return $result;
         }
@@ -410,9 +413,6 @@ SQL;
             date_add($start, date_interval_create_from_date_string('1 days'));
             $cMonth = date_format($start, 'm');
         } while ($start <= $end);
-
-        $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));
-        $timezone = $data['data']['timezone'];
 
         $register_filter = @$data['data']['register_filter'];
         $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';

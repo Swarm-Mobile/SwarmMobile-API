@@ -273,7 +273,7 @@ function getPosProviders() {
 
 /* Fist dates */
 
-function firstPurchase($location_id) {
+function firstPurchase($location_id, $timezone='America/Los_Angeles') {    
     $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
     $timezone = $data['data']['timezone'];
     $oLocation = new Location();
@@ -296,7 +296,7 @@ SQL;
     return null;
 }
 
-function firstSession($location_id) {
+function firstSession($location_id, $timezone='America/Los_Angeles') {    
     $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
     $timezone = $data['data']['timezone'];
     $oLocation = new Location();
@@ -318,9 +318,7 @@ SQL;
     return null;
 }
 
-function firstSensor($location_id) {
-    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
-    $timezone = $data['data']['timezone'];
+function firstSensor($location_id, $timezone='America/Los_Angeles') {        
     $sSQL = <<<SQL
 SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM visitorEvent s
