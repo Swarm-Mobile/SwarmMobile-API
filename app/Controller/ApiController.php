@@ -319,6 +319,7 @@ SQL;
                     return [
                         'walkbys' => $aRes[0][$method]['walkbys'],
                         'sensorTraffic' => $aRes[0][$method]['sensorTraffic'],
+                        'portalTraffic' => $aRes[0][$method]['portalTraffic'],
                         'transactions' => $aRes[0][$method]['transactions'],
                         'revenue' => $aRes[0][$method]['revenue'],
                         'totalItems' => $aRes[0][$method]['totalItems'],
