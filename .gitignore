@@ -14,6 +14,7 @@ myapp_cake_*
 
 # OS generated files #
 ######################
+.vagrant
 .DS_Store
 .DS_Store?
 ._*

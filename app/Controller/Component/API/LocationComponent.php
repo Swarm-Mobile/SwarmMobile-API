@@ -45,14 +45,13 @@ class LocationComponent extends APIComponent {
          * ds is one of the instances defined on /app/Config/database.php
          * Available instances:
          *  1. ee            => Expression Engine database
-         *  2. swarmdata     => Sessions Data
-         *  3. swarmdataRead => Read-Replica of swarmdata
-         *  4. pos           => POS Info
-         *  5. rollups       => Saves aggregate data for StoreComponent
-         *  6. consumerAPI   => Saves aggregate data for ConsumerAPIComponent (mongodb)
-         *  7. oauth         => OAuth tokens and this stuff
-         *  8. backstage     => Locations, resellers, campaigns...major instance
-         *  9. portal        => Just created for visitorEvent service
+         *  2. swarmdata     => Sessions Data         
+         *  3. pos           => POS Info
+         *  4. rollups       => Saves aggregate data for StoreComponent
+         *  5. consumerAPI   => Saves aggregate data for ConsumerAPIComponent (mongodb)
+         *  6. oauth         => OAuth tokens and this stuff
+         *  7. backstage     => Locations, resellers, campaigns...major instance
+         *  8. portal        => Just created for visitorEvent service
          */
 
         //Make a query
@@ -565,7 +564,7 @@ SQL;
             $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
 SELECT 
     ROUND(COUNT(walkbys)*$factor) as value, 
@@ -790,7 +789,7 @@ INNER JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -822,7 +821,7 @@ WHERE nml.first_logout IS NOT NULL
   AND y.max_login IS NOT NULL
 GROUP BY date       
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -883,7 +882,7 @@ LEFT JOIN
 GROUP BY x.hour
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -904,7 +903,7 @@ WHERE (mac_address.status<>'noise')
  AND time_login BETWEEN '$start_date' AND '$end_date'  
 GROUP BY date
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb = DBComponent::getInstance($table, 'swarmdata');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -945,7 +944,7 @@ SQL;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
  SELECT 
      SUM(dwell_time) as value,
@@ -997,7 +996,7 @@ SQL;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
     SELECT 
        COUNT(DISTINCT ses1.mac_id) as value,
@@ -1040,7 +1039,7 @@ SQL;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+            $oDb = DBComponent::getInstance($table, 'swarmdata');
             $sSQL = <<<SQL
     SELECT 
        COUNT(DISTINCT ses1.mac_id) as value,
