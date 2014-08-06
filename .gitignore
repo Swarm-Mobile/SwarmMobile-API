@@ -11,6 +11,8 @@ myapp_cake_*
 /build
 /dist
 /tags
+/.vagrant
+
 
 # OS generated files #
 ######################
