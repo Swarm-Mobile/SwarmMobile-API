@@ -144,7 +144,7 @@ CREATE TABLE `devicestatus` (
 
 LOCK TABLES `devicestatus` WRITE;
 /*!40000 ALTER TABLE `devicestatus` DISABLE KEYS */;
-INSERT INTO `devicestatus` VALUES (1,'inventory','Device in Swarm\'s Inventory'),(2,'reseller','With Reseller'),(3,'deployed','Device has been deployed at a location'),(4,'lost','Device cannot be found'),(5,'returned','Device has been returned by Reseller/Location'),(6,'dead','Device has died.');
+INSERT INTO `devicestatus` VALUES (1,'inventory','Device in Swarm\'s Inventory'),(2,'reseller','With Reseller'),(3,'deployed','Device has been deployed at a location'),(4,'lost','Device cannot be found'),(5,'returned','Device has been returned by Reseller/Location'),(6,'defective','Device is defective.');
 /*!40000 ALTER TABLE `devicestatus` ENABLE KEYS */;
 UNLOCK TABLES;
 
