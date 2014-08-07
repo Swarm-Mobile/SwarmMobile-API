@@ -47,6 +47,7 @@ class APIController extends AppController {
         'transactions',
         'walkbys',
         'windowConversion',
+        'portalTraffic'
     ];
     public $uses = array('Inbox');
     public $debug = false;
@@ -450,6 +451,7 @@ INSERT IGNORE INTO $method
         date                = '{$params['start_date']}',
         walkbys             = {$result['walkbys']},
         sensorTraffic       = {$result['sensorTraffic']},
+        portalTraffic       = {$result['portalTraffic']},
         transactions        = {$result['transactions']},
         revenue             = {$result['revenue']},
         totalItems          = {$result['totalItems']},
