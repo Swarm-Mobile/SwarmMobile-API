@@ -52,7 +52,8 @@ function formatValue ($value, $dataType, $oLocation)
             if (is_float($value))
             {
                 return round($value, 2);
-            } else
+            }
+            else
             {
                 return $value;
             }
@@ -92,7 +93,8 @@ function fetchXML ($mapi, $xmlUrl)
     {
         $result = $mapi->getXML($xmlUrl);
         $xml = new SimpleXMLElement($result);
-    } catch (Exception $e)
+    }
+    catch (Exception $e)
     {
         writetolog("\nException while fetching XML with URL [$xmlUrl]\n" . $e->getMessage() . "\n");
         writetolog($e->getTraceAsString());
@@ -236,7 +238,8 @@ function formatDate ($date = false, $hour = false)
     {
         $return = new DateTime($date);
         return date_format($return, 'D M d');
-    } elseif (!$date)
+    }
+    elseif (!$date)
     {
         $return = new DateTime('2014-01-01 ' . ' ' . $hour . ':00:00');
         return date_format($return, 'hA');
@@ -289,10 +292,10 @@ function ensurePath ($destination)
 function getNightclubTZ ()
 {
     return array (
-        'eastcoast_time' => 'eastcoast_time',
-        'pacific_time' => 'pacific_time',
-        'central_time' => 'central_time',
-        'mountain_time' => 'mountain_time',
+        'eastcoast_time'      => 'eastcoast_time',
+        'pacific_time'        => 'pacific_time',
+        'central_time'        => 'central_time',
+        'mountain_time'       => 'mountain_time',
         'eastaustralian_time' => 'eastaustralian_time'
     );
 }
@@ -303,21 +306,21 @@ function getNightclubTZ ()
 function getPosProviders ()
 {
     return array (
-        'no_pos' => 'no_pos',
-        'lsCloud' => 'lsCloud',
-        'mos' => 'mos',
-        'lsPro' => 'lsPro',
-        'vend' => 'vend',
-        'erply' => 'erply',
-        'g9' => 'g9',
-        'ascend' => 'ascend',
-        'edge' => 'edge',
+        'no_pos'        => 'no_pos',
+        'lsCloud'       => 'lsCloud',
+        'mos'           => 'mos',
+        'lsPro'         => 'lsPro',
+        'vend'          => 'vend',
+        'erply'         => 'erply',
+        'g9'            => 'g9',
+        'ascend'        => 'ascend',
+        'edge'          => 'edge',
         'microsoft_rms' => 'g9',
-        'quickbooks' => 'quickbooks',
-        'counterpoint' => 'counterpoint',
-        'rpro8' => 'rpro8',
-        'rpro9' => 'rpro9',
-        'camcommerce' => 'camcommerce',
+        'quickbooks'    => 'quickbooks',
+        'counterpoint'  => 'counterpoint',
+        'rpro8'         => 'rpro8',
+        'rpro9'         => 'rpro9',
+        'camcommerce'   => 'camcommerce',
     );
 }
 
@@ -396,22 +399,49 @@ SQL;
 
 function getDeviceTypesInLocation ($location_id)
 {
-    $sSQL = <<<SQL
-SELECT DISTINCT devicetype_id
-FROM device
-WHERE location_id = :location_id
-ORDER BY devicetype_id ASC
-SQL;
-    $oDb = DBComponent::getInstance('device', 'backstage');
-    $aRes = $oDb->fetchAll($sSQL, [':location_id' => $location_id]);  
-    foreach ($aRes as $oRow) {        
-        switch ($oRow['device']['devicetype_id']) {
-            case 1: $seen[1] = 'presence'   ; break;
-            case 2: $seen[2] = 'portal'     ; break;
-            case 3: $seen[3] = 'ping'       ; break;
-            default:
-            //Do nothing
+    $to_return = [];
+    $oDb = DBComponent::getInstance('visitorEvent', 'portal');
+    $aRes = $oDb->fetchAll(
+            "SELECT count(*) c FROM visitorEvent WHERE location_id = :location_id", [':location_id' => $location_id]
+    );    
+    if (!empty($aRes) && $aRes[0][0]['c'] > 0)
+    {
+        $to_return[] = 'portal';
+    }    
+
+    $oDb = DBComponent::getInstance('location_setting', 'backstage');
+    $aRes = $oDb->fetchAll(
+            "SELECT value FROM location_setting ls WHERE location_id = :location_id AND setting_id = 6", [':location_id' => $location_id]
+    );        
+    if (!empty($aRes) && is_numeric($aRes[0]['ls']['value']) && !empty($aRes[0]['ls']['value']))
+    {
+        $to_return[] = 'presence';
+    }        
+    return $to_return;
+}
+
+function getPreviousResultMethod ($method, $location_id)
+{    
+    if (in_array($method, ['footTraffic', 'portalTraffic', 'conversionRate', 'portalConversionRate']))
+    {
+        $aDeviceType = getDeviceTypesInLocation($location_id);        
+        switch ($method)
+        {
+            case 'footTraffic':
+            case 'conversionRate':
+                if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType))
+                {
+                    $method = ($method == 'footTraffic') ? 'portalTraffic' : 'portalConversionRate';
+                }
+                break;
+            case 'portalTraffic':
+            case 'portalConversionRate':
+                if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
+                {
+                    $method = ($method == 'portalTraffic') ? 'footTraffic' : 'conversionRate';
+                }
+                break;
         }
     }
-    return $seen;
+    return $method;
 }

@@ -140,7 +140,7 @@ SQL;
          * JSON encoding is make it for the API.
          */
         return [
-            'foo' => 'bar',
+            'foo'     => 'bar',
             'example' => 'f1'
         ];
     }
@@ -157,7 +157,8 @@ SQL;
         if ($this->api->request->is('post'))
         {
             return ['foo' => 'bar'];
-        } else
+        }
+        else
         {
             throw new APIException(401, 'invalid_method', "Method type must be POST");
         }
@@ -198,8 +199,8 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'year' => array ('required', 'int'),
-            'month' => array ('required', 'int')
+            'year'        => array ('required', 'int'),
+            'month'       => array ('required', 'int')
         );
         $this->validate($params, $rules);
 
@@ -225,21 +226,21 @@ SQL;
         $open_total = $while_closed == 'no' ? 'open' : 'total';
 
         $result = [
-            'data' => [
+            'data'    => [
                 'breakdown' => [],
-                'totals' => [
-                    'revenue' => 0,
-                    'visitors' => 0,
-                    'conversionRate' => 0,
-                    'avgRevenueDaily' => 0,
-                    'avgVisitorsDaily' => 0,
+                'totals'    => [
+                    'revenue'                => 0,
+                    'visitors'               => 0,
+                    'conversionRate'         => 0,
+                    'avgRevenueDaily'        => 0,
+                    'avgVisitorsDaily'       => 0,
                     'avgConversionRateDaily' => 0,
                 ]
             ],
             'options' => [
-                'endpoint' => '/location/monthlyTotals',
-                'year' => $params['year'],
-                'month' => $params['month'],
+                'endpoint'    => '/location/monthlyTotals',
+                'year'        => $params['year'],
+                'month'       => $params['month'],
                 'location_id' => $params['location_id']
             ]
         ];
@@ -323,11 +324,11 @@ SQL;
             if (!isset($result['data']['breakdown'][date_format($start, 'W')]))
             {
                 $result['data']['breakdown'][date_format($start, 'W')] = [
-                    'revenue' => 0,
-                    'visitors' => 0,
-                    'conversionRate' => 0,
-                    'avgRevenueDaily' => 0,
-                    'avgVisitorsDaily' => 0,
+                    'revenue'                => 0,
+                    'visitors'               => 0,
+                    'conversionRate'         => 0,
+                    'avgRevenueDaily'        => 0,
+                    'avgVisitorsDaily'       => 0,
                     'avgConversionRateDaily' => 0
                 ];
             }
@@ -340,7 +341,8 @@ SQL;
 
             date_add($start, date_interval_create_from_date_string('1 days'));
             $slave_params['start_date'] = date_format($start, 'Y-m-d');
-        } while ($start <= $end);
+        }
+        while ($start <= $end);
 
         foreach ($days['byWeek'] as $w => $c)
         {
@@ -368,24 +370,24 @@ SQL;
         $this->validate($params, $rules);
 
         $result = [
-            'data' => [
+            'data'    => [
                 'totals' => [
-                    'revenue' => 0,
-                    'visitors' => 0,
-                    'conversionRate' => 0,
-                    'avgRevenueDaily' => 0,
-                    'avgRevenueWeekly' => 0,
-                    'avgRevenueMonthly' => 0,
-                    'avgVisitorsDaily' => 0,
-                    'avgVisitorsWeekly' => 0,
-                    'avgVisitorsMonthly' => 0,
-                    'avgConversionRateDaily' => 0,
-                    'avgConversionRateWeekly' => 0,
+                    'revenue'                  => 0,
+                    'visitors'                 => 0,
+                    'conversionRate'           => 0,
+                    'avgRevenueDaily'          => 0,
+                    'avgRevenueWeekly'         => 0,
+                    'avgRevenueMonthly'        => 0,
+                    'avgVisitorsDaily'         => 0,
+                    'avgVisitorsWeekly'        => 0,
+                    'avgVisitorsMonthly'       => 0,
+                    'avgConversionRateDaily'   => 0,
+                    'avgConversionRateWeekly'  => 0,
                     'avgConversionRateMonthly' => 0,
                 ]
             ],
             'options' => [
-                'endpoint' => '/location/historicalTotals',
+                'endpoint'    => '/location/historicalTotals',
                 'location_id' => $params['location_id']
             ]
         ];
@@ -435,7 +437,8 @@ SQL;
             $days['byWeek'][date_format($start, 'W')] ++;
             date_add($start, date_interval_create_from_date_string('1 days'));
             $cMonth = date_format($start, 'm');
-        } while ($start <= $end);
+        }
+        while ($start <= $end);
 
         $register_filter = @$data['data']['register_filter'];
         $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
@@ -505,17 +508,17 @@ SQL;
         {
             $v = array (
                 $v => array (
-                    'open' => $data['data'][$v . '_open'],
+                    'open'  => $data['data'][$v . '_open'],
                     'close' => $data['data'][$v . '_close']
                 )
             );
         }
         $result = array ('data' => $return);
         $result['options'] = array (
-            'endpoint' => 'location/openHours',
+            'endpoint'    => 'location/openHours',
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -524,8 +527,8 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
@@ -547,6 +550,7 @@ SQL;
             ['location', 'avgTicket', $open_total],
             ['location', 'totalItems', $open_total],
             ['location', 'conversionRate', $open_total],
+            ['location', 'portalConversionRate', $open_total],
             ['location', 'itemsPerTransaction', $open_total],
             ['location', 'traffic', 'total'],
             ['location', 'devices', 'total'],
@@ -559,10 +563,12 @@ SQL;
             $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'], 1), 2);
             $result['windowConversion'] = min(100, round(($result['traffic'] / coalesce($result['devices'], coalesce($result['traffic'], 1))) * 100, 2));
             $result['conversionRate'] = min(100, round(($result['transactions'] / coalesce($result['footTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
+            $result['portalConversionRate'] = min(100, round(($result['transactions'] / coalesce($result['portalTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
             $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'], 1), 2);
             $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'], 1), 2);
             return $result;
-        } else
+        }
+        else
         {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
             $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
@@ -572,7 +578,8 @@ SQL;
                 {
                     $tmp = $this->api->internalCall($v[0], $v[1], $params);
                     $result[$v[1]] = $tmp['data']['totals'][$v[2]];
-                } else
+                }
+                else
                 {
                     $result[$v[1]] = 0;
                 }
@@ -585,14 +592,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date'])
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
@@ -644,26 +652,35 @@ SQL;
         // Set validation rules and validate parameters
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        // Pass method and parameters to iteration function if the dates are different
-        if ($params['start_date'] != $params['end_date'])
+        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
+        if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
         {
-            return $this->iterativeCall('location', __FUNCTION__, $params);
+            $result = $this->footTraffic($params);
+            $result['options']['endpoint'] = '/location/portalTraffic';
+            return $result;
         }
+        else
+        {
+            // Pass method and parameters to iteration function if the dates are different
+            if ($params['start_date'] != $params['end_date'])
+            {
+                return $this->iterativeCall('location', __FUNCTION__, $params);
+            }
 
-        // Get location data for location id including location's timezone and traffic factor
-        $location_id = $params['location_id'];
-        $data = $this->api->internalCall('location', 'data', array ('location_id' => $location_id));
-        $timezone = $data['data']['timezone'];
-        //CakeLog::write('debug', $timezone);
-        // apply timezone to dates entered and query for sensor detections
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-        $table = 'visitorEvent';
-        $oDb = DBComponent::getInstance($table, 'portal');
-        $sSQL = <<<SQL
+            // Get location data for location id including location's timezone and traffic factor
+            $location_id = $params['location_id'];
+            $data = $this->api->internalCall('location', 'data', array ('location_id' => $location_id));
+            $timezone = $data['data']['timezone'];
+            //CakeLog::write('debug', $timezone);
+            // apply timezone to dates entered and query for sensor detections
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $table = 'visitorEvent';
+            $oDb = DBComponent::getInstance($table, 'portal');
+            $sSQL = <<<SQL
 SELECT
     ROUND(COUNT(*)) AS detect_count,
     DATE_FORMAT(convert_tz(ts,'GMT', '$timezone'), '%Y-%m-%d') AS date,
@@ -675,9 +692,10 @@ WHERE
     ts BETWEEN '$start_date' AND '$end_date'
 GROUP BY date ASC, hour ASC
 SQL;
-        $aRes = $oDb->fetchAll($sSQL);
-        // return formatted result
-        return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
+            $aRes = $oDb->fetchAll($sSQL);
+            // return formatted result
+            return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
+        }
     }
 
     /**
@@ -690,25 +708,26 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         $aDeviceType = getDeviceTypesInLocation($params['location_id']);
         if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
         {
+            $result = $this->conversionRate($params);
+        }
+        else
+        {
             $tr = $this->api->internalCall('location', 'transactions', $params);
             $ft = $this->api->internalCall('location', 'portalTraffic', $params);
             $result = $this->percentify($tr, $ft);
-        } else
-        {
-            $result = $this->conversionRate($params);
         }
         $result['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -717,14 +736,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if (($params['start_date'] != $params['end_date']) && $this->api->iterative)
         {
             return $this->iterativeQuery('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $timezone = $data['data']['timezone'];
@@ -777,14 +797,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if (($params['start_date'] != $params['end_date']) && $this->api->iterative)
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
@@ -798,14 +819,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if (($params['start_date'] != $params['end_date']) && $this->api->iterative)
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
@@ -819,14 +841,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date'])
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
@@ -922,14 +945,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date'])
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
@@ -1009,24 +1033,34 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
-        $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
+        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
+        if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType))
         {
-            return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+            $result = $this->portalTraffic($params);
+            $result['options']['endpoint'] = '/location/footTraffic';
+            return $result;
+        }
+        else
         {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
-            $timezone = $data['data']['timezone'];
-            $factor = $data['data']['traffic_factor'];
-            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
-            $aByDate = $this->footTrafficByDate($params['start_date'], $data, $timezone, $params['location_id'], $ap_id, $factor);
-            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
+            if ($params['start_date'] != $params['end_date'])
+            {
+                return $this->iterativeCall('location', __FUNCTION__, $params);
+            }
+            else
+            {
+                $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+                $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+                $timezone = $data['data']['timezone'];
+                $factor = $data['data']['traffic_factor'];
+                $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+                list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+                $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
+                $aByDate = $this->footTrafficByDate($params['start_date'], $data, $timezone, $params['location_id'], $ap_id, $factor);
+                return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
+            }
         }
     }
 
@@ -1034,14 +1068,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date'])
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
@@ -1089,14 +1124,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date'])
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
@@ -1135,14 +1171,15 @@ SQL;
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date'])
         {
             return $this->iterativeCall('location', __FUNCTION__, $params);
-        } else
+        }
+        else
         {
             $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
@@ -1185,10 +1222,10 @@ SQL;
         $tr = $this->api->internalCall('location', 'transactions', $params);
         $result = $this->calculate($tt, $tr, true);
         $result['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -1199,10 +1236,10 @@ SQL;
         $nd = $this->api->internalCall('location', 'devices', $params);
         $result = $this->percentify($ft, $nd);
         $result['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -1213,10 +1250,10 @@ SQL;
         $tr = $this->api->internalCall('location', 'transactions', $params);
         $result = $this->calculate($re, $tr, true);
         $result['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -1224,29 +1261,31 @@ SQL;
     /*
      * Conversion Rate
      */
+
     public function conversionRate ($params)
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
-            'start_date' => array ('required', 'date', 'date_interval'),
-            'end_date' => array ('required', 'date')
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
         $aDeviceType = getDeviceTypesInLocation($params['location_id']);
         if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType))
         {
+            $result = $this->portalConversionRate($params);
+        }
+        else
+        {
             $tr = $this->api->internalCall('location', 'transactions', $params);
             $ft = $this->api->internalCall('location', 'footTraffic', $params);
             $result = $this->percentify($tr, $ft);
-        } else
-        {
-            $result = $this->portalConversionRate($params);
         }
         $result['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -1257,10 +1296,10 @@ SQL;
         $tr = $this->api->internalCall('location', 'traffic', $params);
         $result = $this->calculate($ts, $tr, true);
         $result['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
         );
         return $result;
     }
@@ -1314,9 +1353,9 @@ SQL;
             foreach ($aRes as $set)
             {
                 $ret['data']['settings'][$set['s']['name']] = array (
-                    'label' => $set['s']['label'],
-                    'setting_id' => $set['ls']['setting_id'],
-                    'value' => $set['ls']['value'],
+                    'label'       => $set['s']['label'],
+                    'setting_id'  => $set['ls']['setting_id'],
+                    'value'       => $set['ls']['value'],
                     'description' => $set['s']['desc']
                 );
             }
@@ -1326,19 +1365,20 @@ SQL;
                 if (empty($ret['data']['settings'][$name]))
                 {
                     $ret['data']['settings'][$name] = array (
-                        'label' => $s['label'],
-                        'id' => $s['id'],
-                        'value' => $s['value'],
+                        'label'       => $s['label'],
+                        'id'          => $s['id'],
+                        'value'       => $s['value'],
                         'description' => $s['desc']
                     );
                 }
             }
-        } else
+        }
+        else
         {
             $ret['data']['settings'] = $defaults;
         }
         $ret['options'] = array (
-            'endpoint' => '/location/' . __FUNCTION__,
+            'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $location_id
         );
         return $ret;
@@ -1374,7 +1414,7 @@ UPDATE location
     WHERE location_id = :location_id
 SQL;
                 $oDb->query($sSQL, array (
-                    'name' => $params['Location']['name'],
+                    'name'        => $params['Location']['name'],
                     'location_id' => $location_id,
                 ));
             }
@@ -1384,7 +1424,8 @@ SQL;
                 if (!is_numeric($key))
                 {
                     $sett_id = settId($key);
-                } else
+                }
+                else
                 {
                     if (in_array($key, $settingIds))
                     {
@@ -1411,14 +1452,14 @@ INSERT INTO location_setting
 SQL;
                     $ret = $oDb->query($sSQL, array (
                         'location_id' => $location_id,
-                        'setting_id' => $key,
-                        'value' => $val
+                        'setting_id'  => $key,
+                        'value'       => $val
                     ));
                 }
                 return array (
                     'options' => array (
-                        'endpoint' => '/location/' . __FUNCTION__,
-                        'uuid' => $params['uuid'],
+                        'endpoint'    => '/location/' . __FUNCTION__,
+                        'uuid'        => $params['uuid'],
                         'location_id' => $params['uuid']
                     ),
                     'message' => array (
@@ -1426,7 +1467,8 @@ SQL;
                     )
                 );
             }
-        } else
+        }
+        else
         {
             return array (
                 'options' => array (
@@ -1492,7 +1534,7 @@ INSERT INTO location
         reseller_id = :reseller_id
 SQL;
         $oDb->query($sSQL, array (
-            ':name' => $params['name'],
+            ':name'        => $params['name'],
             ':reseller_id' => $reseller_id,
         ));
         $location_id = $oDb->lastInsertId();
@@ -1512,8 +1554,8 @@ INSERT INTO location_setting
 SQL;
                 $oDb->query($sSQL, array (
                     ':location_id' => $location_id,
-                    ':setting_id' => $sett_id,
-                    ':value' => $params[$key],
+                    ':setting_id'  => $sett_id,
+                    ':value'       => $params[$key],
                 ));
             }
         }
@@ -1525,7 +1567,7 @@ INSERT INTO locationmanager_location
 SQL;
 
         $oDb->query($sSQL, array (
-            'location_id' => $location_id,
+            'location_id'        => $location_id,
             'locationmanager_id' => $locationmanager_id
         ));
 
@@ -1561,14 +1603,14 @@ TEXT;
         );
 
         return array (
-            'data' => array (
-                'user_id' => $user_id,
+            'data'    => array (
+                'user_id'            => $user_id,
                 'locationmanager_id' => $locationmanager_id,
-                'location_id' => $location_id
+                'location_id'        => $location_id
             ),
             'options' => array (
                 'endpoint' => '/location/' . __FUNCTION__,
-                'uuid' => $uuid
+                'uuid'     => $uuid
             ),
             'message' => array (
                 'success' => 'Location has been successfully created.'
@@ -1596,9 +1638,9 @@ SQL;
         foreach ($settings as $set)
         {
             $ret['data']['settings'][$set['setting']['name']] = array (
-                'id' => $set['setting']['id'],
-                'label' => $set['setting']['label'],
-                'desc' => $set['setting']['desc'],
+                'id'      => $set['setting']['id'],
+                'label'   => $set['setting']['label'],
+                'desc'    => $set['setting']['desc'],
                 'default' => $set['setting']['default']
             );
         }
@@ -1613,34 +1655,34 @@ SQL;
         $oLocation = new Location();
         $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
         $aFields = [
-            'ap_id' => 'network_id',
-            'timezone' => 'timezone',
-            'location_open' => 'location_open',
-            'location_close' => 'location_close',
-            'lightspeed_id' => 'pos_store_id',
-            'monday_open' => 'monday_open',
-            'monday_close' => 'monday_close',
-            'tuesday_open' => 'tuesday_open',
-            'tuesday_close' => 'tuesday_close',
-            'wednesday_open' => 'wednesday_open',
-            'wednesday_close' => 'wednesday_close',
-            'thursday_open' => 'thursday_open',
-            'thursday_close' => 'thursday_close',
-            'friday_open' => 'friday_open',
-            'friday_close' => 'friday_close',
-            'saturday_open' => 'saturday_open',
-            'saturday_close' => 'saturday_close',
-            'sunday_open' => 'sunday_open',
-            'sunday_close' => 'sunday_close',
-            'network_provider' => 'network_provider',
-            'register_filter' => 'register_filter',
-            'outlet_filter' => 'outlet_filter',
-            'country' => 'country',
-            'nightclub_hours' => 'nightclub_hours',
-            'traffic_factor' => 'traffic_factor',
-            'no_rollups' => 'no_rollups',
-            'no_cache' => 'no_cache',
-            'nightclub_hours_location' => 'nightclub_hours_location',
+            'ap_id'                     => 'network_id',
+            'timezone'                  => 'timezone',
+            'location_open'             => 'location_open',
+            'location_close'            => 'location_close',
+            'lightspeed_id'             => 'pos_store_id',
+            'monday_open'               => 'monday_open',
+            'monday_close'              => 'monday_close',
+            'tuesday_open'              => 'tuesday_open',
+            'tuesday_close'             => 'tuesday_close',
+            'wednesday_open'            => 'wednesday_open',
+            'wednesday_close'           => 'wednesday_close',
+            'thursday_open'             => 'thursday_open',
+            'thursday_close'            => 'thursday_close',
+            'friday_open'               => 'friday_open',
+            'friday_close'              => 'friday_close',
+            'saturday_open'             => 'saturday_open',
+            'saturday_close'            => 'saturday_close',
+            'sunday_open'               => 'sunday_open',
+            'sunday_close'              => 'sunday_close',
+            'network_provider'          => 'network_provider',
+            'register_filter'           => 'register_filter',
+            'outlet_filter'             => 'outlet_filter',
+            'country'                   => 'country',
+            'nightclub_hours'           => 'nightclub_hours',
+            'traffic_factor'            => 'traffic_factor',
+            'no_rollups'                => 'no_rollups',
+            'no_cache'                  => 'no_cache',
+            'nightclub_hours_location'  => 'nightclub_hours_location',
             'transactions_while_closed' => 'transactions_while_closed'
         ];
         $tmp = array ('data' => array ());

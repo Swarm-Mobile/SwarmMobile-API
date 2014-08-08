@@ -35,6 +35,7 @@ class APIController extends AppController
     public $cache_methods = [
         'avgTicket',
         'conversionRate',
+        'portalConversionRate',
         'devices',
         'dwell',
         'footTraffic',
@@ -49,7 +50,7 @@ class APIController extends AppController
         'transactions',
         'walkbys',
         'windowConversion',
-            //'portalTraffic'
+        //'portalTraffic'
     ];
     public $iterative = true;
     public $uses = array ('Inbox');
@@ -90,11 +91,13 @@ class APIController extends AppController
                     echo json_encode($res);
                     //$this->call_log();
                     exit();
-                } else
+                }
+                else
                 {
                     $this->redirect($redirect);
                 }
-            } else
+            }
+            else
             {
                 if (empty($redirect))
                 {
@@ -112,9 +115,9 @@ class APIController extends AppController
     public function request_client ()
     {
         $data = array (
-            'username' => $this->data['username'],
+            'username'     => $this->data['username'],
             'redirect_uri' => $this->data['redirect_uri'],
-            'description' => $this->data['description']
+            'description'  => $this->data['description']
         );
         $this->Inbox->save($data);
     }
@@ -139,11 +142,13 @@ class APIController extends AppController
             {
                 $params = $_GET;
                 $this->processGET($params);
-            } elseif ($this->request->is('post'))
+            }
+            elseif ($this->request->is('post'))
             {
                 $params = $_POST;
                 $this->processPOST($params);
-            } else
+            }
+            else
             {
                 throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
             }
@@ -182,14 +187,16 @@ class APIController extends AppController
             echo json_encode($this->internalCall($path[0], $path[1], $params));
             //$this->call_log();
             exit();
-        } catch (OAuth2AuthenticateException $e)
+        }
+        catch (OAuth2AuthenticateException $e)
         {
             $this->response_code = $e->getCode();
             $this->response_message = $e->getMessage();
             //$this->call_log();
             $e->sendHttpResponse();
             return false;
-        } catch (APIException $e)
+        }
+        catch (APIException $e)
         {
             $this->response_code = $e->error_no;
             $this->response_message = $e->error;
@@ -244,7 +251,8 @@ TEXT;
             {
                 $this->rollups = false;
                 $this->cache = false;
-            } elseif ($this->request->is('get'))
+            }
+            elseif ($this->request->is('get'))
             {
                 if (isset($_GET['norollups']))
                 {
@@ -319,26 +327,10 @@ TEXT;
                     return $result;
                 }
             }
-        } else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods))
+        }
+        else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods))
         {
-            switch ($method)
-            {
-                case 'conversionRate':
-                    $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-                    if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType)){
-                        $method = 'portalConversionRate';
-                    }
-                    break;
-                case 'portalConversionRate':
-                    $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-                    if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType)){
-                        $method = 'conversionRate';
-                    }
-                    break;
-                default:
-                //Do nothing
-            }
-
+            $method = getPreviousResultMethod($method, $params['location_id']);            
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
@@ -350,8 +342,8 @@ WHERE location_id = :location_id
 SQL;
             $aRes = $oDb->fetchAll($sSQL, [
                 ':location_id' => $params['location_id'],
-                ':start_date' => $params['start_date'],
-                ':end_date' => $params['end_date']
+                ':start_date'  => $params['start_date'],
+                ':end_date'    => $params['end_date']
                     ]
             );
             if (!empty($aRes))
@@ -367,15 +359,15 @@ SQL;
                     $tmp = $data['data'][$weekday . '_close'];
                     $close = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
                     $to_return = [
-                        'data' => [
-                            'totals' => [
-                                'open' => $aRes[0][$method]['total_open'],
+                        'data'    => [
+                            'totals'    => [
+                                'open'  => $aRes[0][$method]['total_open'],
                                 'close' => $aRes[0][$method]['total_close'],
                                 'total' => $aRes[0][$method]['total_total']
                             ],
                             'breakdown' => [
                                 $params['start_date'] => [
-                                    'hours' => [
+                                    'hours'  => [
                                         '00' => ['open' => ($isOpen ? (0 >= $open && 0 <= $close) : false), 'total' => $aRes[0][$method]['h00']],
                                         '01' => ['open' => ($isOpen ? (1 >= $open && 1 <= $close) : false), 'total' => $aRes[0][$method]['h01']],
                                         '02' => ['open' => ($isOpen ? (2 >= $open && 2 <= $close) : false), 'total' => $aRes[0][$method]['h02']],
@@ -403,40 +395,41 @@ SQL;
                                     ],
                                     'totals' => [
                                         'isOpen' => $isOpen,
-                                        'close' => $aRes[0][$method]['total_close'],
-                                        'total' => $aRes[0][$method]['total_total'],
-                                        'open' => $aRes[0][$method]['total_open'],
+                                        'close'  => $aRes[0][$method]['total_close'],
+                                        'total'  => $aRes[0][$method]['total_total'],
+                                        'open'   => $aRes[0][$method]['total_open'],
                                     ]
                                 ]
                             ],
                         ],
                         'options' => [
-                            'endpoint' => '/' . $component . '/' . $method,
+                            'endpoint'    => '/' . $component . '/' . $method,
                             'location_id' => $params['location_id'],
-                            'start_date' => $params['start_date'],
-                            'end_date' => $params['end_date']
+                            'start_date'  => $params['start_date'],
+                            'end_date'    => $params['end_date']
                         ]
                     ];
                     return APIComponent::nightClubFormat($to_return, $data);
-                } else
+                }
+                else
                 {
                     return [
-                        'walkbys' => $aRes[0][$method]['walkbys'],
-                        'sensorTraffic' => $aRes[0][$method]['sensorTraffic'],
-                        'portalTraffic' => $aRes[0][$method]['portalTraffic'],
-                        'transactions' => $aRes[0][$method]['transactions'],
-                        'revenue' => $aRes[0][$method]['revenue'],
-                        'totalItems' => $aRes[0][$method]['totalItems'],
-                        'returning' => $aRes[0][$method]['returning'],
-                        'footTraffic' => $aRes[0][$method]['footTraffic'],
-                        'timeInShop' => $aRes[0][$method]['timeInShop'],
-                        'traffic' => $aRes[0][$method]['traffic'],
-                        'devices' => $aRes[0][$method]['devices'],
+                        'walkbys'             => $aRes[0][$method]['walkbys'],
+                        'sensorTraffic'       => $aRes[0][$method]['sensorTraffic'],
+                        'portalTraffic'       => $aRes[0][$method]['portalTraffic'],
+                        'transactions'        => $aRes[0][$method]['transactions'],
+                        'revenue'             => $aRes[0][$method]['revenue'],
+                        'totalItems'          => $aRes[0][$method]['totalItems'],
+                        'returning'           => $aRes[0][$method]['returning'],
+                        'footTraffic'         => $aRes[0][$method]['footTraffic'],
+                        'timeInShop'          => $aRes[0][$method]['timeInShop'],
+                        'traffic'             => $aRes[0][$method]['traffic'],
+                        'devices'             => $aRes[0][$method]['devices'],
                         'itemsPerTransaction' => $aRes[0][$method]['itemsPerTransaction'],
-                        'windowConversion' => $aRes[0][$method]['windowConversion'],
-                        'avgTicket' => $aRes[0][$method]['avgTicket'],
-                        'conversionRate' => $aRes[0][$method]['conversionRate'],
-                        'dwell' => $aRes[0][$method]['dwell'],
+                        'windowConversion'    => $aRes[0][$method]['windowConversion'],
+                        'avgTicket'           => $aRes[0][$method]['avgTicket'],
+                        'conversionRate'      => $aRes[0][$method]['conversionRate'],
+                        'dwell'               => $aRes[0][$method]['dwell'],
                     ];
                 }
             }
@@ -512,7 +505,8 @@ SQL;
                 $handle = fopen($cache_file, 'w+');
                 fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                 fclose($handle);
-            } else if ($this->rollups)
+            }
+            else if ($this->rollups)
             {
                 if (!$from_rollups && $component == 'location' && in_array($method, $this->cache_methods))
                 {
@@ -523,7 +517,7 @@ SQL;
                     $sSQL = "SELECT id FROM $method WHERE location_id = :location_id AND `date` = :date";
                     $aRes = $oDb->fetchAll($sSQL, [
                         ':location_id' => $location_id,
-                        ':date' => $date
+                        ':date'        => $date
                     ]);
                     if (empty($aRes))
                     {
@@ -563,7 +557,8 @@ INSERT IGNORE INTO $method
         ts_creation = NOW(),
         ts_update = NOW()
 ";
-                        } else
+                        }
+                        else
                         {
                             $sSQL = <<<SQL
 INSERT IGNORE INTO $method
@@ -590,7 +585,8 @@ INSERT IGNORE INTO $method
 SQL;
                         }
                         $oDb->query($sSQL);
-                    } else
+                    }
+                    else
                     {
                         //throw new APIException(500, 'duplicated_cache', "This request is already cached");
                     }
@@ -622,7 +618,7 @@ class APIException extends Exception
         header("HTTP/1.1 {$this->error_no}");
         echo json_encode(
                 array (
-                    'error' => $this->error,
+                    'error'             => $this->error,
                     'error_description' => $this->description
                 )
         );
