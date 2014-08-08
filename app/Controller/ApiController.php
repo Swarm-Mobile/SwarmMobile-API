@@ -48,7 +48,7 @@ class APIController extends AppController {
         'transactions',
         'walkbys',
         'windowConversion',
-        'portalTraffic'
+        //'portalTraffic'
     ];
     public $iterative = true;
     public $uses = array('Inbox');

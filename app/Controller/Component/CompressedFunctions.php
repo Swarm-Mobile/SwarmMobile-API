@@ -3,35 +3,43 @@
 require_once('SettingComponent.php');
 require_once('rfc822.php');
 
-function scape($string) {
-    $search = array("\\", "\x00", "\n", "\r", "'", '"', "\x1a");
-    $replace = array("\\\\", "\\0", "\\n", "\\r", "\'", '\"', "\\Z");
+function scape ($string)
+{
+    $search = array ("\\", "\x00", "\n", "\r", "'", '"', "\x1a");
+    $replace = array ("\\\\", "\\0", "\\n", "\\r", "\'", '\"', "\\Z");
     return str_replace($search, $replace, $string);
 }
 
-function get_date($interval) {
+function get_date ($interval)
+{
     $date = new DateTime($interval);
     return $date->format('Y-m-d');
 }
 
-function signSymbol($pct) {
+function signSymbol ($pct)
+{
     return ($pct > 0) ? '&#9650;' : (($pct < 0) ? '&#9660;' : ' ');
 }
 
-function signVerbiage($pct) {
+function signVerbiage ($pct)
+{
     return ($pct > 0) ? 'increase' : (($pct < 0) ? 'decrease' : 'flat');
 }
 
-function signColor($pct) {
+function signColor ($pct)
+{
     return ($pct > 0) ? 'success' : (($pct < 0) ? 'error' : '');
 }
 
-function signColorInline($pct) {
+function signColorInline ($pct)
+{
     return ($pct > 0) ? 'color:#468847;' : (($pct < 0) ? 'color:#b94a48;' : '');
 }
 
-function formatValue($value, $dataType, $oLocation) {
-    switch ($dataType) {
+function formatValue ($value, $dataType, $oLocation)
+{
+    switch ($dataType)
+    {
         case 'percentage':
             return round($value, 2) . '%';
         case 'time':
@@ -41,51 +49,61 @@ function formatValue($value, $dataType, $oLocation) {
             return $currency . $value;
         case 'num':
         default:
-            if (is_float($value)) {
+            if (is_float($value))
+            {
                 return round($value, 2);
-            } else {
+            } else
+            {
                 return $value;
             }
     }
 }
 
-function previousDayRange($date, $offsetDays) {
+function previousDayRange ($date, $offsetDays)
+{
     $ts = strtotime($date);
     $start = strtotime("- $offsetDays days", $ts);
     $startDate = $endDate = date('Y-m-d', $start);
-    return array($startDate, $endDate);
+    return array ($startDate, $endDate);
 }
 
-function previousWeekRange($date) {
+function previousWeekRange ($date)
+{
     $ts = strtotime($date);
     $start = strtotime(((date('w', $ts) == 1) ? '- 7 days' : 'last monday - 7 days'), $ts);
     $startDate = date('Y-m-d', $start);
     $endDate = date('Y-m-d', strtotime('next sunday', $start));
-    return array($startDate, $endDate);
+    return array ($startDate, $endDate);
 }
 
-function previousMonthRange($date) {
+function previousMonthRange ($date)
+{
     $ts = strtotime($date);
     $start = strtotime('first day of last month', $ts);
     $startDate = date('Y-m-d', $start);
     $endDate = date('Y-m-d', strtotime('last day of last month', $ts));
-    return array($startDate, $endDate);
+    return array ($startDate, $endDate);
 }
 
-function fetchXML($mapi, $xmlUrl) {
+function fetchXML ($mapi, $xmlUrl)
+{
     $xml = null;
-    try {
+    try
+    {
         $result = $mapi->getXML($xmlUrl);
         $xml = new SimpleXMLElement($result);
-    } catch (Exception $e) {
+    } catch (Exception $e)
+    {
         writetolog("\nException while fetching XML with URL [$xmlUrl]\n" . $e->getMessage() . "\n");
         writetolog($e->getTraceAsString());
     }
     return $xml;
 }
 
-function writetolog($message, $logfile = null) {
-    if (!empty($logfile) && file_exists($logfile)) {
+function writetolog ($message, $logfile = null)
+{
+    if (!empty($logfile) && file_exists($logfile))
+    {
         $handle = fopen($logfile, "a");
         $line = "$message\n";
         fwrite($handle, $line);
@@ -93,46 +111,57 @@ function writetolog($message, $logfile = null) {
     }
 }
 
-function setEnvironment() {
+function setEnvironment ()
+{
     $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
     $pattern = '/.*SetEnv server_location "(.*)"/';
-    if (preg_match_all($pattern, $htaccess, $matches)) {
+    if (preg_match_all($pattern, $htaccess, $matches))
+    {
         putenv('server_location=' . $matches[1][0]);
         $_SERVER['server_location'] = $matches[1][0];
     }
 }
 
-function coalesce($a, $b) {
+function coalesce ($a, $b)
+{
     return !empty($a) ? $a : $b;
 }
 
-function preDebug($toPrint, $die = true) {
+function preDebug ($toPrint, $die = true)
+{
     echo '<pre>';
     var_dump($toPrint);
     echo '</pre>';
-    if ($die) {
+    if ($die)
+    {
         die();
     }
 }
 
-function settId($setting_name) {
+function settId ($setting_name)
+{
     return SettingComponent::id($setting_name);
 }
 
-function settVal($setting_name, $setting_array) {
+function settVal ($setting_name, $setting_array)
+{
     return SettingComponent::value($setting_name, $setting_array);
 }
 
-function settDefaults($setting_name, $setting_array) {
+function settDefaults ($setting_name, $setting_array)
+{
     return SettingComponent::defaults($setting_name, $setting_array);
 }
 
-function logoURL($location_id) {
-    $extensions = array('jpg', 'jpeg', 'png', 'gif');
+function logoURL ($location_id)
+{
+    $extensions = array ('jpg', 'jpeg', 'png', 'gif');
     $file = WEBROOT_DIR . '/images/location_photos/photo_' . $location_id;
     $src = Router::url('/images/new-logo.png', true);
-    foreach ($extensions as $ext) {
-        if (file_exists($file . '.' . $ext)) {
+    foreach ($extensions as $ext)
+    {
+        if (file_exists($file . '.' . $ext))
+        {
             $src = Router::url('/images/location_photos/photo_' . $location_id . '.' . $ext, true);
             break;
         }
@@ -140,23 +169,28 @@ function logoURL($location_id) {
     return $src;
 }
 
-function array2csv(array &$array, $first = true) {
-    if (count($array) == 0) {
+function array2csv (array &$array, $first = true)
+{
+    if (count($array) == 0)
+    {
         return null;
     }
     ob_start();
     $df = fopen("php://output", 'w');
-    if ($first) {
+    if ($first)
+    {
         fputcsv($df, array_keys(reset($array)));
     }
-    foreach ($array as $row) {
+    foreach ($array as $row)
+    {
         fputcsv($df, $row);
     }
     fclose($df);
     return ob_get_clean();
 }
 
-function setCsvHeaders($filename) {
+function setCsvHeaders ($filename)
+{
 // disable caching
     $now = gmdate("D, d M Y H:i:s");
     header("Cache-Control: max-age=0, no-cache, must-revalidate, proxy-revalidate");
@@ -172,7 +206,8 @@ function setCsvHeaders($filename) {
     header("Content-Transfer-Encoding: binary");
 }
 
-function setJSONHeaders() {
+function setJSONHeaders ()
+{
     header("Access-Control-Allow-Origin: *");
     header("Access-Control-Allow-Methods: POST, GET");
     header("Access-Control-Allow-Headers: X-PINGOTHER");
@@ -180,8 +215,10 @@ function setJSONHeaders() {
     header("Content-Type: application/json; charset=UTF-8");
 }
 
-function makeHMS($seconds) {
-    if ($seconds) {
+function makeHMS ($seconds)
+{
+    if ($seconds)
+    {
         $h = floor($seconds / 3600);
         $m = floor($seconds % 3600 / 60);
         $s = floor($seconds % 3600 % 60);
@@ -193,11 +230,14 @@ function makeHMS($seconds) {
     return 0;
 }
 
-function formatDate($date = false, $hour = false) {
-    if (!$hour) {
+function formatDate ($date = false, $hour = false)
+{
+    if (!$hour)
+    {
         $return = new DateTime($date);
         return date_format($return, 'D M d');
-    } elseif (!$date) {
+    } elseif (!$date)
+    {
         $return = new DateTime('2014-01-01 ' . ' ' . $hour . ':00:00');
         return date_format($return, 'hA');
     }
@@ -205,31 +245,39 @@ function formatDate($date = false, $hour = false) {
     return date_format($return, 'hA D M d');
 }
 
-function csvTextToArray($csvText, $hasHeader = true, $header = null) {
+function csvTextToArray ($csvText, $hasHeader = true, $header = null)
+{
     $fh = fopen('data://text/plain,' . $csvText, 'r');
-    $rv = array();
-    if ($hasHeader) {
+    $rv = array ();
+    if ($hasHeader)
+    {
         $row = array_map('trim', fgetcsv($fh));
-        if (empty($header)) {
+        if (empty($header))
+        {
             $header = $row;
         }
     }
-    while ($row = fgetcsv($fh)) {
+    while ($row = fgetcsv($fh))
+    {
         $rv[] = array_combine($header, array_map('trim', $row));
     }
     return $rv;
 }
 
-function validEmail($email) {
+function validEmail ($email)
+{
     return is_valid_email_address($email);
 }
 
-function ensurePath($destination) {
+function ensurePath ($destination)
+{
     $folders = explode('/', $destination);
     $path = realpath(__DIR__ . DS . '..' . DS . '..' . DS . 'webroot');
-    foreach ($folders as $folder) {
+    foreach ($folders as $folder)
+    {
         $path .= $folder . DS;
-        if (!is_dir($path)) {
+        if (!is_dir($path))
+        {
             mkdir($path);
         }
     }
@@ -238,8 +286,9 @@ function ensurePath($destination) {
 /**
  * Nightclub timezones
  */
-function getNightclubTZ() {
-    return array(
+function getNightclubTZ ()
+{
+    return array (
         'eastcoast_time' => 'eastcoast_time',
         'pacific_time' => 'pacific_time',
         'central_time' => 'central_time',
@@ -251,8 +300,9 @@ function getNightclubTZ() {
 /**
  * POS providers
  */
-function getPosProviders() {
-    return array(
+function getPosProviders ()
+{
+    return array (
         'no_pos' => 'no_pos',
         'lsCloud' => 'lsCloud',
         'mos' => 'mos',
@@ -273,8 +323,9 @@ function getPosProviders() {
 
 /* Fist dates */
 
-function firstPurchase($location_id, $timezone='America/Los_Angeles') {    
-    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+function firstPurchase ($location_id, $timezone = 'America/Los_Angeles')
+{
+    $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
     $timezone = $data['data']['timezone'];
     $oLocation = new Location();
     $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
@@ -290,14 +341,16 @@ SQL;
     $oModel = new Model(false, 'stores', 'pos');
     $oDb = $oModel->getDataSource();
     $aRes = $oDb->fetchAll($sSQL, [':store_id' => settVal('pos_store_id', $oLocation['Setting'])]);
-    if (!empty($aRes)) {
+    if (!empty($aRes))
+    {
         return $aRes[0][0]['first_date'];
     }
     return null;
 }
 
-function firstSession($location_id, $timezone='America/Los_Angeles') {    
-    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+function firstSession ($location_id, $timezone = 'America/Los_Angeles')
+{
+    $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
     $timezone = $data['data']['timezone'];
     $oLocation = new Location();
     $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
@@ -312,13 +365,15 @@ LIMIT 1
 SQL;
     $oDb = DBComponent::getInstance('sessions', 'swarmdata');
     $aRes = $oDb->fetchAll($sSQL, [':network_id' => settVal('network_id', $oLocation['Setting'])]);
-    if (!empty($aRes)) {
+    if (!empty($aRes))
+    {
         return $aRes[0][0]['first_date'];
     }
     return null;
 }
 
-function firstSensor($location_id, $timezone='America/Los_Angeles') {        
+function firstSensor ($location_id, $timezone = 'America/Los_Angeles')
+{
     $sSQL = <<<SQL
 SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM visitorEvent s
@@ -330,8 +385,33 @@ LIMIT 1
 SQL;
     $oDb = DBComponent::getInstance('visitorEvent', 'portal');
     $aRes = $oDb->fetchAll($sSQL, [':location_id' => $location_id]);
-    if (!empty($aRes)) {
+    if (!empty($aRes))
+    {
         return $aRes[0][0]['first_date'];
     }
     return null;
+}
+
+/* */
+
+function getDeviceTypesInLocation ($location_id)
+{
+    $sSQL = <<<SQL
+SELECT DISTINCT devicetype_id
+FROM device
+WHERE location_id = :location_id
+ORDER BY devicetype_id ASC
+SQL;
+    $oDb = DBComponent::getInstance('device', 'backstage');
+    $aRes = $oDb->fetchAll($sSQL, [':location_id' => $location_id]);  
+    foreach ($aRes as $oRow) {        
+        switch ($oRow['device']['devicetype_id']) {
+            case 1: $seen[1] = 'presence'   ; break;
+            case 2: $seen[2] = 'portal'     ; break;
+            case 3: $seen[3] = 'ping'       ; break;
+            default:
+            //Do nothing
+        }
+    }
+    return $seen;
 }
