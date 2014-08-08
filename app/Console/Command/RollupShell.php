@@ -78,12 +78,18 @@ INNER JOIN location_setting ls
     AND ls.setting_id = 6
     AND value IS NOT NULL
     AND value != ''
-    AND value > 0    
+    AND value > 0
+UNION DISTINCT 
+SELECT l.id 
+FROM location l
+INNER JOIN device d
+    ON l.id = d.location_id
+WHERE d.devicetype_id=2  
 SQL;
             $aRes = $oModel->query($sSQL);
             $locations = array();
             foreach ($aRes as $oRow) {
-                $locations[] = $oRow['l']['id'];
+                $locations[] = $oRow['0']['id'];
             }
         } else {
             $locations = explode(',', $this->params['location_id']);

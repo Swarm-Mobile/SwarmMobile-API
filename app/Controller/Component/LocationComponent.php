@@ -516,6 +516,7 @@ SQL;
             ['location', 'returning', 'total'],
             ['location', 'footTraffic', 'total'],
             ['location', 'sensorTraffic', 'total'],
+            ['location', 'portalTraffic', 'total'],
             ['location', 'revenue', $open_total],
             ['location', 'avgTicket', $open_total],
             ['location', 'totalItems', $open_total],
@@ -605,7 +606,6 @@ SQL;
             'end_date' => array('required', 'date')
         );
         $this->validate($params, $rules);
-
         // Pass method and parameters to iteration function if the dates are different
         if (($params['start_date'] != $params['end_date']) && $this->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
@@ -615,7 +615,6 @@ SQL;
         $location_id = $params['location_id'];
         $data = $this->api->internalCall('location', 'data', array('location_id' => $location_id));
         $timezone = $data['data']['timezone'];
-
         // apply timezone to dates entered and query for sensor detections
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
         $table = 'visitorEvent';
@@ -635,6 +634,64 @@ SQL;
         $aRes = $oDb->fetchAll($sSQL);
         // return formatted result
         return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
+    }
+
+    public function portalTraffic($params) {
+        // Set validation rules and validate parameters
+        $rules = array(
+            'location_id' => array('required', 'int'),
+            'start_date' => array('required', 'date'),
+            'end_date' => array('required', 'date')
+        );
+        $this->validate($params, $rules);
+        // Pass method and parameters to iteration function if the dates are different
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('location', __FUNCTION__, $params);
+        }
+
+        // Get location data for location id including location's timezone and traffic factor
+        $location_id = $params['location_id'];
+        $data = $this->api->internalCall('location', 'data', array('location_id' => $location_id));
+        $timezone = $data['data']['timezone'];
+        //CakeLog::write('debug', $timezone);
+        // apply timezone to dates entered and query for sensor detections
+        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+        $table = 'visitorEvent';
+        $oDb = DBComponent::getInstance($table, 'portal');
+        $sSQL = <<<SQL
+SELECT
+    ROUND(COUNT(*)) AS detect_count,
+    DATE_FORMAT(convert_tz(ts,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+    DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k') AS hour
+FROM visitorEvent
+WHERE
+    entered = 1 AND         
+    location_id=$location_id AND
+    ts BETWEEN '$start_date' AND '$end_date'
+GROUP BY date ASC, hour ASC
+SQL;
+        $aRes = $oDb->fetchAll($sSQL);
+        // return formatted result
+        return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
+    }
+
+    /**
+     * Get portal conversion rate
+     * 
+     * @param $params Array containing location_id, start_date and end_date
+     * @return array Array of results formatted for display in the dashboard
+     */
+    public function portalConversionRate($params) {
+        $tr = $this->api->internalCall('location', 'transactions', $params);
+        $ft = $this->api->internalCall('location', 'portalTraffic', $params);
+        $result = $this->percentify($tr, $ft);
+        $result['options'] = array(
+            'endpoint' => '/location/' . __FUNCTION__,
+            'location_id' => $params['location_id'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
+        );
+        return $result;
     }
 
     public function purchaseInfo($params) {
