@@ -39,7 +39,7 @@ class APIController extends AppController {
         'itemsPerTransaction',
         'returning',
         'revenue',
-        'sensorTraffic',
+        //'sensorTraffic',
         'timeInShop',
         'totalItems',
         'totals',
@@ -48,6 +48,7 @@ class APIController extends AppController {
         'walkbys',
         'windowConversion',
     ];
+    public $iterative = true;
     public $uses = array('Inbox');
     public $debug = false;
     public $cache = true;
@@ -114,10 +115,10 @@ class APIController extends AppController {
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: POST, GET");
         header("Access-Control-Allow-Headers: X-PINGOTHER");
-        header("Access-Control-Max-Age: 1728000");
+        header("Content-Type: application/json; charset=UTF-8");        
         header("Access-Control-Max-Age: 1728000");
         header("Pragma: no-cache");
-        header("Cache-Contro;: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+        header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
         try {
             if ($this->request->is('get')) {
                 $params = $_GET;
@@ -138,6 +139,7 @@ class APIController extends AppController {
             $component = ucfirst($path[0]) . 'Component';
             $component = new $component;
             $request_method = strtolower(env('REQUEST_METHOD'));
+            $this->call_log($path[0], $path[1], $request_method);
             switch ($request_method) {
                 case 'get':
                     if (
@@ -175,6 +177,21 @@ class APIController extends AppController {
 
     // Internal functions
 
+    private function call_log($component, $function, $request_method){
+        $file = __DIR__.'/../tmp/logs/api_calls/'.date('Y_m_d_h_i_s').
+                '_'.strtoupper($request_method).'_'.$component.'_'.$function;
+        $post = var_export($_POST, true);
+        $get = var_export($_GET, true);
+        $text = <<<TEXT
+POST:
+$post
+                
+GET:
+$get
+                
+TEXT;
+        file_put_contents($file, $text);        
+    }
 //    private function call_log() {
 //        $this->request_end = date('Y-m-d H:i:s');
 //        $oModel = new Model(false, 'calls', 'rollups');

@@ -26,7 +26,7 @@ class OAuthController extends OAuthAppController {
      * beforeFilter
      *
      */
-    public function beforeFilter() {
+    public function beforeFilter() {        
         parent::beforeFilter();
         $this->OAuth->authenticate = array('fields' => array('username' => 'email'));
         $this->Auth->allow($this->OAuth->allowedActions);

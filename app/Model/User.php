@@ -67,7 +67,7 @@ class User extends AppModel {
      */
     public function authenticate($username, $password) {
         $user = $this->find('first', array(
-            'conditions' => array('username' => $username),
+            'conditions' => array('User.username' => $username),
         ));
 
         if (empty($user))
@@ -114,7 +114,7 @@ class User extends AppModel {
         if (empty($email)) return false;
         
         $res = $this->find('first', array(
-            'conditions' => array('email' => $email),
+            'conditions' => array('User.email' => $email),
             'fields' => array(
                 'User.id',
                 'User.username',

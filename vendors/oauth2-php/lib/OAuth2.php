@@ -741,6 +741,7 @@ class OAuth2 {
 		// Send response
 		$this->sendJsonHeaders();
 		echo json_encode($token);
+                exit();
 	}
 
 	/**
@@ -1115,12 +1116,16 @@ class OAuth2 {
 	 * @ingroup oauth2_section_5
 	 */
 	private function sendJsonHeaders() {
-		if (php_sapi_name() === 'cli' || headers_sent()) {
-			return;
-		}
-		
-		header("Content-Type: application/json");
-		header("Cache-Control: no-store");
+            if (php_sapi_name() === 'cli' || headers_sent()) {
+                    return;
+            }
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: POST, GET");
+            header("Access-Control-Allow-Headers: X-PINGOTHER");
+            header("Content-Type: application/json; charset=UTF-8");        
+            header("Access-Control-Max-Age: 1728000");
+            header("Pragma: no-cache");
+            header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
 	}
 
 	/**

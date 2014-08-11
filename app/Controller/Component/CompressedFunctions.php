@@ -3,11 +3,12 @@
 require_once('SettingComponent.php');
 require_once('rfc822.php');
 
-function scape($string){
-    $search = array("\\",  "\x00", "\n",  "\r",  "'",  '"', "\x1a");
-    $replace = array("\\\\","\\0","\\n", "\\r", "\'", '\"', "\\Z");
+function scape($string) {
+    $search = array("\\", "\x00", "\n", "\r", "'", '"', "\x1a");
+    $replace = array("\\\\", "\\0", "\\n", "\\r", "\'", '\"', "\\Z");
     return str_replace($search, $replace, $string);
 }
+
 function get_date($interval) {
     $date = new DateTime($interval);
     return $date->format('Y-m-d');
@@ -270,59 +271,66 @@ function getPosProviders() {
     );
 }
 
-/*Fist dates*/
-function firstPurchase($location_id){
+/* Fist dates */
+
+function firstPurchase($location_id, $timezone='America/Los_Angeles') {    
+    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+    $timezone = $data['data']['timezone'];
     $oLocation = new Location();
-    $oLocation = $oLocation->find('first',['conditions'=>['Location.id'=>$location_id]]);
+    $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
     $sSQL = <<<SQL
-SELECT DATE(ts) as first_date
+SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM invoices s
 WHERE store_id = :store_id
-  AND ts != '0000-00-00 00:00:00'
   AND ts IS NOT NULL
+  AND ts > '2013-01-01 00:00:00'
 ORDER BY ts ASC
 LIMIT 1
 SQL;
     $oModel = new Model(false, 'stores', 'pos');
     $oDb = $oModel->getDataSource();
-    $aRes = $oDb->fetchAll($sSQL, [':store_id'=>  settVal('pos_store_id', $oLocation['Setting'])]);
-    if(!empty($aRes)){
+    $aRes = $oDb->fetchAll($sSQL, [':store_id' => settVal('pos_store_id', $oLocation['Setting'])]);
+    if (!empty($aRes)) {
         return $aRes[0][0]['first_date'];
     }
     return null;
 }
-function firstSession($location_id){
+
+function firstSession($location_id, $timezone='America/Los_Angeles') {    
+    $data = $this->api->internalCall('location', 'data', array('location_id' => $params['location_id']));    
+    $timezone = $data['data']['timezone'];
     $oLocation = new Location();
-    $oLocation = $oLocation->find('first',['conditions'=>['Location.id'=>$location_id]]);
+    $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
     $sSQL = <<<SQL
-SELECT DATE(time_login) as first_date
+SELECT DATE(convert_tz(time_login,'GMT', '$timezone')) as first_date
 FROM sessions s
 WHERE network_id = :network_id
-  AND time_login != '0000-00-00 00:00:00'
   AND time_login IS NOT NULL
+  AND time_login > '2013-01-01 00:00:00'
 ORDER BY ts ASC
 LIMIT 1
 SQL;
     $oDb = DBComponent::getInstance('sessions', 'swarmdata');
-    $aRes = $oDb->fetchAll($sSQL, [':network_id'=>  settVal('network_id', $oLocation['Setting'])]);
-    if(!empty($aRes)){
+    $aRes = $oDb->fetchAll($sSQL, [':network_id' => settVal('network_id', $oLocation['Setting'])]);
+    if (!empty($aRes)) {
         return $aRes[0][0]['first_date'];
     }
     return null;
 }
-function firstSensor($location_id){    
+
+function firstSensor($location_id, $timezone='America/Los_Angeles') {        
     $sSQL = <<<SQL
-SELECT DATE(ts) as first_date
+SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM visitorEvent s
 WHERE location_id = :location_id
-  AND ts != '0000-00-00 00:00:00'
   AND ts IS NOT NULL
+  AND ts > '2013-01-01 00:00:00'
 ORDER BY ts ASC
 LIMIT 1
 SQL;
     $oDb = DBComponent::getInstance('visitorEvent', 'portal');
-    $aRes = $oDb->fetchAll($sSQL, [':location_id'=> $location_id]);
-    if(!empty($aRes)){
+    $aRes = $oDb->fetchAll($sSQL, [':location_id' => $location_id]);
+    if (!empty($aRes)) {
         return $aRes[0][0]['first_date'];
     }
     return null;
