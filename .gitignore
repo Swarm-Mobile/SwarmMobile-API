@@ -12,7 +12,7 @@ myapp_cake_*
 /dist
 /tags
 /.vagrant
-
+app/tmp/logs/api_calls/*
 
 # OS generated files #
 ######################
