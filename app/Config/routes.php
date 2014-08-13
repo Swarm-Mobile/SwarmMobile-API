@@ -10,6 +10,7 @@ Router::connect('/inbox/:action'    , array('controller' => 'inbox'));
 Router::connect('/logout', array('controller' => 'api', 'action' => 'logout'));
 Router::connect('/login', array('controller' => 'api', 'action' => 'login'));
 Router::connect('/admin', array('controller' => 'admin', 'action' => 'home'));
+Router::connect('/server_health/ok', array('controller' => 'serverHealth', 'action' => 'ok'));
 Router::connect('/*', array('controller' => 'api', 'action' => 'index'));
 /**
  * Load the CakePHP default routes. Only remove this if you do not want to use
