@@ -2,7 +2,8 @@
 App::uses('APIComponent', 'Controller/Component');
 App::uses('Model', 'Model');
 
-class UserComponent extends APIComponent {
+class UserComponent extends APIComponent 
+{
     
     public $post_actions    = ['register', 'updateSettings', 'login', 'updatePassword'];
     public $put_actions     = [];
@@ -14,7 +15,8 @@ class UserComponent extends APIComponent {
      * @param Array POST
      * 
      */
-    public function register($params) {
+    public function register($params) 
+    {
         $user = new User();
         $user->set($params);
         $user_id = 0;
@@ -89,7 +91,8 @@ SQL;
      * @param Array post data
      * @return Array
      */
-     public function login($params) {
+     public function login($params) 
+     {
         if(empty($params['username']) || empty($params['password'])) {
             throw new APIException(400, 'bad_request', 'Supplied credentials are invalid.');
         }
@@ -120,7 +123,8 @@ SQL;
      * @param Array get data
      * @return Array
      */
-    public function getSettings($params) {
+    public function getSettings($params) 
+    {
         if(empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
@@ -158,7 +162,9 @@ SQL;
             }
             $ret['data']['uuid'] = $params['uuid'];
             $ret['data']['user_id'] = $user[0]['user']['id'];
-            $ret['data']['locations'] = $this->locations($params['uuid'], true);
+            $locations = $this->locations($params['uuid'], true);
+            $ret['data']['locations']  = $locations;
+            $ret['data']['emailPrefs'] = $this->getEmailPrefs(array_keys($locations));
             $ret['options'] = array(
                 'endpoint'  => '/user/'. __FUNCTION__,
                 'uuid'      => $params['uuid'],
@@ -174,7 +180,8 @@ SQL;
      * 
      * @param Array post data
      */
-    public function updateSettings($params) {
+    public function updateSettings($params) 
+    {
         if(empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
@@ -255,7 +262,8 @@ SQL;
      * @param Array POST
      * @return Array
      */
-    public function updatePassword($params) {
+    public function updatePassword($params) 
+    {
         if(empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
@@ -309,7 +317,8 @@ SQL;
      * @param int user_id
      * @return int locationmanager_id
      */
-    public function getLocationManagerId($user_id) {
+    public function getLocationManagerId($user_id) 
+    {
         if (empty($user_id)) {
             return false;
         }
@@ -333,7 +342,8 @@ SQL;
      * @param int user_id
      * @return int locationmanager_id
      */
-    public function getEmployeeId($user_id) {
+    public function getEmployeeId($user_id) 
+    {
         if (empty($user_id)) {
             return false;
         }
@@ -358,7 +368,8 @@ SQL;
      * @param int usertype_id
      * @param boolean internal call or api request
      */
-    public function locations($uuid, $internal=false) {
+    public function locations($uuid, $internal=false) 
+    {
         if(empty($uuid)) {
             throw new APIException(401, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
@@ -411,5 +422,38 @@ SQL;
                 );
             }
             return $res;
+    }
+
+    /**
+     * Get emails preferences for locations 
+     * 
+     * @param Array location Ids
+     * @return Array
+     */
+    public function getEmailPrefs($locationIds = [])
+    {   
+        $ret = [];
+        if(empty($locationIds)) return [];
+        $oDb  = DBComponent::getInstance('user_location_report', 'backstage');
+        $sSQL = <<<SQL
+SELECT daily, weekly, monthly 
+FROM user_location_report
+WHERE location_id=:location_id
+SQL;
+        foreach ($locationIds as $locationId) {
+            $reports = $oDb->fetchAll($sSQL, [':location_id' => $locationId])[0]['user_location_report'];
+            $str = '';
+            if ($reports['daily'])    $str .= 'daily,';
+            if ($reports['weekly'])   $str .= 'weekly,';
+            if ($reports['monthly'])  $str .= 'monthly,';
+            if (empty($str))  {
+                $str .= 'none';
+            } else {
+                $str = substr($str, 0 , -1);
+            }
+            $ret[$locationId] = $str;
+        }
+        
+        return $ret;
     }
 }
