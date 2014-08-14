@@ -656,8 +656,12 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-        if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
+        $location_id    = $params['location_id'];
+        $data           = $this->api->internalCall('location', 'data', array ('location_id' => $location_id));
+        $timezone       = $data['data']['timezone'];
+        $aDeviceType    = getDeviceTypesInLocation($params['location_id']);        
+        $firstSensor    = firstSensor($location_id, $timezone);
+        if ((in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType)) || $firstSensor == null)
         {
             $result = $this->footTraffic($params);
             $result['options']['endpoint'] = '/location/portalTraffic';
@@ -670,14 +674,17 @@ SQL;
             {
                 return $this->iterativeCall('location', __FUNCTION__, $params);
             }
-
-            // Get location data for location id including location's timezone and traffic factor
-            $location_id = $params['location_id'];
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $location_id));
-            $timezone = $data['data']['timezone'];
-            //CakeLog::write('debug', $timezone);
             // apply timezone to dates entered and query for sensor detections
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            
+            $firstSensor = new DateTime($firstSensor, $timezone);
+            $startDate = new DateTime($start_date, $timezone);
+            if($firstSensor > $startDate){
+                $result = $this->footTraffic($params);
+                $result['options']['endpoint'] = '/location/portalTraffic';
+                return $result;
+            }
+                    
             $table = 'visitorEvent';
             $oDb = DBComponent::getInstance($table, 'portal');
             $sSQL = <<<SQL
