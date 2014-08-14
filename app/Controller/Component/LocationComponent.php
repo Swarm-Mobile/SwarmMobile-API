@@ -677,9 +677,9 @@ SQL;
             // apply timezone to dates entered and query for sensor detections
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             
-            $firstSensor = new DateTime($firstSensor, $timezone);
-            $startDate = new DateTime($start_date, $timezone);
-            if($firstSensor > $startDate){
+            $firstSensor = new DateTime($firstSensor, new DateTimeZone($timezone));
+            $startDate = new DateTime($start_date, new DateTimeZone($timezone));
+            if($firstSensor > $startDate){                            
                 $result = $this->footTraffic($params);
                 $result['options']['endpoint'] = '/location/portalTraffic';
                 return $result;

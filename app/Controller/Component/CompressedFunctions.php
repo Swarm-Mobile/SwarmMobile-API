@@ -382,7 +382,7 @@ SELECT DATE(convert_tz(ts,'GMT', '$timezone')) as first_date
 FROM visitorEvent s
 WHERE location_id = :location_id
   AND ts IS NOT NULL
-  AND ts > '2013-01-01 00:00:00'
+  AND ts > '2014-07-24 00:00:00'
 ORDER BY ts ASC
 LIMIT 1
 SQL;
