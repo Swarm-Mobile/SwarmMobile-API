@@ -688,7 +688,10 @@ SQL;
         );
         $this->validate($params, $rules);
         $aDevices = getDeviceTypesInLocation($params['location_id']);
-        if (!in_array('portal', $aDevices)) {
+        $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        $default  = $data['data']['footTraffic_default_device'];
+        $default  = (empty($default)) ? 'portal' : $default;
+        if (in_array('portal', $aDevices) || $default == 'portal') {
             $result                      = $this->portalTraffic($params);
             $result['options']['device'] = 'portal';
         }
@@ -1020,7 +1023,10 @@ SQL;
         );
         $this->validate($params, $rules);
         $aDevices = getDeviceTypesInLocation($params['location_id']);
-        if (!in_array('portal', $aDevices)) {
+        $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        $default  = $data['data']['conversionRate_default_device'];
+        $default  = (empty($default)) ? 'portal' : $default;
+        if (in_array('portal', $aDevices) || $default == 'portal') {
             $result                      = $this->portalConversionRate($params);
             $result['options']['device'] = 'portal';
         }

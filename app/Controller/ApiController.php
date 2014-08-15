@@ -34,12 +34,12 @@ class APIController extends AppController
     public $cache_time_exceptions = array ();
     public $cache_methods = [
         'avgTicket',
-        'conversionRate',
+        //'conversionRate',
         'presenceConversionRate',
         'portalConversionRate',
         'devices',
         'dwell',
-        'footTraffic',
+        //'footTraffic',
         'presenceTraffic',
         //'portalTraffic'
         'itemsPerTransaction',
