@@ -220,7 +220,7 @@ class DATABASE_CONFIG {
             'host' => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login' => 'swarmrollups',
             'password' => 'f4uwrapR',
-            'database' => 'rollups',
+            'database' => 'rollups_test',
             'prefix' => '',
         )
     );
