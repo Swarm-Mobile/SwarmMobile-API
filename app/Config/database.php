@@ -74,6 +74,15 @@ class DATABASE_CONFIG {
             'password' => 'vagrant',
             'database' => 'portal',
             'prefix' => '',
+        ),
+        'rollups' => array(
+            'datasource' => 'Database/Mysql',
+            'persistent' => true,
+            'host' => 'localhost',
+            'login' => 'root',
+            'password' => 'vagrant',
+            'database' => 'rollups',
+            'prefix' => '',
         )
     );
     public $int = array(

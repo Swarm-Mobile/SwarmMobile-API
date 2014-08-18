@@ -2,15 +2,18 @@
 
 App::uses('AppShell', 'Console/Command');
 
-class CleanCacheShell extends AppShell {
+class CleanCacheShell extends AppShell
+{
 
-    private function clean($path, $seconds) {        
+    private function clean ($path, $seconds)
+    {
         $files = scandir($path);
         foreach ($files as $file) {
-            if (!in_array($file, array('.', '..'))) {
+            if (!in_array($file, array ('.', '..'))) {
                 if (is_dir($path . $file)) {
-                    $this->clean($path . $file.DS, $seconds);
-                } else {
+                    $this->clean($path . $file . DS, $seconds);
+                }
+                else {
                     if (time() - filemtime($path . $file) >= $seconds) {
                         unlink($path . $file);
                     }
@@ -19,9 +22,10 @@ class CleanCacheShell extends AppShell {
         }
     }
 
-    public function main() {
-        $minutes = (!isset($this->params['grace_time'])) ? 5 : $this->params['grace_time'];
-        $seconds = $minutes * 60;
+    public function main ()
+    {
+        $minutes      = (!isset($this->params['grace_time'])) ? 5 : $this->params['grace_time'];
+        $seconds      = $minutes * 60;
         $this->out("Grace Time: $minutes'");
         $cache_folder = ROOT . DS . 'app' . DS . 'tmp' . DS . 'cache' . DS . 'api_calls' . DS;
         if (file_exists($cache_folder)) {
@@ -30,12 +34,13 @@ class CleanCacheShell extends AppShell {
         $this->out("Done!");
     }
 
-    public function getOptionParser() {
+    public function getOptionParser ()
+    {
         $parser = parent::getOptionParser();
-        $parser->addOption('grace_time', array(
-            'short' => 't',
+        $parser->addOption('grace_time', array (
+            'short'   => 't',
             'default' => '5',
-            'help' => "Number of minutes of grace (0 to remove all)."
+            'help'    => "Number of minutes of grace (0 to remove all)."
         ));
         return $parser;
     }

@@ -25,19 +25,37 @@ App::uses('Shell', 'Console');
  *
  * @package       app.Console.Command
  */
-class AppShell extends Shell {
+class AppShell extends Shell
+{
 
     private $console = true;
-    
-    public function output($text) {
+
+    public function output ($text)
+    {
         $this->out($text);
         if (!$this->console) {
             echo $text . "\n";
         }
     }
 
-    public function coalesce() {
+    public function coalesce ()
+    {
         return array_shift(array_filter(func_get_args()));
+    }
+
+    public function setEnvironment ($env = false)
+    {
+        if (!$env) {
+            $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
+            $pattern  = '/.*SetEnv server_location "(.*)"/';
+            if (preg_match_all($pattern, $htaccess, $matches)) {
+                putenv('server_location=' . $matches[1][0]);
+                $_SERVER['server_location'] = $matches[1][0];
+            }
+        }
+        else {
+            $_SERVER['server_location'] = $env;
+        }
     }
 
 }
