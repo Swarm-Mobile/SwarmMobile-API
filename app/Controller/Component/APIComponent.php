@@ -350,7 +350,11 @@ SQL;
                             @$result['data']['breakdown'][$date]['hours'][$hour]['total'] += $values['total'];
                         }
                         foreach ($v['totals'] as $k => $j) {
-                            @$result['data']['breakdown'][$date]['totals'][$k] += $j;
+                            if(is_numeric($j)){
+                                @$result['data']['breakdown'][$date]['totals'][$k] += $j;
+                            } else {
+                                @$result['data']['breakdown'][$date]['totals'][$k] = $j;                                
+                            }
                         }
                     }
                 }
