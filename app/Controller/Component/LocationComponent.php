@@ -693,7 +693,7 @@ SQL;
         else {
             $aDevices = getDeviceTypesInLocation($params['location_id']);
             $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $default  = $data['data']['conversionRate_default_device'];
+            $default  = @$data['data']['conversionRate_default_device'];
             $default  = (empty($default)) ? 'portal' : $default;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -1039,7 +1039,7 @@ SQL;
         else {
             $aDevices = getDeviceTypesInLocation($params['location_id']);
             $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $default  = $data['data']['conversionRate_default_device'];
+            $default  = @$data['data']['conversionRate_default_device'];
             $default  = (empty($default)) ? 'portal' : $default;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);

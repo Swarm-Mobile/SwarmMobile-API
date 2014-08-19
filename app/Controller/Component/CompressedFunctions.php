@@ -419,29 +419,3 @@ function getDeviceTypesInLocation ($location_id)
     }        
     return $to_return;
 }
-
-function getPreviousResultMethod ($method, $location_id)
-{    
-    if (in_array($method, ['footTraffic', 'portalTraffic', 'conversionRate', 'portalConversionRate']))
-    {
-        $aDeviceType = getDeviceTypesInLocation($location_id);        
-        switch ($method)
-        {
-            case 'footTraffic':
-            case 'conversionRate':
-                if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType))
-                {
-                    $method = ($method == 'footTraffic') ? 'portalTraffic' : 'portalConversionRate';
-                }
-                break;
-            case 'portalTraffic':
-            case 'portalConversionRate':
-                if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
-                {
-                    $method = ($method == 'portalTraffic') ? 'footTraffic' : 'conversionRate';
-                }
-                break;
-        }
-    }
-    return $method;
-}
