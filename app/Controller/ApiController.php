@@ -34,15 +34,17 @@ class APIController extends AppController
     public $cache_time_exceptions = array ();
     public $cache_methods = [
         'avgTicket',
-        'conversionRate',
-        'portalConversionRate',
+        //'conversionRate',
+        'presenceConversionRate',
+        //'portalConversionRate',
         'devices',
         'dwell',
-        'footTraffic',
+        //'footTraffic',
+        'presenceTraffic',
+        //'portalTraffic'
         'itemsPerTransaction',
         'returning',
-        'revenue',
-        //'sensorTraffic',
+        'revenue',        
         'timeInShop',
         'totalItems',
         'totals',
@@ -50,7 +52,6 @@ class APIController extends AppController
         'transactions',
         'walkbys',
         'windowConversion',
-        //'portalTraffic'
     ];
     public $iterative = true;
     public $uses = array ('Inbox');
@@ -210,6 +211,7 @@ class APIController extends AppController
 
     private function call_log ($component, $function, $request_method)
     {
+        return true;
         $file = __DIR__ . '/../tmp/logs/api_calls/' . date('Y_m_d_h_i_s') .
                 '_' . strtoupper($request_method) . '_' . $component . '_' . $function;
         $post = var_export($_POST, true);
@@ -224,23 +226,6 @@ $get
 TEXT;
         file_put_contents($file, $text);
     }
-
-//    private function call_log() {
-//        $this->request_end = date('Y-m-d H:i:s');
-//        $oModel = new Model(false, 'calls', 'rollups');
-//        $call = array(
-//            'id_user' => $this->user['id_user'],
-//            'username' => $this->user['username'],
-//            'endpoint' => $this->endpoint,
-//            'request_start' => $this->request_start,
-//            'request_end' => $this->request_end,
-//            'response_time' => microtime(true) - $this->microtime,
-//            'response_code' => $this->response_code,
-//            'response_message' => $this->response_message,
-//            'params' => $this->params
-//        );
-//        $oModel->save($call);
-//    }
 
     public function __construct ($request = null, $response = null)
     {
@@ -313,8 +298,7 @@ TEXT;
         unset($params['access_token']);
         unset($params['norollups']);
         unset($params['nocache']);
-        unset($params['rollup']);
-        //if ($this->cache) {
+        unset($params['rollup']);        
         if ($component == 'location' && $method == 'purchaseInfo')
         {
             $filename = $this->getCacheFilePath($component, $method, $params);
@@ -329,8 +313,7 @@ TEXT;
             }
         }
         else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods))
-        {
-            $method = getPreviousResultMethod($method, $params['location_id']);            
+        {            
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
@@ -414,22 +397,24 @@ SQL;
                 else
                 {
                     return [
-                        'walkbys'             => $aRes[0][$method]['walkbys'],
-                        'sensorTraffic'       => $aRes[0][$method]['sensorTraffic'],
-                        'portalTraffic'       => $aRes[0][$method]['portalTraffic'],
-                        'transactions'        => $aRes[0][$method]['transactions'],
-                        'revenue'             => $aRes[0][$method]['revenue'],
-                        'totalItems'          => $aRes[0][$method]['totalItems'],
-                        'returning'           => $aRes[0][$method]['returning'],
-                        'footTraffic'         => $aRes[0][$method]['footTraffic'],
-                        'timeInShop'          => $aRes[0][$method]['timeInShop'],
-                        'traffic'             => $aRes[0][$method]['traffic'],
-                        'devices'             => $aRes[0][$method]['devices'],
-                        'itemsPerTransaction' => $aRes[0][$method]['itemsPerTransaction'],
-                        'windowConversion'    => $aRes[0][$method]['windowConversion'],
-                        'avgTicket'           => $aRes[0][$method]['avgTicket'],
-                        'conversionRate'      => $aRes[0][$method]['conversionRate'],
-                        'dwell'               => $aRes[0][$method]['dwell'],
+                        'walkbys'               => $aRes[0][$method]['walkbys'],                       
+                        'footTraffic'           => $aRes[0][$method]['footTraffic'],
+                        'presenceTraffic'       => $aRes[0][$method]['presenceTraffic'],
+                        'portalTraffic'         => $aRes[0][$method]['portalTraffic'],
+                        'transactions'          => $aRes[0][$method]['transactions'],
+                        'revenue'               => $aRes[0][$method]['revenue'],
+                        'totalItems'            => $aRes[0][$method]['totalItems'],
+                        'returning'             => $aRes[0][$method]['returning'],
+                        'timeInShop'            => $aRes[0][$method]['timeInShop'],
+                        'traffic'               => $aRes[0][$method]['traffic'],
+                        'devices'               => $aRes[0][$method]['devices'],
+                        'itemsPerTransaction'   => $aRes[0][$method]['itemsPerTransaction'],
+                        'windowConversion'      => $aRes[0][$method]['windowConversion'],
+                        'avgTicket'             => $aRes[0][$method]['avgTicket'],
+                        'conversionRate'        => $aRes[0][$method]['conversionRate'],
+                        'portalConversionRate'  => $aRes[0][$method]['portalConversionRate'],
+                        'presenceConversionRate'=> $aRes[0][$method]['presenceConversionRate'],
+                        'dwell'                 => $aRes[0][$method]['dwell'],
                     ];
                 }
             }
@@ -562,26 +547,28 @@ INSERT IGNORE INTO $method
                         {
                             $sSQL = <<<SQL
 INSERT IGNORE INTO $method
-    SET location_id         = {$params['location_id']},
-        date                = '{$params['start_date']}',
-        walkbys             = {$result['walkbys']},
-        sensorTraffic       = {$result['sensorTraffic']},
-        portalTraffic       = {$result['portalTraffic']},
-        transactions        = {$result['transactions']},
-        revenue             = {$result['revenue']},
-        totalItems          = {$result['totalItems']},
-        returning           = {$result['returning']},
-        footTraffic         = {$result['footTraffic']},
-        timeInShop          = {$result['timeInShop']},
-        traffic             = {$result['traffic']},
-        devices             = {$result['devices']},
-        itemsPerTransaction = {$result['itemsPerTransaction']},
-        windowConversion    = {$result['windowConversion']},
-        avgTicket           = {$result['avgTicket']},
-        conversionRate      = {$result['conversionRate']},
-        dwell               = {$result['dwell']},
-        ts_creation         = NOW(),        
-        ts_update           = NOW()        
+    SET location_id             = {$params['location_id']},
+        date                    = '{$params['start_date']}',
+        walkbys                 = {$result['walkbys']},        
+        footTraffic             = {$result['footTraffic']},
+        presenceTraffic         = {$result['presenceTraffic']},
+        portalTraffic           = {$result['portalTraffic']},
+        transactions            = {$result['transactions']},
+        revenue                 = {$result['revenue']},
+        totalItems              = {$result['totalItems']},
+        returning               = {$result['returning']},
+        timeInShop              = {$result['timeInShop']},
+        traffic                 = {$result['traffic']},
+        devices                 = {$result['devices']},
+        itemsPerTransaction     = {$result['itemsPerTransaction']},
+        windowConversion        = {$result['windowConversion']},
+        avgTicket               = {$result['avgTicket']},
+        conversionRate          = {$result['conversionRate']},
+        presenceConversionRate  = {$result['presenceConversionRate']},
+        portalConversionRate    = {$result['portalConversionRate']},
+        dwell                   = {$result['dwell']},
+        ts_creation             = NOW(),        
+        ts_update               = NOW()        
 SQL;
                         }
                         $oDb->query($sSQL);

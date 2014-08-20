@@ -11,19 +11,6 @@ class RollupShell extends AppShell {
 
     private $console = true;
 
-    private function setEnvironment($env = false) {
-        if (!$env) {
-            $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
-            $pattern = '/.*SetEnv server_location "(.*)"/';
-            if (preg_match_all($pattern, $htaccess, $matches)) {
-                putenv('server_location=' . $matches[1][0]);
-                $_SERVER['server_location'] = $matches[1][0];
-            }
-        } else {
-            $_SERVER['server_location'] = $env;
-        }
-    }
-
     public function getFirstRegisterDate($location) {
         $sSQL = "SELECT value FROM location_setting WHERE setting_id = 6 AND location_id = $location";
         $oModel = new Model(false, 'location_setting', 'backstage');
@@ -170,22 +157,21 @@ SQL;
         $oModel = new Model(false, 'walkbys', 'rollups');
         $oDb = $oModel->getDataSource();
         $metrics = [
-            'totals',
-            'walkbys',
-            'sensorTraffic',
-            'transactions',
-            'revenue',
-            'totalItems',
-            'returning',
-            'footTraffic',
-            'timeInShop',
-            'traffic',
-            'devices',
-            'itemsPerTransaction',
-            'windowConversion',
             'avgTicket',
-            'conversionRate',
-            'dwell'
+            'devices',
+            'dwell',
+            'itemsPerTransaction',
+            'presenceConversionRate',
+            'presenceTraffic',
+            'returning',
+            'revenue',
+            'timeInShop',
+            'totalItems',
+            'totals',
+            'traffic',
+            'transactions',
+            'walkbys',
+            'windowConversion',            
         ];
         foreach ($metrics as $metric) {
             $sSQL = "DELETE FROM $metric WHERE location_id = :location_id AND date = :date";

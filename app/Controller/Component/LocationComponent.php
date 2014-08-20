@@ -6,183 +6,9 @@ App::uses('APIComponent', 'Controller/Component');
 class LocationComponent extends APIComponent
 {
 
-    public $post_actions = ['create', 'updateSettings'];
-    public $put_actions = [];
+    public $post_actions   = ['create', 'updateSettings'];
+    public $put_actions    = [];
     public $delete_actions = [];
-
-    //EXAMPLES
-
-    /**
-     * API Example method
-     * @param $params Contains all the request params except access_token
-     * @return array Contains the info that you like to return
-     */
-    public function example ($params)
-    {
-        /*
-         * Define the param's rules that needs
-         * to match to continue with the request
-         * 
-         * Available Validators
-         *  1. required => param needs to exist
-         *  2. int      => param needs to be an int
-         *  3. numeric  => params needs to be numeric
-         *  4. date     => param needs to be yyyy-mm-dd format
-         *  5. datetime => param needs to be yyyy-mm-dd H:i:s format
-         * 
-         * To create more validators, go to 
-         * validate function into APIComponent
-         */
-        $rules = [
-            'p1' => ['required', 'int'],
-            'p2' => ['required', 'int'],
-            'p3' => ['required', 'int'],
-        ];
-        $this->validate($params, $rules);
-
-        /*
-         * mytable is a table of the database that you like to use.
-         * Can be any one, is just for create the connection
-         * 
-         * ds is one of the instances defined on /app/Config/database.php
-         * Available instances:
-         *  1. ee            => Expression Engine database
-         *  2. swarmdata     => Sessions Data
-         *  3. swarmdataRead => Read-Replica of swarmdata
-         *  4. pos           => POS Info
-         *  5. rollups       => Saves aggregate data for StoreComponent
-         *  6. consumerAPI   => Saves aggregate data for ConsumerAPIComponent (mongodb)
-         *  7. oauth         => OAuth tokens and this stuff
-         *  8. backstage     => Locations, resellers, campaigns...major instance
-         *  9. portal        => Just created for visitorEvent service
-         */
-
-        //Make a query
-        $oModel = new Model(false, 'mytable', 'ds');
-        $oDb = $oModel->getDataSource();
-        $sSQL = <<<SQL
-SELECT 
-    table.f1, 
-    t2.f2, 
-    COALESCE(f3, '34') as f3
-FROM table
-INNER JOIN table2 t2
-WHERE a = :a
-      b = :b
-SQL;
-        $binds = [
-            ':a' => $a,
-            ':b' => $b
-        ];
-        //This just execute the query (for inserts and updates)
-        $oDb->query($sSQL, $binds);
-
-        //If you like to get the result (no combine both lines, or one or the other)
-        $aRes = $oDb->fetchAll($sSQL, $binds);
-        /*
-         * Working with the result
-         * 
-         * Possible the most tricky thing. Below
-         * you have the 3 cases that you can have when you 
-         * make a query. Once you understand the concept
-         * isn't difficult, but is possible that most of your
-         * early bugs and warnings will come from here.
-         */
-        foreach ($aRes as $oRow)
-        {
-            //Is a field that come from a table without alias
-            $f1 = $oRow['table']['f1'];
-            //Is a field that come from a table with alias
-            $f2 = $oRow['t2']['f2'];
-            //Is a calculated field
-            $f3 = $oRow[0]['f3'];
-        }
-
-        //Use the ORM
-        /*
-         * For every model that you like to use,
-         * add on the top of the file:
-         * App::uses('MyModel', 'Model'); 
-         */
-        $oLocation = new Location();
-
-        /*
-         * Find the results that you need
-         * The first param can be first, list or all
-         * The second params are the conditions
-         *      If some model have relationships with other
-         *      models (belongsto, hasmany...) you can filter   
-         *      also by they
-         */
-        $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
-
-        /*
-         * Once you have the results, you can access to the properties
-         * using the syntax:
-         * $obj['Model']['field']
-         * 
-         * If the type of search is list, you need to do something like:
-         * $obj[$k]['Model']['field']
-         * 
-         * Type list is for get a list ready for put it on a select.
-         * Can be useful sometimes and the return is like:
-         *  [
-         *      1 => 'Name 1',
-         *      2 => 'Name 2'
-         *  ]
-         *      *keys are the ids and values the display_name var of the Model
-         */
-        $location_name = $oLocation['Location']['name'];
-
-
-        /*
-         * To finish the request, just return an array.
-         * JSON encoding is make it for the API.
-         */
-        return [
-            'foo'     => 'bar',
-            'example' => 'f1'
-        ];
-    }
-
-    public function examplePOST ($params)
-    {
-        /*
-         * If all the Component is POST component,
-         * there are ways to prevent to put the if
-         * statement in every function. If that's
-         * the case, tell us and we can make some
-         * stuff on the specific components.
-         */
-        if ($this->api->request->is('post'))
-        {
-            return ['foo' => 'bar'];
-        }
-        else
-        {
-            throw new APIException(401, 'invalid_method', "Method type must be POST");
-        }
-    }
-
-    public function exampleComposite ($params)
-    {
-        /*
-         * Sometimes you like to use an API call inside another one.
-         * If that's the case, you can use internalCall.
-         *      NOTE: $params should contain just the params that the call
-         *            needs. Why? If you like to cache the request and you send
-         *            all the params, you can create more than one cache for the
-         *            same request because one of the fields that you're sending
-         *            is different for the father request but this is unused for 
-         *            the child request.
-         */
-        $result = $this->api->internalCall('mycomponent', 'myfunctions', $params);
-        /*
-         * Previous result is an array, not a JSON. JSON encoding is only make it
-         * at the end of the request.
-         */
-        return $result;
-    }
 
     //IOS ENDPOINTS
     public function whereAmI ($params)
@@ -205,25 +31,25 @@ SQL;
         $this->validate($params, $rules);
 
         $start_date = $params['year'] . '-' . $params['month'] . '-01';
-        $end_date = $params['year'] . '-' . ($params['month'] + 1) . '-01';
+        $end_date   = $params['year'] . '-' . ($params['month'] + 1) . '-01';
 
-        $end = new DateTime($end_date);
+        $end      = new DateTime($end_date);
         date_sub($end, date_interval_create_from_date_string('1 days'));
         $end_date = date_format($end, 'Y-m-d');
 
         $start = new DateTime($start_date);
 
-        $revenue = array ();
+        $revenue  = array ();
         $visitors = array ();
 
         unset($params['month']);
         unset($params['year']);
         $params['start_date'] = $start_date;
-        $params['end_date'] = $end_date;
+        $params['end_date']   = $end_date;
 
         $slave_params = $params;
         $while_closed = $data['data']['transactions_while_closed'];
-        $open_total = $while_closed == 'no' ? 'open' : 'total';
+        $open_total   = $while_closed == 'no' ? 'open' : 'total';
 
         $result = [
             'data'    => [
@@ -245,18 +71,18 @@ SQL;
             ]
         ];
 
-        $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
         $timezone = $data['data']['timezone'];
 
         $register_filter = @$data['data']['register_filter'];
         $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
-        $outlet_filter = @$data['data']['outlet_filter'];
-        $outlet_filter = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
+        $outlet_filter   = @$data['data']['outlet_filter'];
+        $outlet_filter   = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
 
         $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
 
-        $oDb = DBComponent::getInstance('invoices', 'pos');
+        $oDb  = DBComponent::getInstance('invoices', 'pos');
         $sSQL = <<<SQL
 SELECT SUM(total) as revenue, count(*) as transactions, date(ts) as date
 FROM invoices i
@@ -271,8 +97,8 @@ ORDER BY date ASC
 SQL;
         $aPOS = $oDb->fetchAll($sSQL);
 
-        $oDb = DBComponent::getInstance('visitorEvent', 'portal');
-        $sSQL = <<<SQL
+        $oDb     = DBComponent::getInstance('visitorEvent', 'portal');
+        $sSQL    = <<<SQL
 SELECT SUM(entered) as visitors, date(ts) as date
 FROM visitorEvent
 WHERE location_id = {$params['location_id']}
@@ -282,29 +108,24 @@ ORDER BY date ASC
 SQL;
         $aPortal = $oDb->fetchAll($sSQL);
 
-        $days = ['byWeek' => [], 'total' => 0];
+        $days  = ['byWeek' => [], 'total' => 0];
         $weeks = [];
-        do
-        {
-            $transactions = 0;
-            $revenue = 0;
-            $visitors = 0;
+        do {
+            $transactions             = 0;
+            $revenue                  = 0;
+            $visitors                 = 0;
             $slave_params['end_date'] = $slave_params['start_date'];
 
-            foreach ($aPOS as $k => $oRow)
-            {
-                if ($oRow[0]['date'] == date_format($start, 'Y-m-d'))
-                {
-                    $revenue = $oRow[0]['revenue'];
+            foreach ($aPOS as $k => $oRow) {
+                if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
+                    $revenue      = $oRow[0]['revenue'];
                     $transactions = $oRow[0]['transactions'];
                     unset($aPOS[$k]);
                     break;
                 }
             }
-            foreach ($aPortal as $k => $oRow)
-            {
-                if ($oRow[0]['date'] == date_format($start, 'Y-m-d'))
-                {
+            foreach ($aPortal as $k => $oRow) {
+                if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
                     $visitors = $oRow[0]['visitors'];
                     unset($aPortal[$k]);
                     break;
@@ -313,16 +134,14 @@ SQL;
 
             $days['total'] ++;
 
-            if (!isset($days['byWeek'][date_format($start, 'W')]))
-            {
+            if (!isset($days['byWeek'][date_format($start, 'W')])) {
                 $days['byWeek'][date_format($start, 'W')] = 0;
                 $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
             }
             $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
 
             $days['byWeek'][date_format($start, 'W')] ++;
-            if (!isset($result['data']['breakdown'][date_format($start, 'W')]))
-            {
+            if (!isset($result['data']['breakdown'][date_format($start, 'W')])) {
                 $result['data']['breakdown'][date_format($start, 'W')] = [
                     'revenue'                => 0,
                     'visitors'               => 0,
@@ -344,19 +163,18 @@ SQL;
         }
         while ($start <= $end);
 
-        foreach ($days['byWeek'] as $w => $c)
-        {
-            $result['data']['breakdown'][$w]['start_date'] = $weeks[$w]['start'];
-            $result['data']['breakdown'][$w]['end_date'] = $weeks[$w]['end'];
-            $result['data']['breakdown'][$w]['avgRevenueDaily'] = round($result['data']['breakdown'][$w]['revenue'] / $c, 2);
+        foreach ($days['byWeek'] as $w => $c) {
+            $result['data']['breakdown'][$w]['start_date']       = $weeks[$w]['start'];
+            $result['data']['breakdown'][$w]['end_date']         = $weeks[$w]['end'];
+            $result['data']['breakdown'][$w]['avgRevenueDaily']  = round($result['data']['breakdown'][$w]['revenue'] / $c, 2);
             $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / $c, 2);
 
             $result['data']['breakdown'][$w]['avgConversionRateDaily'] = $result['data']['breakdown'][$w]['conversionRate'] / $c;
             $result['data']['breakdown'][$w]['avgConversionRateDaily'] = min([100, round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / $result['data']['breakdown'][$w]['avgVisitorsDaily']) * 100, 2)]);
-            $result['data']['breakdown'][$w]['conversionRate'] = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
+            $result['data']['breakdown'][$w]['conversionRate']         = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
         }
-        $result['data']['totals']['conversionRate'] = min([100, $result['data']['totals']['conversionRate'] / $result['data']['totals']['visitors']]);
-        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
+        $result['data']['totals']['conversionRate']   = min([100, $result['data']['totals']['conversionRate'] / $result['data']['totals']['visitors']]);
+        $result['data']['totals']['avgRevenueDaily']  = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
 
         $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / $days['total'];
@@ -392,63 +210,59 @@ SQL;
             ]
         ];
 
-        $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
         $timezone = $data['data']['timezone'];
 
         $start_date = firstSensor($params['location_id'], $timezone);
-        if (empty($start_date))
-        {
+        if (empty($start_date)) {
             return $result;
         }
 
         $end_date = date('Y-m-d');
-        $end = new DateTime($end_date);
-        $start = new DateTime($start_date);
+        $end      = new DateTime($end_date);
+        $start    = new DateTime($start_date);
 
-        $revenue = array ();
+        $revenue  = array ();
         $visitors = array ();
 
         unset($params['month']);
         unset($params['year']);
 
         $params['start_date'] = $start_date;
-        $params['end_date'] = $end_date;
+        $params['end_date']   = $end_date;
 
-        $days = ['byWeek' => [], 'total' => 0];
-        $weeks = [];
-        $cMonth = date_format($start, 'm');
-        $tMonth = $cMonth;
+        $days    = ['byWeek' => [], 'total' => 0];
+        $weeks   = [];
+        $cMonth  = date_format($start, 'm');
+        $tMonth  = $cMonth;
         $nMonths = 1;
 
-        do
-        {
-            if ($tMonth != $cMonth)
-            {
+        do {
+            if ($tMonth != $cMonth) {
                 $nMonths++;
             }
             $tMonth = $cMonth;
             $days['total'] ++;
-            if (!isset($days['byWeek'][date_format($start, 'W')]))
-            {
+            if (!isset($days['byWeek'][date_format($start, 'W')])) {
                 $days['byWeek'][date_format($start, 'W')] = 0;
                 $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
             }
             $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
             $days['byWeek'][date_format($start, 'W')] ++;
             date_add($start, date_interval_create_from_date_string('1 days'));
-            $cMonth = date_format($start, 'm');
+            $cMonth                                 = date_format($start, 'm');
         }
         while ($start <= $end);
 
         $register_filter = @$data['data']['register_filter'];
         $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
-        $outlet_filter = @$data['data']['outlet_filter'];
-        $outlet_filter = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
+        $outlet_filter   = @$data['data']['outlet_filter'];
+        $outlet_filter   = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
 
         $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
 
-        $oDb = DBComponent::getInstance('invoices', 'pos');
+        $oDb  = DBComponent::getInstance('invoices', 'pos');
         $sSQL = <<<SQL
 SELECT SUM(total) as revenue, count(*) as transactions
 FROM invoices i
@@ -465,7 +279,7 @@ SQL;
         $result['data']['totals']['transactions'] += $aRes[0][0]['transactions'];
         $result['data']['totals']['conversionRate'] += $aRes[0][0]['transactions'];
 
-        $oDb = DBComponent::getInstance('visitorEvent', 'portal');
+        $oDb  = DBComponent::getInstance('visitorEvent', 'portal');
         $sSQL = <<<SQL
 SELECT SUM(entered) as visitors
 FROM visitorEvent
@@ -476,20 +290,20 @@ SQL;
         $aRes = $oDb->fetchAll($sSQL);
         $result['data']['totals']['visitors'] += $aRes[0][0]['visitors'];
 
-        $result['data']['totals']['avgRevenueDaily'] = round($result['data']['totals']['revenue'] / $days['total'], 2);
+        $result['data']['totals']['avgRevenueDaily']  = round($result['data']['totals']['revenue'] / $days['total'], 2);
         $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / $days['total'], 2);
 
         $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / $days['total'];
         $result['data']['totals']['avgConversionRateDaily'] = min([100, round(($result['data']['totals']['avgConversionRateDaily'] / $result['data']['totals']['avgVisitorsDaily']) * 100, 2)]);
-        $result['data']['totals']['conversionRate'] = $result['data']['totals']['avgConversionRateDaily'];
+        $result['data']['totals']['conversionRate']         = $result['data']['totals']['avgConversionRateDaily'];
 
-        $result['data']['totals']['avgRevenueWeekly'] = round($result['data']['totals']['revenue'] / count($days['byWeek']), 2);
+        $result['data']['totals']['avgRevenueWeekly']  = round($result['data']['totals']['revenue'] / count($days['byWeek']), 2);
         $result['data']['totals']['avgVisitorsWeekly'] = round($result['data']['totals']['visitors'] / count($days['byWeek']), 2);
 
         $result['data']['totals']['avgConversionRateWeekly'] = $result['data']['totals']['conversionRate'] / count($days['byWeek']);
         $result['data']['totals']['avgConversionRateWeekly'] = min([100, round(($result['data']['totals']['avgConversionRateWeekly'] / $result['data']['totals']['avgVisitorsWeekly']) * 100, 2)]);
 
-        $result['data']['totals']['avgRevenueMonthly'] = round($result['data']['totals']['revenue'] / $nMonths, 2);
+        $result['data']['totals']['avgRevenueMonthly']  = round($result['data']['totals']['revenue'] / $nMonths, 2);
         $result['data']['totals']['avgVisitorsMonthly'] = min([100, round($result['data']['totals']['visitors'] / $nMonths, 2)]);
 
         $result['data']['totals']['avgConversionRateMonthly'] = $result['data']['totals']['conversionRate'] / $nMonths;
@@ -502,10 +316,9 @@ SQL;
 
     public function openHours ($params)
     {
-        $data = $this->api->internalCall('location', 'data', $params);
+        $data   = $this->api->internalCall('location', 'data', $params);
         $return = $this->weekdays;
-        foreach ($return as &$v)
-        {
+        foreach ($return as &$v) {
             $v = array (
                 $v => array (
                     'open'  => $data['data'][$v . '_open'],
@@ -513,7 +326,7 @@ SQL;
                 )
             );
         }
-        $result = array ('data' => $return);
+        $result            = array ('data' => $return);
         $result['options'] = array (
             'endpoint'    => 'location/openHours',
             'location_id' => $params['location_id'],
@@ -525,62 +338,59 @@ SQL;
 
     public function totals ($params)
     {
-        $rules = array (
+        $rules        = array (
             'location_id' => array ('required', 'int'),
             'start_date'  => array ('required', 'date', 'date_interval'),
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        $data         = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
         $while_closed = $data['data']['transactions_while_closed'];
-        $open_total = $while_closed == 'no' ? 'open' : 'total';
-        $result = array ();
-        $aPath = array ();
-        $aPostfields = array ();
-        $metrics = [
+        $open_total   = $while_closed == 'no' ? 'open' : 'total';
+        $result       = array ();
+        $aPath        = array ();
+        $aPostfields  = array ();
+        $metrics      = [
             ['location', 'walkbys', 'open'],
             ['location', 'transactions', $open_total],
             ['location', 'dwell', 'open'],
             ['location', 'windowConversion', 'open'],
             ['location', 'returning', 'total'],
             ['location', 'footTraffic', 'total'],
-            ['location', 'sensorTraffic', 'total'],
+            ['location', 'presenceTraffic', 'total'],
             ['location', 'portalTraffic', 'total'],
             ['location', 'revenue', $open_total],
             ['location', 'avgTicket', $open_total],
             ['location', 'totalItems', $open_total],
             ['location', 'conversionRate', $open_total],
             ['location', 'portalConversionRate', $open_total],
+            ['location', 'presenceConversionRate', $open_total],
             ['location', 'itemsPerTransaction', $open_total],
             ['location', 'traffic', 'total'],
             ['location', 'devices', 'total'],
             ['location', 'timeInShop', 'total'],
             ['location', 'totalItems', $open_total],
         ];
-        if ($params['start_date'] != $params['end_date'])
-        {
-            $result = $this->iterativeTotals('location', __FUNCTION__, $params);
-            $result['dwell'] = round($result['timeInShop'] / coalesce($result['traffic'], 1), 2);
-            $result['windowConversion'] = min(100, round(($result['traffic'] / coalesce($result['devices'], coalesce($result['traffic'], 1))) * 100, 2));
-            $result['conversionRate'] = min(100, round(($result['transactions'] / coalesce($result['footTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
-            $result['portalConversionRate'] = min(100, round(($result['transactions'] / coalesce($result['portalTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
-            $result['itemsPerTransaction'] = round($result['totalItems'] / coalesce($result['transactions'], 1), 2);
-            $result['avgTicket'] = round($result['revenue'] / coalesce($result['transactions'], 1), 2);
+        if ($params['start_date'] != $params['end_date']) {
+            $result                           = $this->iterativeTotals('location', __FUNCTION__, $params);
+            $result['dwell']                  = round($result['timeInShop'] / coalesce($result['traffic'], 1), 2);
+            $result['windowConversion']       = min(100, round(($result['traffic'] / coalesce($result['devices'], coalesce($result['traffic'], 1))) * 100, 2));
+            $result['conversionRate']         = min(100, round(($result['transactions'] / coalesce($result['footTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
+            $result['portalConversionRate']   = min(100, round(($result['transactions'] / coalesce($result['portalTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
+            $result['presenceConversionRate'] = min(100, round(($result['transactions'] / coalesce($result['presenceTraffic'], coalesce($result['transactions'], 1))) * 100, 2));
+            $result['itemsPerTransaction']    = round($result['totalItems'] / coalesce($result['transactions'], 1), 2);
+            $result['avgTicket']              = round($result['revenue'] / coalesce($result['transactions'], 1), 2);
             return $result;
         }
-        else
-        {
+        else {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
-            $isOpen = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
-            foreach ($metrics as $k => $v)
-            {
-                if ($isOpen)
-                {
-                    $tmp = $this->api->internalCall($v[0], $v[1], $params);
+            $isOpen  = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+            foreach ($metrics as $k => $v) {
+                if ($isOpen) {
+                    $tmp           = $this->api->internalCall($v[0], $v[1], $params);
                     $result[$v[1]] = $tmp['data']['totals'][$v[2]];
                 }
-                else
-                {
+                else {
                     $result[$v[1]] = 0;
                 }
             }
@@ -596,21 +406,19 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
-        {
+        if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $ap_id    = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
-            $factor = $data['data']['traffic_factor'];
-            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+            $factor   = $data['data']['traffic_factor'];
+            $factor   = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-            $sSQL = <<<SQL
+            $table    = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
+            $oDb      = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL     = <<<SQL
 SELECT 
     ROUND(COUNT(walkbys)*$factor) as value, 
     hour, 
@@ -630,7 +438,7 @@ FROM(
     GROUP BY ses1.mac_id
 ) as t2 GROUP BY date ASC, hour ASC             
 SQL;
-            $aRes = $oDb->fetchAll($sSQL);
+            $aRes     = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2');
         }
     }
@@ -642,93 +450,8 @@ SQL;
      */
     public function sensorTraffic ($params)
     {
-        $result = $this->portalTraffic($params);
+        $result                        = $this->portalTraffic($params);
         $result['options']['endpoint'] = '/location/' . __FUNCTION__;
-        return $result;
-    }
-
-    public function portalTraffic ($params)
-    {
-        // Set validation rules and validate parameters
-        $rules = array (
-            'location_id' => array ('required', 'int'),
-            'start_date'  => array ('required', 'date'),
-            'end_date'    => array ('required', 'date')
-        );
-        $this->validate($params, $rules);
-        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-        if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
-        {
-            $result = $this->footTraffic($params);
-            $result['options']['endpoint'] = '/location/portalTraffic';
-            return $result;
-        }
-        else
-        {
-            // Pass method and parameters to iteration function if the dates are different
-            if ($params['start_date'] != $params['end_date'])
-            {
-                return $this->iterativeCall('location', __FUNCTION__, $params);
-            }
-
-            // Get location data for location id including location's timezone and traffic factor
-            $location_id = $params['location_id'];
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $location_id));
-            $timezone = $data['data']['timezone'];
-            //CakeLog::write('debug', $timezone);
-            // apply timezone to dates entered and query for sensor detections
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = 'visitorEvent';
-            $oDb = DBComponent::getInstance($table, 'portal');
-            $sSQL = <<<SQL
-SELECT
-    ROUND(COUNT(*)) AS detect_count,
-    DATE_FORMAT(convert_tz(ts,'GMT', '$timezone'), '%Y-%m-%d') AS date,
-    DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k') AS hour
-FROM visitorEvent
-WHERE
-    entered = 1 AND         
-    location_id=$location_id AND
-    ts BETWEEN '$start_date' AND '$end_date'
-GROUP BY date ASC, hour ASC
-SQL;
-            $aRes = $oDb->fetchAll($sSQL);
-            // return formatted result
-            return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
-        }
-    }
-
-    /**
-     * Get portal conversion rate
-     * 
-     * @param $params Array containing location_id, start_date and end_date
-     * @return array Array of results formatted for display in the dashboard
-     */
-    public function portalConversionRate ($params)
-    {
-        $rules = array (
-            'location_id' => array ('required', 'int'),
-            'start_date'  => array ('required', 'date', 'date_interval'),
-            'end_date'    => array ('required', 'date')
-        );
-        $this->validate($params, $rules);
-        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-        if (in_array('presence', $aDeviceType) && !in_array('portal', $aDeviceType))
-        {
-            $result = $this->conversionRate($params);
-        }
-        else
-        {
-            $tr = $this->api->internalCall('location', 'transactions', $params);
-            $ft = $this->api->internalCall('location', 'portalTraffic', $params);
-            $result = $this->percentify($tr, $ft);
-        }
-        $result['options'] = array (
-            'endpoint'    => '/location/' . __FUNCTION__,
-            'location_id' => $params['location_id'],
-            'start_date'  => $params['start_date'],
-            'end_date'    => $params['end_date'],
-        );
         return $result;
     }
 
@@ -740,27 +463,24 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if (($params['start_date'] != $params['end_date']) && $this->api->iterative)
-        {
+        if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeQuery('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
             $timezone = $data['data']['timezone'];
 
             $register_filter = @$data['data']['register_filter'];
             $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
-            $outlet_filter = @$data['data']['outlet_filter'];
-            $outlet_filter = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
+            $outlet_filter   = @$data['data']['outlet_filter'];
+            $outlet_filter   = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
 
             $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = 'invoices';
-            $oDb = DBComponent::getInstance($table, 'pos');
-            $aRes = array ();
-            if (!empty($lightspeed_id))
-            {
+            $table         = 'invoices';
+            $oDb           = DBComponent::getInstance($table, 'pos');
+            $aRes          = array ();
+            if (!empty($lightspeed_id)) {
                 $sSQL = <<<SQL
 SELECT 
     COUNT(*) as transactions,
@@ -801,14 +521,12 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if (($params['start_date'] != $params['end_date']) && $this->api->iterative)
-        {
+        if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $aRes     = $this->api->internalCall('location', 'purchaseInfo', $params);
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', __FUNCTION__);
@@ -823,14 +541,12 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if (($params['start_date'] != $params['end_date']) && $this->api->iterative)
-        {
+        if (($params['start_date'] != $params['end_date']) && $this->api->iterative) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $aRes     = $this->api->internalCall('location', 'purchaseInfo', $params);
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', __FUNCTION__);
@@ -845,14 +561,12 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
-        {
+        if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $aRes = $this->api->internalCall('location', 'purchaseInfo', $params);
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $aRes     = $this->api->internalCall('location', 'purchaseInfo', $params);
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', 'total_items');
@@ -862,7 +576,7 @@ SQL;
     private function returningByHour ($start_date, $end_date, $timezone, $location_id, $ap_id, $factor)
     {
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
-        $sSQL = <<<SQL
+        $sSQL  = <<<SQL
 SELECT
     x.hour,
     ROUND(COUNT(z.login)*$factor) as value 
@@ -904,7 +618,7 @@ INNER JOIN (
 GROUP BY x.hour      
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb   = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -912,7 +626,7 @@ SQL;
     {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
-        $sSQL = <<<SQL
+        $sSQL  = <<<SQL
 SELECT  
     date(y.max_login) as date,
     ROUND(COUNT(distinct y.unique_mac)*$factor) as value
@@ -937,7 +651,7 @@ WHERE nml.first_logout IS NOT NULL
   AND y.max_login IS NOT NULL
 GROUP BY date       
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb   = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
@@ -949,28 +663,61 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
-        {
+        if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $ap_id    = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
-            $factor = $data['data']['traffic_factor'];
-            $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
+            $factor   = $data['data']['traffic_factor'];
+            $factor   = 1 + ((empty($factor) ? 0 : $factor / 100));
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $aByHour = $this->returningByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
-            $aByDate = $this->returningByDate($params['start_date'], $data, $timezone, $params['location_id'], $ap_id, $factor);
+            $aByHour  = $this->returningByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
+            $aByDate  = $this->returningByDate($params['start_date'], $data, $timezone, $params['location_id'], $ap_id, $factor);
             return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
         }
     }
 
-    private function footTrafficByHour ($start_date, $end_date, $timezone, $location_id, $ap_id, $factor)
+    public function footTraffic ($params)
+    {
+        $rules = array (
+            'location_id' => array ('required', 'int'),
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
+        );
+        $this->validate($params, $rules);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('location', __FUNCTION__, $params);
+        }
+        else {
+            $aDevices = getDeviceTypesInLocation($params['location_id']);
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $default  = @$data['data']['conversionRate_default_device'];
+            $default  = (empty($default)) ? 'portal' : $default;
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $firstSensor = firstSensor($params['location_id']);
+            $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
+            $cdate = new DateTime($start_date, new DateTimeZone($timezone));            
+            if ((in_array('portal', $aDevices) || $default == 'portal') && $sdate < $cdate) {
+                $result = $this->portalTraffic($params);
+                $result['options']['device'] = 'portal';
+            }
+            else {
+                $result = $this->presenceTraffic($params);
+                $result['options']['device'] = 'presence';
+            }
+            $result['options']['endpoint'] = '/location/' . __FUNCTION__;
+            $result['data']['breakdown'][$params['start_date']]['totals']['device'] = $result['options']['device'];
+            return $result;
+        }
+    }
+
+    private function presenceTrafficByHour ($start_date, $end_date, $timezone, $location_id, $ap_id, $factor)
     {
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
-        $sSQL = <<<SQL
+        $sSQL  = <<<SQL
 SELECT 
     x.hour,
     ROUND(COUNT(y.mac_id)*$factor) as value
@@ -1003,15 +750,15 @@ LEFT JOIN
 GROUP BY x.hour
 ORDER BY x.hour ASC
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb   = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
-    private function footTrafficByDate ($date, $data, $timezone, $location_id, $ap_id, $factor)
+    private function presenceTrafficByDate ($date, $data, $timezone, $location_id, $ap_id, $factor)
     {
         list($start_date, $end_date) = $this->getOpenCloseTimes($date, $data, $timezone);
         $table = $this->getSessionsTableName($start_date, $end_date, $location_id, $ap_id);
-        $sSQL = <<<SQL
+        $sSQL  = <<<SQL
 SELECT 
     DATE(CONVERT_TZ(time_login,'GMT','$timezone')) as date,
     ROUND(COUNT(DISTINCT ses1.mac_id)*$factor) as value 
@@ -1025,43 +772,69 @@ WHERE (mac_address.status<>'noise')
  AND time_login BETWEEN '$start_date' AND '$end_date'  
 GROUP BY date
 SQL;
-        $oDb = DBComponent::getInstance($table, 'swarmdataRead');
+        $oDb   = DBComponent::getInstance($table, 'swarmdataRead');
         return $oDb->fetchAll($sSQL);
     }
 
-    public function footTraffic ($params)
+    public function presenceTraffic ($params)
     {
         $rules = array (
             'location_id' => array ('required', 'int'),
             'start_date'  => array ('required', 'date', 'date_interval'),
             'end_date'    => array ('required', 'date')
         );
-        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-        if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType))
-        {
-            $result = $this->portalTraffic($params);
-            $result['options']['endpoint'] = '/location/footTraffic';
-            return $result;
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            if ($params['start_date'] != $params['end_date'])
-            {
-                return $this->iterativeCall('location', __FUNCTION__, $params);
-            }
-            else
-            {
-                $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-                $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
-                $timezone = $data['data']['timezone'];
-                $factor = $data['data']['traffic_factor'];
-                $factor = 1 + ((empty($factor) ? 0 : $factor / 100));
-                list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-                $aByHour = $this->footTrafficByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
-                $aByDate = $this->footTrafficByDate($params['start_date'], $data, $timezone, $params['location_id'], $ap_id, $factor);
-                return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
-            }
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $ap_id    = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+            $timezone = $data['data']['timezone'];
+            $factor   = $data['data']['traffic_factor'];
+            $factor   = 1 + ((empty($factor) ? 0 : $factor / 100));
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $aByHour  = $this->presenceTrafficByHour($start_date, $end_date, $timezone, $params['location_id'], $ap_id, $factor);
+            $aByDate  = $this->presenceTrafficByDate($params['start_date'], $data, $timezone, $params['location_id'], $ap_id, $factor);
+            return $this->hourlyDailyFormat($aByDate, $aByHour, $data, $params, '/location/' . __FUNCTION__, 0, 'x');
         }
+    }
+
+    public function portalTraffic ($params)
+    {
+        // Set validation rules and validate parameters
+        $rules       = array (
+            'location_id' => array ('required', 'int'),
+            'start_date'  => array ('required', 'date'),
+            'end_date'    => array ('required', 'date')
+        );
+        $this->validate($params, $rules);
+        $location_id = $params['location_id'];
+        $data        = $this->api->internalCall('location', 'data', array ('location_id' => $location_id));
+        $timezone    = $data['data']['timezone'];
+
+        // Pass method and parameters to iteration function if the dates are different
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('location', __FUNCTION__, $params);
+        }
+        // apply timezone to dates entered and query for sensor detections
+        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+        $table = 'visitorEvent';
+        $oDb   = DBComponent::getInstance($table, 'portal');
+        $sSQL  = <<<SQL
+SELECT
+    ROUND(COUNT(*)) AS detect_count,
+    DATE_FORMAT(convert_tz(ts,'GMT', '$timezone'), '%Y-%m-%d') AS date,
+    DATE_FORMAT(convert_tz(ts,'GMT','$timezone'), '%k') AS hour
+FROM visitorEvent
+WHERE
+    entered = 1 AND         
+    location_id=$location_id AND
+    ts BETWEEN '$start_date' AND '$end_date'
+GROUP BY date ASC, hour ASC
+SQL;
+        $aRes  = $oDb->fetchAll($sSQL);
+        // return formatted result
+        return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0, 'detect_count');
     }
 
     public function timeInShop ($params)
@@ -1072,19 +845,17 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
-        {
+        if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $ap_id    = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-            $sSQL = <<<SQL
+            $table    = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
+            $oDb      = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL     = <<<SQL
  SELECT 
      SUM(dwell_time) as value,
      date,
@@ -1115,7 +886,7 @@ SQL;
  ) t2
 GROUP BY date, hour      
 SQL;
-            $aRes = $oDb->fetchAll($sSQL);
+            $aRes     = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2');
         }
     }
@@ -1128,19 +899,17 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
-        {
+        if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $ap_id    = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-            $sSQL = <<<SQL
+            $table    = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
+            $oDb      = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL     = <<<SQL
     SELECT 
        COUNT(DISTINCT ses1.mac_id) as value,
        DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
@@ -1162,7 +931,7 @@ SQL;
        AND time_login BETWEEN '$start_date' AND '$end_date'
     GROUP BY date, hour    
 SQL;
-            $aRes = $oDb->fetchAll($sSQL);
+            $aRes     = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0);
         }
     }
@@ -1175,19 +944,17 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date'])
-        {
+        if ($params['start_date'] != $params['end_date']) {
             return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $data = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $ap_id = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
+        else {
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $ap_id    = (!empty($data['data']['ap_id'])) ? $data['data']['ap_id'] : 0;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $table = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
-            $oDb = DBComponent::getInstance($table, 'swarmdataRead');
-            $sSQL = <<<SQL
+            $table    = $this->getSessionsTableName($start_date, $end_date, $params['location_id'], $ap_id);
+            $oDb      = DBComponent::getInstance($table, 'swarmdataRead');
+            $sSQL     = <<<SQL
     SELECT 
        COUNT(DISTINCT ses1.mac_id) as value,
        DATE_FORMAT(convert_tz(time_login,'GMT', '$timezone'), '%Y-%m-%d') AS date,
@@ -1210,7 +977,7 @@ SQL;
        AND time_login BETWEEN '$start_date' AND '$end_date'
     GROUP BY date, hour    
 SQL;
-            $aRes = $oDb->fetchAll($sSQL);
+            $aRes     = $oDb->fetchAll($sSQL);
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 0);
         }
     }
@@ -1218,9 +985,9 @@ SQL;
     //Rates
     public function itemsPerTransaction ($params)
     {
-        $tt = $this->api->internalCall('location', 'totalItems', $params);
-        $tr = $this->api->internalCall('location', 'transactions', $params);
-        $result = $this->calculate($tt, $tr, true);
+        $tt                = $this->api->internalCall('location', 'totalItems', $params);
+        $tr                = $this->api->internalCall('location', 'transactions', $params);
+        $result            = $this->calculate($tt, $tr, true);
         $result['options'] = array (
             'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
@@ -1232,9 +999,9 @@ SQL;
 
     public function windowConversion ($params)
     {
-        $ft = $this->api->internalCall('location', 'traffic', $params);
-        $nd = $this->api->internalCall('location', 'devices', $params);
-        $result = $this->percentify($ft, $nd);
+        $ft                = $this->api->internalCall('location', 'traffic', $params);
+        $nd                = $this->api->internalCall('location', 'devices', $params);
+        $result            = $this->percentify($ft, $nd);
         $result['options'] = array (
             'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
@@ -1246,9 +1013,9 @@ SQL;
 
     public function avgTicket ($params)
     {
-        $re = $this->api->internalCall('location', 'revenue', $params);
-        $tr = $this->api->internalCall('location', 'transactions', $params);
-        $result = $this->calculate($re, $tr, true);
+        $re                = $this->api->internalCall('location', 'revenue', $params);
+        $tr                = $this->api->internalCall('location', 'transactions', $params);
+        $result            = $this->calculate($re, $tr, true);
         $result['options'] = array (
             'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
@@ -1258,10 +1025,6 @@ SQL;
         return $result;
     }
 
-    /*
-     * Conversion Rate
-     */
-
     public function conversionRate ($params)
     {
         $rules = array (
@@ -1270,17 +1033,74 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        $aDeviceType = getDeviceTypesInLocation($params['location_id']);
-        if (in_array('portal', $aDeviceType) && !in_array('presence', $aDeviceType))
-        {
-            $result = $this->portalConversionRate($params);
+        if ($params['start_date'] != $params['end_date']) {
+            return $this->iterativeCall('location', __FUNCTION__, $params);
         }
-        else
-        {
-            $tr = $this->api->internalCall('location', 'transactions', $params);
-            $ft = $this->api->internalCall('location', 'footTraffic', $params);
-            $result = $this->percentify($tr, $ft);
+        else {
+            $aDevices = getDeviceTypesInLocation($params['location_id']);
+            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+            $default  = @$data['data']['conversionRate_default_device'];
+            $default  = (empty($default)) ? 'portal' : $default;
+            $timezone = $data['data']['timezone'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            $firstSensor = firstSensor($params['location_id']);
+            $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
+            $cdate = new DateTime($start_date, new DateTimeZone($timezone));
+            if ((in_array('portal', $aDevices) || $default == 'portal') && $sdate < $cdate) {
+                $result = $this->portalConversionRate($params);
+                $result['options']['device'] = 'portal';
+            }
+            else {
+                $result = $this->presenceConversionRate($params);
+                $result['options']['device'] = 'presence';
+            }
+            $result['options']['endpoint'] = '/location/' . __FUNCTION__;
+            $result['data']['breakdown'][$params['start_date']]['totals']['device'] = $result['options']['device'];
+            return $result;
         }
+    }
+
+    public function presenceConversionRate ($params)
+    {
+        $rules = array (
+            'location_id' => array ('required', 'int'),
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
+        );
+        $this->validate($params, $rules);
+
+        $tr     = $this->api->internalCall('location', 'transactions', $params);
+        $ft     = $this->api->internalCall('location', 'presenceTraffic', $params);
+        $result = $this->percentify($tr, $ft);
+
+        $result['options'] = array (
+            'endpoint'    => '/location/' . __FUNCTION__,
+            'location_id' => $params['location_id'],
+            'start_date'  => $params['start_date'],
+            'end_date'    => $params['end_date'],
+        );
+        return $result;
+    }
+
+    /**
+     * Get portal conversion rate
+     * 
+     * @param $params Array containing location_id, start_date and end_date
+     * @return array Array of results formatted for display in the dashboard
+     */
+    public function portalConversionRate ($params)
+    {
+        $rules = array (
+            'location_id' => array ('required', 'int'),
+            'start_date'  => array ('required', 'date', 'date_interval'),
+            'end_date'    => array ('required', 'date')
+        );
+        $this->validate($params, $rules);
+
+        $tr     = $this->api->internalCall('location', 'transactions', $params);
+        $ft     = $this->api->internalCall('location', 'portalTraffic', $params);
+        $result = $this->percentify($tr, $ft);
+
         $result['options'] = array (
             'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
@@ -1292,9 +1112,9 @@ SQL;
 
     public function dwell ($params)
     {
-        $ts = $this->api->internalCall('location', 'timeInShop', $params);
-        $tr = $this->api->internalCall('location', 'traffic', $params);
-        $result = $this->calculate($ts, $tr, true);
+        $ts                = $this->api->internalCall('location', 'timeInShop', $params);
+        $tr                = $this->api->internalCall('location', 'traffic', $params);
+        $result            = $this->calculate($ts, $tr, true);
         $result['options'] = array (
             'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $params['location_id'],
@@ -1311,47 +1131,41 @@ SQL;
      */
     public function getSettings ($params)
     {
-        if (empty($params['location_id']))
-        {
+        if (empty($params['location_id'])) {
             throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
         }
-        if (empty($params['uuid']))
-        {
+        if (empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $this->verify($params);
         $location_id = $params['location_id'];
-        $location = new Location();
-        if (!$location->locationExists($location_id))
-        {
+        $location    = new Location();
+        if (!$location->locationExists($location_id)) {
             throw new APIException(400, 'bad_request', 'Location not found.');
         }
 
         $ret['data'] = array ();
-        $oDb = DBComponent::getInstance('location_setting', 'backstage');
-        $sSQL = <<<SQL
+        $oDb         = DBComponent::getInstance('location_setting', 'backstage');
+        $sSQL        = <<<SQL
 SELECT name
     FROM location
     WHERE id=$location_id
 SQL;
 
         $aResL = $oDb->fetchAll($sSQL);
-        if (!empty($aResL))
-        {
+        if (!empty($aResL)) {
             $ret['data']['name'] = $aResL[0]['location']['name'];
         }
-        $sSQL = <<<SQL
+        $sSQL                    = <<<SQL
 SELECT s.label, s.name, s.desc,ls.setting_id, ls.value
     FROM setting s JOIN location_setting ls on s.id=ls.setting_id
     WHERE ls.location_id=$location_id
 SQL;
-        $aRes = $oDb->fetchAll($sSQL);
+        $aRes                    = $oDb->fetchAll($sSQL);
         $ret['data']['settings'] = array ();
-        $defaults = $this->getDefaultSettings();
-        if (!empty($aRes))
-        {
-            foreach ($aRes as $set)
-            {
+        $defaults                = $this->getDefaultSettings();
+        if (!empty($aRes)) {
+            foreach ($aRes as $set) {
                 $ret['data']['settings'][$set['s']['name']] = array (
                     'label'       => $set['s']['label'],
                     'setting_id'  => $set['ls']['setting_id'],
@@ -1360,10 +1174,8 @@ SQL;
                 );
             }
 
-            foreach ($defaults as $name => $s)
-            {
-                if (empty($ret['data']['settings'][$name]))
-                {
+            foreach ($defaults as $name => $s) {
+                if (empty($ret['data']['settings'][$name])) {
                     $ret['data']['settings'][$name] = array (
                         'label'       => $s['label'],
                         'id'          => $s['id'],
@@ -1373,8 +1185,7 @@ SQL;
                 }
             }
         }
-        else
-        {
+        else {
             $ret['data']['settings'] = $defaults;
         }
         $ret['options'] = array (
@@ -1391,23 +1202,19 @@ SQL;
      */
     public function updateSettings ($params)
     {
-        if (empty($params['location_id']))
-        {
+        if (empty($params['location_id'])) {
             throw new APIException(400, 'bad_request', 'A valid locationId is needed to fetch settings.');
         }
-        if (empty($params['uuid']))
-        {
+        if (empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
         $this->verify($params);
         $location_id = $params['location_id'];
-        $oSettings = new Setting();
-        $settingIds = $oSettings->find('list', array ('fields' => array ('id')));
-        $update = array ();
-        if (!empty($params['Location'][$location_id]))
-        {
-            if (!empty($params['Location']['name']))
-            {
+        $oSettings   = new Setting();
+        $settingIds  = $oSettings->find('list', array ('fields' => array ('id')));
+        $update      = array ();
+        if (!empty($params['Location'][$location_id])) {
+            if (!empty($params['Location']['name'])) {
                 $sSQL = <<<SQL
 UPDATE location 
     SET name = :name
@@ -1419,30 +1226,23 @@ SQL;
                 ));
             }
 
-            foreach ($params['Location'][$location_id] as $key => $val)
-            {
-                if (!is_numeric($key))
-                {
+            foreach ($params['Location'][$location_id] as $key => $val) {
+                if (!is_numeric($key)) {
                     $sett_id = settId($key);
                 }
-                else
-                {
-                    if (in_array($key, $settingIds))
-                    {
+                else {
+                    if (in_array($key, $settingIds)) {
                         $sett_id = $key;
                     }
                 }
-                if (!empty($sett_id))
-                {
+                if (!empty($sett_id)) {
                     $update[$sett_id] = $val;
                 }
             }
-            if (!empty($update))
-            {
+            if (!empty($update)) {
                 $oDb = DBComponent::getInstance('location_setting', 'backstage');
 
-                foreach ($update as $key => $val)
-                {
+                foreach ($update as $key => $val) {
                     $sSQL = <<<SQL
 INSERT INTO location_setting 
     SET location_id = :location_id,
@@ -1450,7 +1250,7 @@ INSERT INTO location_setting
         value = :value
     ON DUPLICATE KEY UPDATE value = :value
 SQL;
-                    $ret = $oDb->query($sSQL, array (
+                    $ret  = $oDb->query($sSQL, array (
                         'location_id' => $location_id,
                         'setting_id'  => $key,
                         'value'       => $val
@@ -1468,8 +1268,7 @@ SQL;
                 );
             }
         }
-        else
-        {
+        else {
             return array (
                 'options' => array (
                     'endpoint' => '/location/' . __FUNCTION__,
@@ -1488,46 +1287,41 @@ SQL;
      */
     public function create ($params)
     {
-        $uuid = '';
-        $user_id = NULL;
-        $user = array ();
+        $uuid     = '';
+        $user_id  = NULL;
+        $user     = array ();
         $location = new Location();
         $location->set($params);
-        if (empty($params['uuid']))
-        {
+        if (empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
 
-        if (!$location->validates())
-        {
+        if (!$location->validates()) {
             $this->handleValidationErrors($location->validationErrors);
         }
 
         $combination = $params['address1'] . " " . $params['city'];
-        if ($location->nameAddressCombination($combination, $params['name']) > 0)
-        {
+        if ($location->nameAddressCombination($combination, $params['name']) > 0) {
             throw new APIException(400, 'bad_request', 'Location name, address and city combination already exists in our records.');
         }
 
         $params['country'] = strtoupper($params['country']);
-        if (!$location->countryCodeExists($params['country']))
-        {
+        if (!$location->countryCodeExists($params['country'])) {
             throw new APIException(400, 'bad_request', 'Country code does not exist in our database.');
         }
         $uuid = $params['uuid'];
-        if (empty($params['user_id']))
-        {
-            $user = $this->getUserFromUUID($uuid);
+        if (empty($params['user_id'])) {
+            $user    = $this->getUserFromUUID($uuid);
             $user_id = $user[0]['user']['id'];
         }
 
         $locationmanager_id = $this->getLocationManagerId($user_id);
 
-        $oDb = DBComponent::getInstance('location_setting', 'backstage');
+        $oDb         = DBComponent::getInstance('location_setting', 'backstage');
         $reseller_id = (!empty($params['reseller_id'])) ? $params['reseller_id'] : NULL;
 
         // Create a new Location
-        $sSQL = <<<SQL
+        $sSQL        = <<<SQL
 INSERT INTO location
     SET name = :name,
         ts_creation = CURRENT_TIMESTAMP,
@@ -1540,12 +1334,10 @@ SQL;
         $location_id = $oDb->lastInsertId();
 
         // Add addresss location settings
-        foreach (['address1', 'address2', 'city', 'state', 'country', 'zipcode'] as $key)
-        {
-            if (array_key_exists($key, $params))
-            {
+        foreach (['address1', 'address2', 'city', 'state', 'country', 'zipcode'] as $key) {
+            if (array_key_exists($key, $params)) {
                 $sett_id = settId($key);
-                $sSQL = <<<SQL
+                $sSQL    = <<<SQL
 INSERT INTO location_setting 
     SET location_id = :location_id,
         setting_id  = :setting_id,
@@ -1576,13 +1368,13 @@ SQL;
 
         $address1 = settVal('address1', $oLocation['Setting']);
         $address2 = settVal('address2', $oLocation['Setting']);
-        $city = settVal('city', $oLocation['Setting']);
-        $state = settVal('state', $oLocation['Setting']);
-        $country = settVal('country', $oLocation['Setting']);
-        $zipcode = settVal('zipcode', $oLocation['Setting']);
+        $city     = settVal('city', $oLocation['Setting']);
+        $state    = settVal('state', $oLocation['Setting']);
+        $country  = settVal('country', $oLocation['Setting']);
+        $zipcode  = settVal('zipcode', $oLocation['Setting']);
 
         $subject = "Location #" . $location_id . ' ( ' . $oLocation['Location']['name'] . ' ) was added from API';
-        $msg = <<<TEXT
+        $msg     = <<<TEXT
 <div>
     Location $location_id was just added/modified on the
     MDM using the API with the following info:
@@ -1624,19 +1416,17 @@ TEXT;
      */
     public function availableSettings ($params)
     {
-        if (empty($params['uuid']))
-        {
+        if (empty($params['uuid'])) {
             throw new APIException(400, 'bad_request', 'User not found. Please provide a valid UUID.');
         }
-        $oDb = DBComponent::getInstance('user', 'backstage');
-        $sSQL = <<<SQL
+        $oDb                     = DBComponent::getInstance('user', 'backstage');
+        $sSQL                    = <<<SQL
 SELECT `id`, `label`, `name`, `default`, `desc`
     FROM setting
 SQL;
-        $settings = $oDb->fetchAll($sSQL);
+        $settings                = $oDb->fetchAll($sSQL);
         $ret['data']['settings'] = array ();
-        foreach ($settings as $set)
-        {
+        foreach ($settings as $set) {
             $ret['data']['settings'][$set['setting']['name']] = array (
                 'id'      => $set['setting']['id'],
                 'label'   => $set['setting']['label'],
@@ -1649,12 +1439,12 @@ SQL;
 
     public function data ($params)
     {
-        $rules = array ('location_id' => array ('required', 'int'));
+        $rules       = array ('location_id' => array ('required', 'int'));
         $this->validate($params, $rules);
         $location_id = $params['location_id'];
-        $oLocation = new Location();
-        $oLocation = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
-        $aFields = [
+        $oLocation   = new Location();
+        $oLocation   = $oLocation->find('first', ['conditions' => ['Location.id' => $location_id]]);
+        $aFields     = [
             'ap_id'                     => 'network_id',
             'timezone'                  => 'timezone',
             'location_open'             => 'location_open',
@@ -1685,31 +1475,24 @@ SQL;
             'nightclub_hours_location'  => 'nightclub_hours_location',
             'transactions_while_closed' => 'transactions_while_closed'
         ];
-        $tmp = array ('data' => array ());
-        foreach ($aFields as $kOld => $kNew)
-        {
+        $tmp         = array ('data' => array ());
+        foreach ($aFields as $kOld => $kNew) {
             $tmp['data'][$kOld] = settVal($kNew, $oLocation['Setting']);
         }
-        if (empty($tmp['data']['network_provider']))
-        {
+        if (empty($tmp['data']['network_provider'])) {
             $tmp['data']['network_provider'] = 'gp';
         }
-        if (empty($tmp['data']['timezone']))
-        {
+        if (empty($tmp['data']['timezone'])) {
             $tmp['data']['timezone'] = 'America/Los_Angeles';
         }
-        foreach (array ('open', 'close') as $state)
-        {
-            if (empty($tmp['data']['location_' . $state]))
-            {
+        foreach (array ('open', 'close') as $state) {
+            if (empty($tmp['data']['location_' . $state])) {
                 $tmp['data']['location_' . $state] = $state == 'open' ? '09:00' : '21:00';
             }
-            foreach ($this->weekdays as $day)
-            {
+            foreach ($this->weekdays as $day) {
                 $daystate = $day . '_' . $state;
-                $val = isset($tmp['data'][$daystate]) ? $tmp['data'][$daystate] : null;
-                if (is_null($val) || trim($val) === '')
-                {
+                $val      = isset($tmp['data'][$daystate]) ? $tmp['data'][$daystate] : null;
+                if (is_null($val) || trim($val) === '') {
                     $tmp['data'][$daystate] = $tmp['data']['location_' . $state];
                 }
             }
@@ -1724,20 +1507,19 @@ SQL;
      */
     private function verify ($params)
     {
-        $rules = array ('location_id' => array ('required', 'int'), 'uuid' => array ('required'));
+        $rules       = array ('location_id' => array ('required', 'int'), 'uuid' => array ('required'));
         $this->validate($params, $rules);
         $location_id = $params['location_id'];
-        $uuid = $params['uuid'];
+        $uuid        = $params['uuid'];
 
         $aRes = $this->getUserFromUUID($uuid);
         if (empty($aRes))
             throw new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
 
         $user_id = $aRes[0]['user']['id'];
-        $oDb = DBComponent::getInstance('location', 'backstage');
+        $oDb     = DBComponent::getInstance('location', 'backstage');
         // Check for location and user map
-        switch ($aRes[0]['user']['usertype_id'])
-        {
+        switch ($aRes[0]['user']['usertype_id']) {
             case 1:
                 return true;
                 break;
@@ -1745,7 +1527,7 @@ SQL;
                 return true;
                 break;
             case 4:
-                $sSQL = <<<SQL
+                $sSQL      = <<<SQL
 SELECT  lml.location_id
     FROM locationmanager l JOIN locationmanager_location lml
     ON l.id=lml.locationmanager_id
@@ -1754,7 +1536,7 @@ SQL;
                 $locations = $oDb->fetchAll($sSQL);
                 break;
             case 5:
-                $sSQL = <<<SQL
+                $sSQL      = <<<SQL
 SELECT  le.location_id
     FROM employee e JOIN location_employee le
     ON e.id=le.employee_id
@@ -1763,10 +1545,8 @@ SQL;
                 $locations = $oDb->fetchAll($sSQL);
                 break;
         }
-        foreach ($locations as $loc)
-        {
-            if (!empty($loc['lml']['location_id']) && $loc['lml']['location_id'] == $location_id)
-            {
+        foreach ($locations as $loc) {
+            if (!empty($loc['lml']['location_id']) && $loc['lml']['location_id'] == $location_id) {
                 return true;
             }
         }
@@ -1778,8 +1558,8 @@ SQL;
     {
         if (empty($user_id))
             return false;
-        $oDb = DBComponent::getInstance('user', 'backstage');
-        $sSQL = <<<SQL
+        $oDb     = DBComponent::getInstance('user', 'backstage');
+        $sSQL    = <<<SQL
 SELECT id
     FROM locationmanager
     WHERE user_id="$user_id" LIMIT 1
