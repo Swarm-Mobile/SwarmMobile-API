@@ -36,7 +36,7 @@ class APIController extends AppController
         'avgTicket',
         //'conversionRate',
         'presenceConversionRate',
-        'portalConversionRate',
+        //'portalConversionRate',
         'devices',
         'dwell',
         //'footTraffic',
@@ -313,8 +313,7 @@ TEXT;
             }
         }
         else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods))
-        {
-            $method = getPreviousResultMethod($method, $params['location_id']);            
+        {            
             $oModel = new Model(false, 'walkbys', 'rollups');
             $oDb = $oModel->getDataSource();
             $sSQL = <<<SQL
