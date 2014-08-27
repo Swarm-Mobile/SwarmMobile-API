@@ -693,7 +693,7 @@ SQL;
         else {
             $aDevices = getDeviceTypesInLocation($params['location_id']);
             $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $default  = @$data['data']['conversionRate_default_device'];
+            $default  = $data['data']['footTraffic_default_device'];
             $default  = (empty($default)) ? 'portal' : $default;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -1039,7 +1039,7 @@ SQL;
         else {
             $aDevices = getDeviceTypesInLocation($params['location_id']);
             $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $default  = @$data['data']['conversionRate_default_device'];
+            $default  = $data['data']['conversionRate_default_device'];
             $default  = (empty($default)) ? 'portal' : $default;
             $timezone = $data['data']['timezone'];
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -1473,7 +1473,9 @@ SQL;
             'no_rollups'                => 'no_rollups',
             'no_cache'                  => 'no_cache',
             'nightclub_hours_location'  => 'nightclub_hours_location',
-            'transactions_while_closed' => 'transactions_while_closed'
+            'transactions_while_closed' => 'transactions_while_closed',
+            'footTraffic_default_device' => 'footTraffic_default_device',
+            'conversionRate_default_device' => 'conversionRate_default_device',
         ];
         $tmp         = array ('data' => array ());
         foreach ($aFields as $kOld => $kNew) {
@@ -1484,6 +1486,12 @@ SQL;
         }
         if (empty($tmp['data']['timezone'])) {
             $tmp['data']['timezone'] = 'America/Los_Angeles';
+        }
+        if (empty($tmp['data']['footTraffic_default_device'])) {
+            $tmp['data']['footTraffic_default_device'] = 'portal';
+        }
+        if (empty($tmp['data']['conversionRate_default_device'])) {
+            $tmp['data']['conversionRate_default_device'] = 'portal';
         }
         foreach (array ('open', 'close') as $state) {
             if (empty($tmp['data']['location_' . $state])) {
