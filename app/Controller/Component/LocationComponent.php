@@ -700,7 +700,7 @@ SQL;
             $firstSensor = firstSensor($params['location_id']);
             $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
             $cdate = new DateTime($start_date, new DateTimeZone($timezone));            
-            if ((in_array('portal', $aDevices) || $default == 'portal') && $sdate < $cdate) {
+            if (in_array('portal', $aDevices) && $sdate < $cdate && $default == 'portal') {
                 $result = $this->portalTraffic($params);
                 $result['options']['device'] = 'portal';
             }
@@ -1046,7 +1046,7 @@ SQL;
             $firstSensor = firstSensor($params['location_id']);
             $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
             $cdate = new DateTime($start_date, new DateTimeZone($timezone));
-            if ((in_array('portal', $aDevices) || $default == 'portal') && $sdate < $cdate) {
+            if (in_array('portal', $aDevices) && $sdate < $cdate && $default == 'portal') {
                 $result = $this->portalConversionRate($params);
                 $result['options']['device'] = 'portal';
             }
