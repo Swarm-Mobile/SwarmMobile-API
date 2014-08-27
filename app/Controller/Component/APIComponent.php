@@ -392,6 +392,9 @@ SQL;
         }
         $result['options'] = $cResult['options'];
         $result['options']['start_date'] = $aResults[0]['options']['start_date'];
+        $result['data']['totals']['open'] = round($result['data']['totals']['open'],2);
+        $result['data']['totals']['close'] = round($result['data']['totals']['close'],2);
+        $result['data']['totals']['total'] = round($result['data']['totals']['total'],2);
         return $result;
     }
 

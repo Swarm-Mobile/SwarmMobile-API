@@ -1034,7 +1034,7 @@ SQL;
         );
         $this->validate($params, $rules);
         if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('location', __FUNCTION__, $params);
+            return $this->iterativeHourDateCall('location', __FUNCTION__, $params);
         }
         else {
             $aDevices = getDeviceTypesInLocation($params['location_id']);
@@ -1046,7 +1046,7 @@ SQL;
             $firstSensor = firstSensor($params['location_id']);
             $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
             $cdate = new DateTime($start_date, new DateTimeZone($timezone));
-            if (in_array('portal', $aDevices) && $sdate < $cdate && $default == 'portal') {
+            if (in_array('portal', $aDevices) && $sdate < $cdate && $default == 'portal') {                
                 $result = $this->portalConversionRate($params);
                 $result['options']['device'] = 'portal';
             }
@@ -1070,7 +1070,7 @@ SQL;
         $this->validate($params, $rules);
 
         $tr     = $this->api->internalCall('location', 'transactions', $params);
-        $ft     = $this->api->internalCall('location', 'presenceTraffic', $params);
+        $ft     = $this->api->internalCall('location', 'presenceTraffic', $params);        
         $result = $this->percentify($tr, $ft);
 
         $result['options'] = array (
