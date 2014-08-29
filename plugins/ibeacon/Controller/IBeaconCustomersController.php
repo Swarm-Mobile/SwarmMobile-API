@@ -40,7 +40,7 @@ class IBeaconCustomersController extends  IBeaconController  {
         $customer = $this->IBeaconCustomers->findById($id);
         $response = $this->IBeaconCustomers->DBKeysToSDK($customer['IBeaconCustomers']);
         $response['ssv'] = $cutomerData['ssv'];
-        echo json_encode($response);
+        echo json_encode($response, JSON_FORCE_OBJECT);
         exit;
     }
 
