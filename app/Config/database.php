@@ -154,8 +154,8 @@ class DATABASE_CONFIG
             'datasource' => 'Database/Mysql',
             'persistent' => true,
             'host'       => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
-            'login'      => '',
-            'password'   => '',
+            'login'      => 'swarmrollups',
+            'password'   => 'f4uwrapR',
             'database'   => 'rollups',
             'prefix'     => '',
         )
