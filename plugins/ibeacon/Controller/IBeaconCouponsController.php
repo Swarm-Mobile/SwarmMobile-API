@@ -148,6 +148,11 @@ class IBeaconCouponsController  extends IBeaconController {
                     $location['categorization'] = $categorys;
                     $response['locations'][] = $location;
                     $response['campaigns'] = $campaigns;
+                    $response['coupons'] = array();
+                    $cuponModel =  new IBeaconCoupons();
+                    foreach($campaigns as $campaign){
+                         $response['coupons'][] = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
+                    }
                 }
             }
 
