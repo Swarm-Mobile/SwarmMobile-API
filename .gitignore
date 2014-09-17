@@ -1,7 +1,8 @@
 # User specific & automatically generated files #
 #################################################
 #/app/Config/database.php
-#/app/tmp
+/app/tmp
+/app/tmp/logs
 *.log
 *.cache
 myapp_cake_*
