@@ -69,4 +69,19 @@ class IBeaconComponent  extends Component {
         return HmacOauth::getUserId();
     }
 
+    /**
+     *
+     * @param type $method
+     * @param type $data
+     */
+    public function logging ($method,$data) {
+        $message = "\nmethod - " . $method . "\n";
+        if(is_array($data)){
+            foreach($data as $key => $val){
+                $message .= $key . ' - ' . $val ."\n";
+            }
+        }
+        CakeLog::write('ibaecon_location',$message);
+    }
+
 }

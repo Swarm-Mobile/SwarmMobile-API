@@ -124,6 +124,7 @@ class IBeaconCouponsController  extends IBeaconController {
         $deviceCoordinateModel = new IBeaconDeviceCoordinate();
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
+            $this->IBeacon->logging('whatIsHere',  array_merge($LocationIdentifier,$_GET));
             $locations = $locationModel->findByUUID(
                     $LocationIdentifier['uuid'],
                     $LocationIdentifier['major'],
@@ -147,6 +148,11 @@ class IBeaconCouponsController  extends IBeaconController {
                     $location['categorization'] = $categorys;
                     $response['locations'][] = $location;
                     $response['campaigns'] = $campaigns;
+                    $response['coupons'] = array();
+                    $cuponModel =  new IBeaconCoupons();
+                    foreach($campaigns as $campaign){
+                         $response['coupons'][] = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
+                    }
                 }
             }
 
