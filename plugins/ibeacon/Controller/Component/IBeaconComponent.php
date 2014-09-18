@@ -81,7 +81,7 @@ class IBeaconComponent  extends Component {
                 $message .= $key . ' - ' . $val ."\n";
             }
         }
-        CakeLog::write('ibaecon_location',$message);
+        CakeLog::write('ibeacon_location',$message);
     }
 
 }
