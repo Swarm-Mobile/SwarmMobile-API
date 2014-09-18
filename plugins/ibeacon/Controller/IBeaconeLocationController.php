@@ -26,7 +26,6 @@ class IBeaconeLocationController extends  IBeaconController {
         $LocationIdentifierList = $this->request->data['locations'];
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
-            $LocationIdentifierList['customerSwarmId'] = $_GET['userid'];
             $this->IBeacon->logging('whereAmI',  array_merge($LocationIdentifier,$_GET));
             $locations = $locationModel->findByUUID(
                     $LocationIdentifier['uuid'],
