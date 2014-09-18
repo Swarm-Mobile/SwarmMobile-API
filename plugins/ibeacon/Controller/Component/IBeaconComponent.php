@@ -76,6 +76,9 @@ class IBeaconComponent  extends Component {
      */
     public function logging ($method,$data) {
         $message = "\nmethod - " . $method . "\n";
+        if(!isset($data['userid'])){
+            $data['userid'] = HmacOauth::getUserId();
+        }
         if(is_array($data)){
             foreach($data as $key => $val){
                 $message .= $key . ' - ' . $val ."\n";
