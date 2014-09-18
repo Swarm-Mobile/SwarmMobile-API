@@ -124,7 +124,7 @@ class IBeaconCouponsController  extends IBeaconController {
         $deviceCoordinateModel = new IBeaconDeviceCoordinate();
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
-            $LocationIdentifierList['customerSwarmId'] = $_GET['userid'];
+            $LocationIdentifier['customerSwarmId'] = $_GET['userid'];
             $this->IBeacon->logging('whatIsHere',  array_merge($LocationIdentifier,$_GET));
             $locations = $locationModel->findByUUID(
                     $LocationIdentifier['uuid'],
