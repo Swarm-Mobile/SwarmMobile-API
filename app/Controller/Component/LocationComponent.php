@@ -1033,31 +1033,26 @@ SQL;
             'end_date'    => array ('required', 'date')
         );
         $this->validate($params, $rules);
-        if ($params['start_date'] != $params['end_date']) {
-            return $this->iterativeCall('location', __FUNCTION__, $params);
+        $aDevices = getDeviceTypesInLocation($params['location_id']);
+        $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+        $default  = $data['data']['conversionRate_default_device'];
+        $default  = (empty($default)) ? 'portal' : $default;
+        $timezone = $data['data']['timezone'];
+        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+        $firstSensor = firstSensor($params['location_id']);
+        $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
+        $cdate = new DateTime($start_date, new DateTimeZone($timezone));
+        if ((in_array('portal', $aDevices) || $default == 'portal') && $sdate < $cdate) {
+            $result = $this->portalConversionRate($params);
+            $result['options']['device'] = 'portal';
         }
         else {
-            $aDevices = getDeviceTypesInLocation($params['location_id']);
-            $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $default  = $data['data']['conversionRate_default_device'];
-            $default  = (empty($default)) ? 'portal' : $default;
-            $timezone = $data['data']['timezone'];
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-            $firstSensor = firstSensor($params['location_id']);
-            $sdate = new DateTime($firstSensor, new DateTimeZone($timezone));
-            $cdate = new DateTime($start_date, new DateTimeZone($timezone));
-            if ((in_array('portal', $aDevices) || $default == 'portal') && $sdate < $cdate) {
-                $result = $this->portalConversionRate($params);
-                $result['options']['device'] = 'portal';
-            }
-            else {
-                $result = $this->presenceConversionRate($params);
-                $result['options']['device'] = 'presence';
-            }
-            $result['options']['endpoint'] = '/location/' . __FUNCTION__;
-            $result['data']['breakdown'][$params['start_date']]['totals']['device'] = $result['options']['device'];
-            return $result;
+            $result = $this->presenceConversionRate($params);
+            $result['options']['device'] = 'presence';
         }
+        $result['options']['endpoint'] = '/location/' . __FUNCTION__;
+        $result['data']['breakdown'][$params['start_date']]['totals']['device'] = $result['options']['device'];
+        return $result;
     }
 
     public function presenceConversionRate ($params)
