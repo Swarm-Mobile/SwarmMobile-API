@@ -83,6 +83,12 @@ SQL;
         }
         $tmp = array_chunk($locations, ceil(count($locations) / $parts[1]));
         $locations = $tmp[$parts[0] - 1];
+        if(empty($locations)){
+            $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
+            fwrite($log, 'END:' . date('Y-m-d H:i:s') . ' ' . $parts[0] . '/' . $parts[1] . ' HASH:' . $hash . "\n");
+            fclose($log);
+            exit();
+        }
         $rebuild = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $override = (empty($this->params['override'])) ? false : $this->params['override'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';

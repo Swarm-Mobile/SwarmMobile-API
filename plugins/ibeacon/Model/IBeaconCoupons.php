@@ -148,4 +148,45 @@ class IBeaconCoupons extends IBeaconModel {
             )
         ));
     }
+
+    /**
+     *
+     * @param int $customerId
+     * @param int $campaignId
+     * @return array
+     */
+    public function findByCustomerIdAndCampaignId ($customerId,$campaignId) {
+        $result = $this->find('all',array(
+            'joins' => array(
+                array(
+                    'alias' => 'u',
+                    'table' => 'ibeacon_coupon_configuration',
+                    'type' => 'LEFT',
+                    'conditions' => array(
+                        'u.campaign_id = IBeaconCoupons.campaign_id',
+                    ),
+                )
+            ),
+            'fields' => array(
+                'IBeaconCoupons.id as id',
+                'IBeaconCoupons.code as code',
+                'IBeaconCoupons.code as code',
+                'IBeaconCoupons.status as status',
+                'u.image_url as imageUrl',
+                'u.text as text',
+                'u.delivery_text as deliveryText',
+                'u.external_url as externalUrl',
+                'u.title as title',
+            ),
+            'conditions' => array(
+                'IBeaconCoupons.customer_id' => $customerId,
+                'IBeaconCoupons.campaign_id' => $campaignId
+            )
+        ));
+        $response = array();
+        foreach ($result as $cupon){
+            $response[] = array_merge($cupon['IBeaconCoupons'],$cupon['u']);
+        }
+        return $response;
+    }
 }
