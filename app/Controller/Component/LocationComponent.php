@@ -70,14 +70,14 @@ class LocationComponent extends APIComponent
         
         $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
         if(!empty($data)) {
-            $while_closed = (!empty($data['data']['transactions_while_closed'])) ? $data['data']['transactions_while_closed'] : '';
+            $while_closed = coalesce($data['data']['transactions_while_closed'], '');
             $open_total   = $while_closed == 'no' ? 'open' : 'total';
-            $timezone = (!empty($data['data']['timezone'])) ?  $data['data']['timezone'] : 'America/Los_Angeles';
+            $timezone = coalesce($data['data']['timezone'], 'America/Los_Angeles');
     
             $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id = $data['data']['register_filter'] " : '';
             $outlet_filter   = (!empty($data['data']['outlet_filter']) ? " AND i.outlet_id = $data['data']['outlet_filter'] " : '';
     
-            $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
+            $lightspeed_id = coalesce($data['data']['lightspeed_id'], 0);
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
     
             $oDb  = DBComponent::getInstance('invoices', 'pos');
@@ -253,10 +253,8 @@ SQL;
         }
         while ($start <= $end);
 
-        $register_filter = @$data['data']['register_filter'];
-        $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
-        $outlet_filter   = @$data['data']['outlet_filter'];
-        $outlet_filter   = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
+        $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id = $data['data']['register_filter'] " : '';
+        $outlet_filter   = (!empty($data['data']['outlet_filter'])) ?  " AND i.outlet_id = $outlet_filter " : '';
 
         $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
