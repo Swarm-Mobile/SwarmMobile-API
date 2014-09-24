@@ -74,8 +74,8 @@ class LocationComponent extends APIComponent
             $open_total   = $while_closed == 'no' ? 'open' : 'total';
             $timezone = coalesce($data['data']['timezone'], 'America/Los_Angeles');
     
-            $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id = $data['data']['register_filter'] " : '';
-            $outlet_filter   = (!empty($data['data']['outlet_filter']) ? " AND i.outlet_id = $data['data']['outlet_filter'] " : '';
+            $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id =" . $data['data']['register_filter'] . " " : '';
+            $outlet_filter   = (!empty($data['data']['outlet_filter'])) ? " AND i.outlet_id =" . $data['data']['outlet_filter']. " " : '';
     
             $lightspeed_id = coalesce($data['data']['lightspeed_id'], 0);
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -253,8 +253,8 @@ SQL;
         }
         while ($start <= $end);
 
-        $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id = $data['data']['register_filter'] " : '';
-        $outlet_filter   = (!empty($data['data']['outlet_filter'])) ?  " AND i.outlet_id = $outlet_filter " : '';
+        $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id =" . $data['data']['register_filter']. " " : '';
+        $outlet_filter   = (!empty($data['data']['outlet_filter'])) ?  " AND i.outlet_id =" . $data['data']['outlet_filter'] . " " : '';
 
         $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
         list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
@@ -273,8 +273,8 @@ SQL;
         $aRes = $oDb->fetchAll($sSQL);
 
         $result['data']['totals']['revenue'] += (!empty($aRes[0][0]['revenue'])) ? $aRes[0][0]['revenue'] : 0;
-        $result['data']['totals']['transactions'] += (!empty($aRes[0][0]['transactions']) ? $aRes[0][0]['transactions'] : 0;
-        $result['data']['totals']['conversionRate'] += (!empty($aRes[0][0]['transactions']) ? $aRes[0][0]['transactions'] : 0;
+        $result['data']['totals']['transactions'] += (!empty($aRes[0][0]['transactions'])) ? $aRes[0][0]['transactions'] : 0;
+        $result['data']['totals']['conversionRate'] += (!empty($aRes[0][0]['transactions'])) ? $aRes[0][0]['transactions'] : 0;
 
         $oDb  = DBComponent::getInstance('visitorEvent', 'portal');
         $sSQL = <<<SQL
