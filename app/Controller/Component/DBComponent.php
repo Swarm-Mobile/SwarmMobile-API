@@ -12,15 +12,11 @@ class DBComponent {
             }
             return self::$instances[$instance];
         } catch (Exception $e) {
-            if ($instance == 'swarmdataRead') {
-                return self::getInstance($table, 'swarmdata');
-            } else {
-                throw new Exception(
-                    'Database instance '.$instance.' couldn\'t be created', 
-                    $e->getCode(), 
-                    $e->getPrevious()
-                );
-            }
+            throw new Exception(
+                'Database instance '.$instance.' couldn\'t be created', 
+                $e->getCode(), 
+                $e->getPrevious()
+            );
         }
     }
 
