@@ -431,7 +431,7 @@ SQL;
      * @return Array
      */
     public function getEmailPrefs($locationIds = [])
-    {   
+    {
         $ret = [];
         if(empty($locationIds)) return [];
         $oDb  = DBComponent::getInstance('user_location_report', 'backstage');
@@ -441,17 +441,20 @@ FROM user_location_report
 WHERE location_id=:location_id
 SQL;
         foreach ($locationIds as $locationId) {
-            $reports = $oDb->fetchAll($sSQL, [':location_id' => $locationId])[0]['user_location_report'];
-            $str = '';
-            if ($reports['daily'])    $str .= 'daily,';
-            if ($reports['weekly'])   $str .= 'weekly,';
-            if ($reports['monthly'])  $str .= 'monthly,';
-            if (empty($str))  {
-                $str .= 'none';
-            } else {
-                $str = substr($str, 0 , -1);
+            $data = $oDb->fetchAll($sSQL, [':location_id' => $locationId]);
+            if (!empty($data[0]['user_location_report'])) {
+                $reports = $data[0]['user_location_report'];
+                $str = '';
+                if ($reports['daily'])    $str .= 'daily,';
+                if ($reports['weekly'])   $str .= 'weekly,';
+                if ($reports['monthly'])  $str .= 'monthly,';
+                if (empty($str))  {
+                    $str .= 'none';
+                } else {
+                    $str = substr($str, 0 , -1);
+                }
+                $ret[$locationId] = $str;
             }
-            $ret[$locationId] = $str;
         }
         
         return $ret;
