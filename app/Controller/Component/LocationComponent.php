@@ -42,15 +42,6 @@ class LocationComponent extends APIComponent
         $revenue  = array ();
         $visitors = array ();
 
-        unset($params['month']);
-        unset($params['year']);
-        $params['start_date'] = $start_date;
-        $params['end_date']   = $end_date;
-
-        $slave_params = $params;
-        $while_closed = $data['data']['transactions_while_closed'];
-        $open_total   = $while_closed == 'no' ? 'open' : 'total';
-
         $result = [
             'data'    => [
                 'breakdown' => [],
@@ -70,20 +61,27 @@ class LocationComponent extends APIComponent
                 'location_id' => $params['location_id']
             ]
         ];
+        unset($params['month']);
+        unset($params['year']);
+        $params['start_date'] = $start_date;
+        $params['end_date']   = $end_date;
 
+        $slave_params = $params;
+        
         $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-        $timezone = $data['data']['timezone'];
-
-        $register_filter = @$data['data']['register_filter'];
-        $register_filter = (!empty($register_filter)) ? " AND i.register_id = $register_filter " : '';
-        $outlet_filter   = @$data['data']['outlet_filter'];
-        $outlet_filter   = (!empty($outlet_filter)) ? " AND i.outlet_id = $outlet_filter " : '';
-
-        $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
-        list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
-
-        $oDb  = DBComponent::getInstance('invoices', 'pos');
-        $sSQL = <<<SQL
+        if(!empty($data)) {
+            $while_closed = (!empty($data['data']['transactions_while_closed'])) ? $data['data']['transactions_while_closed'] : '';
+            $open_total   = $while_closed == 'no' ? 'open' : 'total';
+            $timezone = (!empty($data['data']['timezone'])) ?  $data['data']['timezone'] : 'America/Los_Angeles';
+    
+            $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id = $data['data']['register_filter'] " : '';
+            $outlet_filter   = (!empty($data['data']['outlet_filter']) ? " AND i.outlet_id = $data['data']['outlet_filter'] " : '';
+    
+            $lightspeed_id = (empty($data['data']['lightspeed_id'])) ? 0 : $data['data']['lightspeed_id'];
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+    
+            $oDb  = DBComponent::getInstance('invoices', 'pos');
+            $sSQL = <<<SQL
 SELECT SUM(total) as revenue, count(*) as transactions, date(ts) as date
 FROM invoices i
 WHERE store_id = $lightspeed_id
@@ -95,10 +93,10 @@ WHERE store_id = $lightspeed_id
 GROUP BY date(ts)
 ORDER BY date ASC
 SQL;
-        $aPOS = $oDb->fetchAll($sSQL);
-
-        $oDb     = DBComponent::getInstance('visitorEvent', 'portal');
-        $sSQL    = <<<SQL
+            $aPOS = $oDb->fetchAll($sSQL);
+    
+            $oDb     = DBComponent::getInstance('visitorEvent', 'portal');
+            $sSQL    = <<<SQL
 SELECT SUM(entered) as visitors, date(ts) as date
 FROM visitorEvent
 WHERE location_id = {$params['location_id']}
@@ -106,79 +104,80 @@ WHERE location_id = {$params['location_id']}
 GROUP BY date(ts)
 ORDER BY date ASC
 SQL;
-        $aPortal = $oDb->fetchAll($sSQL);
-
-        $days  = ['byWeek' => [], 'total' => 0];
-        $weeks = [];
-        do {
-            $transactions             = 0;
-            $revenue                  = 0;
-            $visitors                 = 0;
-            $slave_params['end_date'] = $slave_params['start_date'];
-
-            foreach ($aPOS as $k => $oRow) {
-                if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
-                    $revenue      = $oRow[0]['revenue'];
-                    $transactions = $oRow[0]['transactions'];
-                    unset($aPOS[$k]);
-                    break;
+            $aPortal = $oDb->fetchAll($sSQL);
+    
+            $days  = ['byWeek' => [], 'total' => 0];
+            $weeks = [];
+            do {
+                $transactions             = 0;
+                $revenue                  = 0;
+                $visitors                 = 0;
+                $slave_params['end_date'] = $slave_params['start_date'];
+    
+                foreach ($aPOS as $k => $oRow) {
+                    if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
+                        $revenue      = $oRow[0]['revenue'];
+                        $transactions = $oRow[0]['transactions'];
+                        unset($aPOS[$k]);
+                        break;
+                    }
                 }
-            }
-            foreach ($aPortal as $k => $oRow) {
-                if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
-                    $visitors = $oRow[0]['visitors'];
-                    unset($aPortal[$k]);
-                    break;
+                foreach ($aPortal as $k => $oRow) {
+                    if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
+                        $visitors = $oRow[0]['visitors'];
+                        unset($aPortal[$k]);
+                        break;
+                    }
                 }
+    
+                $days['total'] ++;
+    
+                if (!isset($days['byWeek'][date_format($start, 'W')])) {
+                    $days['byWeek'][date_format($start, 'W')] = 0;
+                    $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
+                }
+                $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
+    
+                $days['byWeek'][date_format($start, 'W')] ++;
+                if (!isset($result['data']['breakdown'][date_format($start, 'W')])) {
+                    $result['data']['breakdown'][date_format($start, 'W')] = [
+                        'revenue'                => 0,
+                        'visitors'               => 0,
+                        'conversionRate'         => 0,
+                        'avgRevenueDaily'        => 0,
+                        'avgVisitorsDaily'       => 0,
+                        'avgConversionRateDaily' => 0
+                    ];
+                }
+                $result['data']['breakdown'][date_format($start, 'W')]['revenue'] += $revenue;
+                $result['data']['breakdown'][date_format($start, 'W')]['visitors'] += $visitors;
+                $result['data']['breakdown'][date_format($start, 'W')]['conversionRate'] += $transactions;
+                $result['data']['totals']['revenue'] += $revenue;
+                $result['data']['totals']['visitors'] += $visitors;
+                $result['data']['totals']['conversionRate'] += $transactions;
+    
+                date_add($start, date_interval_create_from_date_string('1 days'));
+                $slave_params['start_date'] = date_format($start, 'Y-m-d');
             }
-
-            $days['total'] ++;
-
-            if (!isset($days['byWeek'][date_format($start, 'W')])) {
-                $days['byWeek'][date_format($start, 'W')] = 0;
-                $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
+            while ($start <= $end);
+    
+            foreach ($days['byWeek'] as $w => $c) {
+                $result['data']['breakdown'][$w]['start_date']       = $weeks[$w]['start'];
+                $result['data']['breakdown'][$w]['end_date']         = $weeks[$w]['end'];
+                $result['data']['breakdown'][$w]['avgRevenueDaily']  = round($result['data']['breakdown'][$w]['revenue'] / coalesce($c, 1), 2);
+                $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / coalesce($c, 1), 2);
+    
+                $result['data']['breakdown'][$w]['avgConversionRateDaily'] = $result['data']['breakdown'][$w]['conversionRate'] / coalesce($c, 1)  ;
+                $result['data']['breakdown'][$w]['avgConversionRateDaily'] = min([100, round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / coalesce($result['data']['breakdown'][$w]['avgVisitorsDaily'], 1)) * 100, 2)]);
+                $result['data']['breakdown'][$w]['conversionRate']         = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
             }
-            $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
-
-            $days['byWeek'][date_format($start, 'W')] ++;
-            if (!isset($result['data']['breakdown'][date_format($start, 'W')])) {
-                $result['data']['breakdown'][date_format($start, 'W')] = [
-                    'revenue'                => 0,
-                    'visitors'               => 0,
-                    'conversionRate'         => 0,
-                    'avgRevenueDaily'        => 0,
-                    'avgVisitorsDaily'       => 0,
-                    'avgConversionRateDaily' => 0
-                ];
-            }
-            $result['data']['breakdown'][date_format($start, 'W')]['revenue'] += $revenue;
-            $result['data']['breakdown'][date_format($start, 'W')]['visitors'] += $visitors;
-            $result['data']['breakdown'][date_format($start, 'W')]['conversionRate'] += $transactions;
-            $result['data']['totals']['revenue'] += $revenue;
-            $result['data']['totals']['visitors'] += $visitors;
-            $result['data']['totals']['conversionRate'] += $transactions;
-
-            date_add($start, date_interval_create_from_date_string('1 days'));
-            $slave_params['start_date'] = date_format($start, 'Y-m-d');
+            $result['data']['totals']['conversionRate']   = min([100, $result['data']['totals']['conversionRate'] / coalesce($result['data']['totals']['visitors'], 1)]);
+            $result['data']['totals']['avgRevenueDaily']  = round($result['data']['totals']['revenue'] / coalesce($days['total'], 1), 2);
+            $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / coalesce($days['total'], 1), 2);
+    
+            $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / coalesce($days['total'], 1);
+            $result['data']['totals']['avgConversionRateDaily'] = min([100, round(($result['data']['totals']['avgConversionRateDaily'] / coalesce($result['data']['breakdown'][$w]['avgVisitorsDaily'], 1)) * 100, 2)]);
         }
-        while ($start <= $end);
-
-        foreach ($days['byWeek'] as $w => $c) {
-            $result['data']['breakdown'][$w]['start_date']       = $weeks[$w]['start'];
-            $result['data']['breakdown'][$w]['end_date']         = $weeks[$w]['end'];
-            $result['data']['breakdown'][$w]['avgRevenueDaily']  = round($result['data']['breakdown'][$w]['revenue'] / coalesce($c, 1), 2);
-            $result['data']['breakdown'][$w]['avgVisitorsDaily'] = round($result['data']['breakdown'][$w]['visitors'] / coalesce($c, 1), 2);
-
-            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = $result['data']['breakdown'][$w]['conversionRate'] / coalesce($c, 1)  ;
-            $result['data']['breakdown'][$w]['avgConversionRateDaily'] = min([100, round(($result['data']['breakdown'][$w]['avgConversionRateDaily'] / coalesce($result['data']['breakdown'][$w]['avgVisitorsDaily'], 1)) * 100, 2)]);
-            $result['data']['breakdown'][$w]['conversionRate']         = $result['data']['breakdown'][$w]['avgConversionRateDaily'];
-        }
-        $result['data']['totals']['conversionRate']   = min([100, $result['data']['totals']['conversionRate'] / coalesce($result['data']['totals']['visitors'], 1)]);
-        $result['data']['totals']['avgRevenueDaily']  = round($result['data']['totals']['revenue'] / coalesce($days['total'], 1), 2);
-        $result['data']['totals']['avgVisitorsDaily'] = round($result['data']['totals']['visitors'] / coalesce($days['total'], 1), 2);
-
-        $result['data']['totals']['avgConversionRateDaily'] = $result['data']['totals']['conversionRate'] / coalesce($days['total'], 1);
-        $result['data']['totals']['avgConversionRateDaily'] = min([100, round(($result['data']['totals']['avgConversionRateDaily'] / coalesce($result['data']['breakdown'][$w]['avgVisitorsDaily'], 1)) * 100, 2)]);
         return $result;
     }
 
@@ -275,9 +274,9 @@ WHERE store_id = $lightspeed_id
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
 
-        $result['data']['totals']['revenue'] += $aRes[0][0]['revenue'];
-        $result['data']['totals']['transactions'] += $aRes[0][0]['transactions'];
-        $result['data']['totals']['conversionRate'] += $aRes[0][0]['transactions'];
+        $result['data']['totals']['revenue'] += (!empty($aRes[0][0]['revenue'])) ? $aRes[0][0]['revenue'] : 0;
+        $result['data']['totals']['transactions'] += (!empty($aRes[0][0]['transactions']) ? $aRes[0][0]['transactions'] : 0;
+        $result['data']['totals']['conversionRate'] += (!empty($aRes[0][0]['transactions']) ? $aRes[0][0]['transactions'] : 0;
 
         $oDb  = DBComponent::getInstance('visitorEvent', 'portal');
         $sSQL = <<<SQL
