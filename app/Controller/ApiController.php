@@ -212,6 +212,8 @@ class APIController extends AppController
     private function call_log ($component, $function, $request_method)
     {
         //return true;
+        // For now we just want to see post calls, and hence this check makes 
+        // sure that our call log does not grow exponentially
         if(empty($_POST)) return;
         $file = __DIR__ . '/../tmp/logs/api_calls/' . date('Y_m_d_h_i_s') .
                 '_' . strtoupper($request_method) . '_' . $component . '_' . $function;
