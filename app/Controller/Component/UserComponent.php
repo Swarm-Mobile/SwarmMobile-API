@@ -442,7 +442,7 @@ WHERE location_id=:location_id
 SQL;
         foreach ($locationIds as $locationId) {
             $data = $oDb->fetchAll($sSQL, [':location_id' => $locationId]);
-            if (!empty($data[0]['user_location_report'])) {
+            if (!empty($data[0]) && !empty($data[0]['user_location_report'])) {
                 $reports = $data[0]['user_location_report'];
                 $str = '';
                 if ($reports['daily'])    $str .= 'daily,';
