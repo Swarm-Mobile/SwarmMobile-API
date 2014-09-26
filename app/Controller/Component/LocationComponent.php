@@ -36,7 +36,8 @@ FROM totals
 WHERE location_id = :location_id
 SQL;
         $data = [':location_id' => $locationId, ':firstSensorEventDate' => $firstSensorEventDate];
-        return $oDb->fetchAll($sSQL, $data);
+        $result = $oDb->fetchAll($sSQL, $data);
+        return (!empty($result)) ? $result : [];
     }
     
     private function getMonthlyTrafficTotal ($startDate, $endDate, $locationId, $locData, $metric)
@@ -67,7 +68,8 @@ SQL;
             ':end_date'    => $endDate,
             ':location_id' => $locationId 
         ];
-        return $oDb->fetchAll($sSQL, $data);
+        $result = $oDb->fetchAll($sSQL, $data);
+        return (!empty($result)) ? $result : [];
     }
 
     public function monthlyTotals ($params)
@@ -156,27 +158,34 @@ SQL;
                 $visitorsCR               = 0;
                 $slave_params['end_date'] = $slave_params['start_date'];
     
-                foreach ($aPOS as $k => $oRow) {
-                    if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
-                        $revenue      = $oRow[0]['revenue'];
-                        $transactions = $oRow[0]['transactions'];
-                        unset($aPOS[$k]);
-                        break;
+                if(!empty($aPOS) && is_array($aPOS)) {
+                    foreach ($aPOS as $k => $oRow) {
+                        if ((!empty($oRow[0])) && isset($oRow[0]['date']) && $oRow[0]['date'] == date_format($start, 'Y-m-d')) {
+                            $revenue      = $oRow[0]['revenue'];
+                            $transactions = $oRow[0]['transactions'];
+                            unset($aPOS[$k]);
+                            break;
+                        }
                     }
                 }
-                foreach ($aTraffic as $k => $oRow) {
-                    if ($oRow['totals']['date'] == date_format($start, 'Y-m-d')) {
-                        $visitors = $oRow['totals']['visitors'];
-                        unset($aTraffic[$k]);
-                        break;
+                
+                if(!empty($aTraffic) && is_array($aTraffic)) {
+                    foreach ($aTraffic as $k => $oRow) {
+                        if ((!empty($oRow['totals'])) && isset($oRow['totals']['date']) && $oRow['totals']['date'] == date_format($start, 'Y-m-d')) {
+                            $visitors = $oRow['totals']['visitors'];
+                            unset($aTraffic[$k]);
+                            break;
+                        }
                     }
                 }
-    
-                foreach ($aTrafficCR as $k => $oRow) {
-                    if ($oRow['totals']['date'] == date_format($start, 'Y-m-d')) {
-                        $visitorsCR = $oRow['totals']['visitors'];
-                        unset($aTrafficCR[$k]);
-                        break;
+
+                if(!empty($aTrafficCR) && is_array($aTrafficCR)) {
+                    foreach ($aTrafficCR as $k => $oRow) {
+                        if ($oRow['totals']['date'] == date_format($start, 'Y-m-d')) {
+                            $visitorsCR = $oRow['totals']['visitors'];
+                            unset($aTrafficCR[$k]);
+                            break;
+                        }
                     }
                 }
 
@@ -331,7 +340,7 @@ WHERE store_id = $lightspeed_id
   AND ts BETWEEN '$start_date' AND '$end_date'
 SQL;
         $aRes = $oDb->fetchAll($sSQL);
-
+        $aRes = (!empty($aRes)) ? $aRes : [];
         $result['data']['totals']['revenue'] += (!empty($aRes[0][0]['revenue'])) ? $aRes[0][0]['revenue'] : 0;
         $result['data']['totals']['transactions'] += (!empty($aRes[0][0]['transactions'])) ? $aRes[0][0]['transactions'] : 0;
         $result['data']['totals']['conversionRate'] += (!empty($aRes[0][0]['transactions'])) ? $aRes[0][0]['transactions'] : 0;
