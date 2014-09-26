@@ -50,7 +50,7 @@ SQL;
         $timezone = coalesce($data['data']['timezone'], 'America/Los_Angeles');
         $tmp = '';
         if ($default == 'portal') {
-            $tmp = " IF(`date` >= $firstPortalEventDate, portalTraffic, presenceTraffic) ";
+            $tmp = " IF(`date` >= :firstPortalEventDate, portalTraffic, presenceTraffic) ";
         } else {
             $tmp = ' presenceTraffic ';
         }
@@ -66,7 +66,8 @@ SQL;
         $data = [
             ':start_date'  => $startDate,
             ':end_date'    => $endDate,
-            ':location_id' => $locationId 
+            ':location_id' => $locationId,
+            ':firstPortalEventDate' => $firstPortalEventDate
         ];
         $result = $oDb->fetchAll($sSQL, $data);
         return (!empty($result)) ? $result : [];
