@@ -131,12 +131,14 @@ class IBeaconCouponsController  extends IBeaconController {
                     $LocationIdentifier['minor']
             );
             foreach ($locations as $location){
-                if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])){
-                    $deviceCoordinateModel->addNew(
-                            $LocationIdentifier['latitude'],
-                            $LocationIdentifier['longitude'],
-                            $location['d']['id']
-                    );
+                if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])) {
+                    if(!empty($LocationIdentifier['latitude']) && $LocationIdentifier['longitude'] && !empty($location['d']['id'])) {
+                        $deviceCoordinateModel->addNew(
+                                $LocationIdentifier['latitude'],
+                                $LocationIdentifier['longitude'],
+                                $location['d']['id']
+                        );
+                    }
                     unset($location['d']['id']);
                     $location = array_merge($LocationIdentifier,$location['IBeaconLocation']);
                     $brands = $locationModel->findBrandById($location['id']);
