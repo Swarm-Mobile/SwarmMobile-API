@@ -132,7 +132,7 @@ class IBeaconCouponsController  extends IBeaconController {
             );
             foreach ($locations as $location){
                 if(isset($location['IBeaconLocation']) && !empty($location['IBeaconLocation'])) {
-                    if(!empty($LocationIdentifier['latitude']) && $LocationIdentifier['longitude'] && !empty($location['d']['id'])) {
+                    if(!empty($LocationIdentifier['latitude']) && !empty($LocationIdentifier['longitude']) && !empty($location['d']['id'])) {
                         $deviceCoordinateModel->addNew(
                                 $LocationIdentifier['latitude'],
                                 $LocationIdentifier['longitude'],
