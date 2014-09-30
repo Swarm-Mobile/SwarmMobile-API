@@ -36,8 +36,9 @@ class APIComponent {
         $this->api->request = $request;
         $this->api->cache = $this->cache;
         $this->api->rollups = $this->rollups;
-
-        $date = new DateTime(date('Y-m-01 00:00:00'));
+        
+        $UTC = new DateTimeZone("UTC");
+        $date = new DateTime(date('Y-m-01 00:00:00'), $UTC);
         date_sub($date, date_interval_create_from_date_string('4 months'));
         $this->archive_end_date = date_format($date, 'Y-m-d');
         date_sub($date, date_interval_create_from_date_string('8 months'));
