@@ -70,14 +70,14 @@ class LocationComponent extends APIComponent
         
         $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
         if(!empty($data)) {
-            $while_closed = coalesce($data['data']['transactions_while_closed'], '');
+            $while_closed = (!empty($data['data']['transactions_while_closed'])) ? $data['data']['transactions_while_closed'] : '';
             $open_total   = $while_closed == 'no' ? 'open' : 'total';
-            $timezone = coalesce($data['data']['timezone'], 'America/Los_Angeles');
+            $timezone = (!empty($data['data']['timezone'])) ?  $data['data']['timezone'] : 'America/Los_Angeles';
     
             $register_filter = (!empty($data['data']['register_filter'])) ? " AND i.register_id =" . $data['data']['register_filter'] . " " : '';
             $outlet_filter   = (!empty($data['data']['outlet_filter'])) ? " AND i.outlet_id =" . $data['data']['outlet_filter']. " " : '';
     
-            $lightspeed_id = coalesce($data['data']['lightspeed_id'], 0);
+            $lightspeed_id = (!empty($data['data']['lightspeed_id'])) ? $data['data']['lightspeed_id'] : 0;
             list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
     
             $oDb  = DBComponent::getInstance('invoices', 'pos');
@@ -113,34 +113,41 @@ SQL;
                 $revenue                  = 0;
                 $visitors                 = 0;
                 $slave_params['end_date'] = $slave_params['start_date'];
-    
-                foreach ($aPOS as $k => $oRow) {
-                    if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
-                        $revenue      = $oRow[0]['revenue'];
-                        $transactions = $oRow[0]['transactions'];
-                        unset($aPOS[$k]);
-                        break;
+                $startYMD = date_format($start, 'Y-m-d');
+                $startW   = date_format($start, 'W');
+                
+                if(!empty($aPOS)) {
+                    foreach ($aPOS as $k => $oRow) {
+                        if ($oRow[0]['date'] == $startYMD) {
+                            $revenue      = $oRow[0]['revenue'];
+                            $transactions = $oRow[0]['transactions'];
+                            unset($aPOS[$k]);
+                            break;
+                        }
                     }
                 }
-                foreach ($aPortal as $k => $oRow) {
-                    if ($oRow[0]['date'] == date_format($start, 'Y-m-d')) {
-                        $visitors = $oRow[0]['visitors'];
-                        unset($aPortal[$k]);
-                        break;
+                
+                if(!empty($aPortal)) {
+                    foreach ($aPortal as $k => $oRow) {
+                        if ($oRow[0]['date'] == $startYMD) {
+                            $visitors = $oRow[0]['visitors'];
+                            unset($aPortal[$k]);
+                            break;
+                        }
                     }
                 }
     
                 $days['total'] ++;
     
-                if (!isset($days['byWeek'][date_format($start, 'W')])) {
-                    $days['byWeek'][date_format($start, 'W')] = 0;
-                    $weeks[date_format($start, 'W')]['start'] = date_format($start, 'Y-m-d');
+                if (!isset($days['byWeek'][$startW])) {
+                    $days['byWeek'][$startW] = 0;
+                    $weeks[$startW]['start'] = $startYMD;
                 }
-                $weeks[date_format($start, 'W')]['end'] = date_format($start, 'Y-m-d');
+                $weeks[$startW]['end'] = $startYMD;
     
-                $days['byWeek'][date_format($start, 'W')] ++;
-                if (!isset($result['data']['breakdown'][date_format($start, 'W')])) {
-                    $result['data']['breakdown'][date_format($start, 'W')] = [
+                $days['byWeek'][$startW] ++;
+                if (!isset($result['data']['breakdown'][$startW])) {
+                    $result['data']['breakdown'][$startW] = [
                         'revenue'                => 0,
                         'visitors'               => 0,
                         'conversionRate'         => 0,
@@ -149,9 +156,9 @@ SQL;
                         'avgConversionRateDaily' => 0
                     ];
                 }
-                $result['data']['breakdown'][date_format($start, 'W')]['revenue'] += $revenue;
-                $result['data']['breakdown'][date_format($start, 'W')]['visitors'] += $visitors;
-                $result['data']['breakdown'][date_format($start, 'W')]['conversionRate'] += $transactions;
+                $result['data']['breakdown'][$startW]['revenue'] += $revenue;
+                $result['data']['breakdown'][$startW]['visitors'] += $visitors;
+                $result['data']['breakdown'][$startW]['conversionRate'] += $transactions;
                 $result['data']['totals']['revenue'] += $revenue;
                 $result['data']['totals']['visitors'] += $visitors;
                 $result['data']['totals']['conversionRate'] += $transactions;
@@ -190,6 +197,7 @@ SQL;
             'data'    => [
                 'totals' => [
                     'revenue'                  => 0,
+                    'transactions'             => 0, 
                     'visitors'                 => 0,
                     'conversionRate'           => 0,
                     'avgRevenueDaily'          => 0,

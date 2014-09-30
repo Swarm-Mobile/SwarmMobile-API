@@ -30,9 +30,9 @@ class OAuthController extends OAuthAppController {
         parent::beforeFilter();
         $this->OAuth->authenticate = array('fields' => array('username' => 'email'));
         $this->Auth->allow($this->OAuth->allowedActions);
-        if (!isset($this->Security)) {
-            $this->Security->blackHoleCallback = 'blackHole';
-        }
+        //if (isset($this->Security)) {
+        //    $this->Security->blackHoleCallback = 'blackHole';
+        //}
     }
 
     /**
