@@ -197,6 +197,7 @@ SQL;
             'data'    => [
                 'totals' => [
                     'revenue'                  => 0,
+                    'transactions'             => 0, 
                     'visitors'                 => 0,
                     'conversionRate'           => 0,
                     'avgRevenueDaily'          => 0,
