@@ -14,7 +14,7 @@ class CustomerController extends AppController
 
     public function customer ()
     {
-        $this->autoRender = false;
+        $this->layout = 'blank';
         $customerId       = $this->request->params['id'];
         $customer         = $this->Customer->find('first', ['conditions' => ['Customer.customer_id' => $customerId]]);
         try {
@@ -61,33 +61,35 @@ class CustomerController extends AppController
         catch (InvalidArgumentException $e) {
             $result = ['error' => $e->getMessage()];
         }
-        echo json_encode($result);
+        $this->set('result',$result);
+        $this->render('/API/json');
     }
 
     public function customers ()
     {
-        $this->autoRender = false;
-        $locationId       = $this->params->query['location_id'];
+        $this->layout = 'blank';
+        $locationId   = $this->params->query['location_id'];
         try {
-            if (!ValidatorComponent::isPositiveInt($locationId)) {
-                throw new InvalidArgumentException('location_id must be a positive integer.');
-            }
-            $this->Location->read(null, $locationId);
+            $this->Location->read(null, $locationId);            
             if (empty($this->Location->data)) {
                 throw new InvalidArgumentException("Incorrect location_id");
             }
+            
             $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
-
-            $order  = coalesce($this->params['order'], 'last_seen');
-            $limit  = coalesce($this->params['limit'], 25);
-            $page   = coalesce($this->params['page'], 1);
+            if (empty($storeId)) {
+                throw new InvalidArgumentException("Incorrect location_id");
+            }         
+            
+            $p         = $this->params->query;     
+            $order  = isset($p['order']) ? $p['order'] : 'last_seen';
+            $limit  = isset($p['limit']) ? $p['limit'] : 25;
+            $page   = isset($p['page'])  ? $p['page']  : 1;
             $offset = ($page > 1) ? $page * $limit : 0;
 
-            $p         = $this->params->query;
-            $filters   = array_filter([
+            $filters   = array_filter([                               
                 'visit'       => isset($p['minVisits'])       ? $p['minVisits']       : false,
                 'sku'         => isset($p['sku'])             ? $p['sku']             : false,
-                'class'       => isset($p['class'])           ? $p['class']           : false,
+                'category'    => isset($p['category'])        ? $p['category']        : false,
                 'hasEmail'    => isset($p['hasEmail'])        ? $p['hasEmail']        : false,
                 'transaction' => isset($p['minTransactions']) ? $p['minTransactions'] : false,
                 'amount'      => isset($p['minAmount'])       ? $p['minAmount']       : false,
@@ -107,19 +109,17 @@ class CustomerController extends AppController
                         'fullname'        => trim($customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname']),
                         'email'           => $customer['Customer']['email'],
                         'transactions'    => $customer[0]['transactions'],
-                        'amount'          => $customer[0]['amount'],
+                        'amount'          => round($customer[0]['amount'],2),
                         'last_seen'       => $customer[0]['last_seen']
                     ];
                 }
             }
-        }
+        }        
         catch (InvalidArgumentException $e) {
             $result = ['error' => $e->getMessage()];
         }
-        echo json_encode($result);
-                        foreach($this->Customer->getDataSource()->getLog()['log'] as $query){
-            echo nl2br($query['query']);
-        }
+        $this->set('result',$result);
+        $this->render('/API/json');
     }
 
     public function beforeFilter ()

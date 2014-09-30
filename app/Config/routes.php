@@ -13,8 +13,11 @@ Router::connect('/admin'            ,['controller' => 'admin', 'action' => 'home
 Router::connect('/server_health/ok' ,['controller' => 'serverHealth', 'action' => 'ok']);
 
 
-Router::connect('/customer/:id'     , ['controller' => 'Customer', 'action' => 'customer'], ['id'=>'[0-9]+']);
-Router::connect('/customers'        , ['controller' => 'Customer', 'action' => 'customers']);
+Router::connect('/customer/:id'                     , ['controller' => 'Customer', 'action' => 'customer'], ['id'=>'[0-9]+']);
+Router::connect('/customers'                        , ['controller' => 'Customer', 'action' => 'customers']);
+Router::connect('/brands/:location_id'              , ['controller' => 'Brand', 'action' => 'brands'], ['location_id'=>'[0-9]+']);
+Router::connect('/categories/:location_id'          , ['controller' => 'Category', 'action' => 'categories'], ['location_id'=>'[0-9]+']);
+Router::connect('/location/highlights/:location_id' , ['controller' => 'Location', 'action' => 'highlights'], ['location_id'=>'[0-9]+']);
 
 Router::connect('/*',['controller' => 'api', 'action' => 'index']);
 /**

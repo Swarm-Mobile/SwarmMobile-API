@@ -75,7 +75,7 @@ class Customer extends AppModel
         $this->searchJoins['product']['conditions']['Product.sku']      = $sku;
     }
 
-    private function _filterByClass ($class)
+    private function _filterByCategory ($class)
     {        
         $this->joinsToProcess[]                                           = 'invoice_line';
         $this->joinsToProcess[]                                           = 'product';
@@ -97,7 +97,7 @@ class Customer extends AppModel
             throw new InvalidArgumentException('hasEmail must be boolean.');
         }
         if ($hasEmail) {            
-            $this->searchQuery['joins'][0]['conditions']['Invoice.email !='] = ['',null];            
+            $this->searchQuery['joins'][0]['conditions']['Invoice.email !='] = [''];            
         }
     }
 
@@ -138,12 +138,12 @@ class Customer extends AppModel
         $this->joinsToProcess   = [];
         $this->havingsToProcess = [];
         foreach ($filters as $k => $v) {
-            switch ($k) {
+            switch ($k) {                
                 case 'outlet'       : $this->_filterOutlet($v)          ; break;
                 case 'register'     : $this->_filterRegister($v)        ; break;
                 case 'visit'        : $this->_filterMinVisits($v)       ; break;
                 case 'sku'          : $this->_filterBySKU($v)           ; break;
-                case 'class'        : $this->_filterByClass($v)         ; break;
+                case 'category'     : $this->_filterByCategory($v)      ; break;
                 case 'hasEmail'     : $this->_filterHasEmail($v)        ; break;
                 case 'transaction'  : $this->_filterMinTransactions($v) ; break;
                 case 'amount'       : $this->_filterMinAmount($v)       ; break;
