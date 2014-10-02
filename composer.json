@@ -1,0 +1,21 @@
+{
+    "name": "swarm-mobile/api",
+    "description": "api.swarm-mobile.com",
+    "type": "project",
+    "license": "proprietary",
+    "keywords": [
+        "swarm",
+        "api"
+    ],
+    "homepage": "http://dashboard.swarm-mobile.com/",
+    "support": {
+        "email": "dev@swarm-mobile.com",
+        "source": "https://github.com/Swarm-Mobile/API"
+    },
+    "config": {
+        "process-timeout": 5000
+    },
+    "require": {
+        "aws/aws-sdk-php": "2.*"
+    }
+}
