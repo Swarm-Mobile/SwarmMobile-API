@@ -50,7 +50,7 @@ class CustomerController extends AppController
                 ];
                 foreach ($invoice['InvoiceLine'] as $line) {
                     $transaction['lines'][] = [
-                        'description' => $line['description'],
+                        'description' => ucwords(strtolower($line['description'])),
                         'quantity'    => $line['quantity'],
                         'price'       => $line['price']
                     ];

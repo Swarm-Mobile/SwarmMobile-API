@@ -35,7 +35,7 @@ class CategoryController extends AppController
             $result = [];
             if (!empty($categories)) {
                 foreach ($categories as $category) {                    
-                    $result[] = $category['Category']['name'];
+                    $result[] = ucwords(strtolower($category['Category']['name']));
                 }
             }
         }
