@@ -14,7 +14,7 @@ class DATABASE_CONFIG
     public $local         = array (
         'oauth'         => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'localhost',
             'login'      => 'root',
             'password'   => 'vagrant',
@@ -23,7 +23,7 @@ class DATABASE_CONFIG
         ),
         'ee'            => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'localhost',
             'login'      => 'root',
             'password'   => 'vagrant',
@@ -32,7 +32,7 @@ class DATABASE_CONFIG
         ),
         'pos'           => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'posdata-cda-import2.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'posadmin',
             'password'   => 'dUdEph94aR5fr6',
@@ -41,7 +41,7 @@ class DATABASE_CONFIG
         ),
 //        'pos'           => array (
 //            'datasource' => 'Database/Mysql',
-//            'persistent' => true,
+//            'persistent' => false,
 //            'host'       => 'localhost',
 //            'login'      => 'root',
 //            'password'   => 'vagrant',
@@ -50,7 +50,7 @@ class DATABASE_CONFIG
 //        ),
         'swarmdata'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'localhost',
             'login'      => 'root',
             'password'   => 'vagrant',
@@ -59,7 +59,7 @@ class DATABASE_CONFIG
         ),
         'backstage'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'localhost',
             'login'      => 'root',
             'password'   => 'vagrant',
@@ -68,7 +68,7 @@ class DATABASE_CONFIG
         ),
         'portal'        => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'localhost',
             'login'      => 'root',
             'password'   => 'vagrant',
@@ -77,7 +77,7 @@ class DATABASE_CONFIG
         ),
         'rollups'       => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'localhost',
             'login'      => 'root',
             'password'   => 'vagrant',
@@ -88,7 +88,7 @@ class DATABASE_CONFIG
     public $staging       = array (
         'oauth'         => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -97,7 +97,7 @@ class DATABASE_CONFIG
         ),
         'ee'            => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -106,7 +106,7 @@ class DATABASE_CONFIG
         ),
         'pos'           => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -115,7 +115,7 @@ class DATABASE_CONFIG
         ),
         'swarmdata'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -124,7 +124,7 @@ class DATABASE_CONFIG
         ),
         'backstage'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'backstage-staging.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -133,7 +133,7 @@ class DATABASE_CONFIG
         ),
         'portal'        => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-device-data.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarm_admin',
             'password'   => '+uPaSeQeru5a',
@@ -142,7 +142,7 @@ class DATABASE_CONFIG
         ),
         'rollups'       => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmrollups',
             'password'   => 'f4uwrapR',
@@ -153,7 +153,7 @@ class DATABASE_CONFIG
     public $int           = array (
         'oauth'         => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -162,7 +162,7 @@ class DATABASE_CONFIG
         ),
         'ee'            => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -171,7 +171,7 @@ class DATABASE_CONFIG
         ),
         'pos'           => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -180,7 +180,7 @@ class DATABASE_CONFIG
         ),
         'swarmdata'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -189,7 +189,7 @@ class DATABASE_CONFIG
         ),
         'backstage'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-int.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdev',
             'password'   => 'dev2DaMax',
@@ -198,7 +198,7 @@ class DATABASE_CONFIG
         ),
         'portal'        => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-device-data.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarm_admin',
             'password'   => '+uPaSeQeru5a',
@@ -207,7 +207,7 @@ class DATABASE_CONFIG
         ),
         'rollups'       => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => '',
             'password'   => '',
@@ -218,7 +218,7 @@ class DATABASE_CONFIG
     public $live          = array (
         'oauth'         => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -227,7 +227,7 @@ class DATABASE_CONFIG
         ),
         'ee'            => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -236,7 +236,7 @@ class DATABASE_CONFIG
         ),
         'pos'           => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmposdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'posadmin',
             'password'   => 'dUdEph94aR5fr6',
@@ -245,7 +245,7 @@ class DATABASE_CONFIG
         ),
         'swarmdata'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdata',
             'password'   => '4Ha2Rap4ePHe',
@@ -254,7 +254,7 @@ class DATABASE_CONFIG
         ),
         'backstage'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -263,7 +263,7 @@ class DATABASE_CONFIG
         ),
         'portal'        => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-device-data.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarm_admin',
             'password'   => '+uPaSeQeru5a',
@@ -272,7 +272,7 @@ class DATABASE_CONFIG
         ),
         'rollups'       => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-rollups.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmrollups',
             'password'   => 'f4uwrapR',
@@ -283,7 +283,7 @@ class DATABASE_CONFIG
     public $hex           = array (
         'oauth'         => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -292,7 +292,7 @@ class DATABASE_CONFIG
         ),
         'ee'            => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmproduction.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'dashboard_admin',
             'password'   => 'Sp!swa5u',
@@ -301,7 +301,7 @@ class DATABASE_CONFIG
         ),
         'pos'           => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmposdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'posadmin',
             'password'   => 'dUdEph94aR5fr6',
@@ -310,7 +310,7 @@ class DATABASE_CONFIG
         ),
         'swarmdata'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarmdata.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarmdata',
             'password'   => '4Ha2Rap4ePHe',
@@ -319,7 +319,7 @@ class DATABASE_CONFIG
         ),
         'backstage'     => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarm_ios',
             'password'   => 'F6gatRad',
@@ -328,7 +328,7 @@ class DATABASE_CONFIG
         ),
         'portal'        => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-device-data.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarm_admin',
             'password'   => '+uPaSeQeru5a',
@@ -337,7 +337,7 @@ class DATABASE_CONFIG
         ),
         'rollups'       => array (
             'datasource' => 'Database/Mysql',
-            'persistent' => true,
+            'persistent' => false,
             'host'       => 'swarm-hex.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
             'login'      => 'swarm_ios',
             'password'   => 'F6gatRad',

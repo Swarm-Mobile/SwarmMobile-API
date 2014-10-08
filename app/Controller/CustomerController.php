@@ -37,8 +37,9 @@ class CustomerController extends AppController
                 'conditions' => [
                     'Invoice.customer_id' => $customer['Customer']['ls_customer_id'],
                     'Invoice.store_id' => $customer['Customer']['store_id'],
-                    'Invoice.completed' => 1
-                ]
+                    'Invoice.completed' => 1                   
+                ],
+                'order' => 'Invoice.ts DESC'
             ]);            
             foreach ($invoices as $invoice) {
                 $transaction = [

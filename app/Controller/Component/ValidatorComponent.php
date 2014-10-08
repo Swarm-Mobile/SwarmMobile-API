@@ -28,4 +28,13 @@ class ValidatorComponent
         $d = DateTime::createFromFormat($format, $value);
         return $d && $d->format($format) == $value;
     }
+    
+    public static function isTimezone($value){
+        try{
+            new DateTimeZone($value);
+        }catch(Exception $e){
+            return false;
+        }
+        return true;
+    }
 }
