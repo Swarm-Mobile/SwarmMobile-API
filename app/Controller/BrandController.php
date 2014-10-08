@@ -35,7 +35,7 @@ class BrandController extends AppController
             $result = [];
             if (!empty($brands)) {
                 foreach ($brands as $brand) {                    
-                    $result[] = $brand['InvoiceLine']['family'];
+                    $result[] = ucwords(strtolower($brand['InvoiceLine']['family']));
                 }
             }
         }
