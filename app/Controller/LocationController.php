@@ -3,24 +3,21 @@ require_once __DIR__ . '/Component/CompressedFunctions.php';
 
 App::uses('Model', 'Model');
 App::uses('Invoice', 'Model');
-App::uses('Location', 'Model');
+App::uses('LocationSetting', 'Model');
 App::uses('ValidatorComponent', 'Controller/Component');
 
 class LocationController extends AppController
 {
 
-    public $uses = ['Invoice', 'Location'];
+    public $uses = ['Invoice', 'LocationSetting'];
 
     public function highlights ()
     {
-        $this->layout = 'blank';
+        $this->layout = 'blank';        
         $locationId   = $this->request->params['location_id'];
-        try {
-            $this->Location->read(null, $locationId);
-            if (empty($this->Location->data)) {
-                throw new InvalidArgumentException("Incorrect location_id");
-            }
-            $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
+        try {                                    
+            $storeId            = $this->LocationSetting->getSettingValue('pos_store_id', $locationId);
+            $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);            
             if (empty($storeId)) {
                 throw new InvalidArgumentException("Incorrect location_id");
             }
@@ -32,12 +29,12 @@ class LocationController extends AppController
             }
             if (!ValidatorComponent::isDate($endDate) || !$endDate) {
                 throw new InvalidArgumentException("End Date must be a valid yyyy-mm-dd date");
-            }            
+            }
             $result = array_filter([
-                'Biggest Ticket' => $this->Invoice->biggestTicket($storeId, $startDate, $endDate),
-                'Best Hour'      => $this->Invoice->bestHour($storeId, $startDate, $endDate),
-                'Best Day'       => $this->Invoice->bestDay($storeId, $startDate, $endDate)
-            ]);
+                'Biggest Ticket' => $this->Invoice->biggestTicket($storeId, $startDate, $endDate, $locationTimezone),
+                'Best Hour'      => $this->Invoice->bestHour($storeId, $startDate, $endDate, $locationTimezone),
+                'Best Day'       => $this->Invoice->bestDay($storeId, $startDate, $endDate, $locationTimezone)
+            ]);            
         }
         catch (InvalidArgumentException $e) {
             $result = ['error' => $e->getMessage()];
