@@ -24,11 +24,11 @@ class CustomerController extends AppController
             $result = [
                 'id'              => $customer['Customer']['customer_id'],
                 'pos_customer_id' => $customer['Customer']['ls_customer_id'],
-                'fullname'        => $customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname'],
+                'fullname'        => ucwords(strtolower($customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname'])),
                 'phone'           => $customer['Customer']['phone'],
                 'email'           => $customer['Customer']['email'],
-                'address'         => $customer['Customer']['address1'] . ' ' . $customer['Customer']['address2'],
-                'city'            => $customer['Customer']['city'],
+                'address'         => ucwords(strtolower($customer['Customer']['address1'] . ' ' . $customer['Customer']['address2'])),
+                'city'            => ucwords(strtolower($customer['Customer']['city'])),
                 'state'           => $customer['Customer']['state'],
                 'country'         => '',
                 'transactions'    => []
@@ -107,7 +107,7 @@ class CustomerController extends AppController
                     $result[] = [
                         'id'              => $customer['Customer']['customer_id'],
                         'pos_customer_id' => $customer['Customer']['ls_customer_id'],
-                        'fullname'        => trim($customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname']),
+                        'fullname'        => ucwords(strtolower(trim($customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname']))),
                         'email'           => $customer['Customer']['email'],
                         'transactions'    => $customer[0]['transactions'],
                         'amount'          => round($customer[0]['amount'],2),
