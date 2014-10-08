@@ -152,10 +152,14 @@ class IBeaconCouponsController  extends IBeaconController {
                     $response['campaigns'] = $campaigns;
                     $response['coupons'] = array();
                     $cuponModel =  new IBeaconCoupons();
-                    foreach($campaigns as $campaign){
-                        $coupon = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
-                        if(!empty($coupon)){
-                            $response['coupons'][] = $coupon;                            
+                    if(is_array($campaigns) && !empty($campaigns)){
+                        foreach($campaigns as $campaign){
+                            if(isset($campaign['id']) && !empty($customer)){
+                                $coupon = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
+                                if(!empty($coupon)){
+                                    $response['coupons'][] = $coupon;                            
+                                }
+                            }
                         }
                     }
                 }
