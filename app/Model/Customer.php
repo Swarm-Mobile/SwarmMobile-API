@@ -184,7 +184,7 @@ class Customer extends AppModel
                 'Customer.firstname',
                 'Customer.lastname',
                 'Customer.email',
-                'COUNT(Invoice.invoice_id) as transactions',
+                'ROUND(COUNT(`Invoice`.`invoice_id`) / (COUNT(Invoice.invoice_id) / COUNT(DISTINCT Invoice.invoice_id))) as transactions',
                 'SUM(Invoice.total)/(COUNT(Invoice.invoice_id)/COUNT(DISTINCT Invoice.invoice_id)) as amount',
                 'MAX(Invoice.ts) as last_seen'
             ],
@@ -196,6 +196,7 @@ class Customer extends AppModel
                     'conditions' => [
                         'Invoice.store_id = Customer.store_id',
                         'Invoice.customer_id = Customer.ls_customer_id',
+                        'Invoice.completed = 1',
                         'Customer.store_id'   => $this->storeId
                     ]
                 ]
