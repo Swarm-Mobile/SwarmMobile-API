@@ -15,7 +15,7 @@ class CustomerController extends AppController
     public function customer ()
     {
         $this->layout = 'blank';
-        $customerId       = $this->request->params['id'];
+        $customerId       = $this->request->params['id'];        
         $customer         = $this->Customer->find('first', ['conditions' => ['Customer.customer_id' => $customerId]]);
         try {
             if (empty($customer)) {
@@ -43,6 +43,9 @@ class CustomerController extends AppController
                 ]
             );
             $locationId = $setting['LocationSetting']['location_id'];
+            if($locationId != $this->params->query['location_id']){
+                throw new InvalidArgumentException('Invalid location_id');
+            }
             
             $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);
             
