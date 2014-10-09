@@ -260,7 +260,8 @@ TEXT;
     {
         if (!$this->debug)
         {
-            $this->user = $this->authenticate($params['access_token']);
+            $access_token = (!empty($params['access_token'])) ? $params['access_token'] : '';
+            $this->user = $this->authenticate($access_token);
         }
         return true;
     }
@@ -269,7 +270,8 @@ TEXT;
     {
         if (!$this->debug)
         {
-            $this->user = $this->authenticate($params['access_token']);
+            $access_token = (!empty($params['access_token'])) ? $params['access_token'] : '';
+            $this->user = $this->authenticate($access_token);
         }
         $this->cache = false;
         $this->rollups = false;

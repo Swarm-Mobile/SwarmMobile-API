@@ -33,11 +33,24 @@ class LocationComponent extends APIComponent
         $start_date = $params['year'] . '-' . $params['month'] . '-01';
         $end_date   = $params['year'] . '-' . ($params['month'] + 1) . '-01';
 
-        $end      = new DateTime($end_date);
+        try {
+            $end      = new DateTime($end_date);
+        } catch (Exception $e) {
+            throw new APIException(
+                400, 'param_bad_formatted', "Param month/year need to be positive integers. Month values are between 01 and 12. Year is of the form YYYY. e.g. 2014"
+            );
+        }
+
         date_sub($end, date_interval_create_from_date_string('1 days'));
         $end_date = date_format($end, 'Y-m-d');
 
-        $start = new DateTime($start_date);
+        try {
+            $start = new DateTime($start_date);
+        } catch (Exception $e) {
+            throw new APIException(
+                400, 'param_bad_formatted', "Param month/year need to be positive integers. Month values are between 01 and 12. Year is of the form YYYY. e.g. 2014"
+            );
+        }
 
         $revenue  = array ();
         $visitors = array ();
@@ -1374,14 +1387,16 @@ SQL;
         $zipcode  = settVal('zipcode', $oLocation['Setting']);
 
         $subject = "Location #" . $location_id . ' ( ' . $oLocation['Location']['name'] . ' ) was added from API';
+        $locationName = (!empty($oLocation['Location']['name'])) ? $oLocation['Location']['name'] : '';
+        $resellerName = (!empty($oLocation['Reseller']['name'])) ? $oLocation['Reseller']['name'] : '';
         $msg     = <<<TEXT
 <div>
     Location $location_id was just added/modified on the
     MDM using the API with the following info:
 </div>
 <ul>
-    <li>Location Name: {$oLocation['Location']['name']}</li>
-    <li>Reseller: {$oLocation['Reseller']['name']}</li>
+    <li>Location Name: {$locationName}</li>
+    <li>Reseller: {$resellerName}</li>
     <li>Address 1: $address1</li>
     <li>Address 2: $address2</li>
     <li>City: $city</li>

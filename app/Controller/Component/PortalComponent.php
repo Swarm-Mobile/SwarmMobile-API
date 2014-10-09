@@ -23,18 +23,21 @@ INSERT INTO visitorEvent
         ts_update = NOW()
 SQL;
             $upload = (is_array($_POST['upload']))?$_POST['upload']:json_decode($_POST['upload'],true);
-            foreach ($upload as $oRow) {
-                $oModel = new Model(false, 'visitorEvent', 'portal');
-                $oDb = $oModel->getDataSource();                
-                $oDb->query($sSQL, array(
-                    ':device_id' => $oRow['serialNumber'],
-                    ':entered' => $oRow['entered'],
-                    ':location_id' => $oRow['locationID'],
-                    ':exited' => $oRow['exited'],
-                    ':total_count' => $oRow['totalCount'],
-                    ':user_id' => $oRow['userID'],
-                    ':ts' => $oRow['date'],
-                ));
+            if(!empty($upload) && is_array($upload)) {
+                foreach ($upload as $oRow) {
+                    $oModel = new Model(false, 'visitorEvent', 'portal');
+                    $oDb = $oModel->getDataSource();
+                                  
+                    $oDb->query($sSQL, array(
+                        ':device_id' => ($oRow['serialNumber']) ? $oRow['serialNumber'] : NULL,
+                        ':entered' => ($oRow['entered']) ? $oRow['entered'] : NULL,
+                        ':location_id' => ($oRow['locationID']) ? $oRow['locationID'] : NULL,
+                        ':exited' => ($oRow['exited']) ? $oRow['exited'] : NULL,
+                        ':total_count' => ($oRow['totalCount']) ? $oRow['totalCount'] : NULL,
+                        ':user_id' => ($oRow['userID']) ? $oRow['userID'] : NULL,
+                        ':ts' => ($oRow['date']) ? $oRow['date'] : '0000-00-00 00:00:00',
+                    ));
+                }
             }
         }
         return array();
