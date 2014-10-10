@@ -1,10 +1,14 @@
 # User specific & automatically generated files #
 #################################################
 #/app/Config/database.php
-/app/tmp
-/app/tmp/logs
+#/app/tmp
 *.log
 *.cache
+.htaccess
+/app/webroot/images/avatars
+/app/webroot/images/location_photos
+/app/webroot/images/member_photos
+/app/tmp
 myapp_cake_*
 /lib/Cake/Console/Templates/skel/tmp/
 #/plugins
@@ -13,7 +17,6 @@ myapp_cake_*
 /dist
 /tags
 /.vagrant
-app/tmp/logs/api_calls/*
 
 # OS generated files #
 ######################
@@ -25,3 +28,6 @@ app/tmp/logs/api_calls/*
 Icon?
 ehthumbs.db
 Thumbs.db
+
+.project
+vendor
