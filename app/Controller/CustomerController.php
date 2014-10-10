@@ -10,7 +10,7 @@ App::uses('ValidatorComponent', 'Controller/Component');
 class CustomerController extends AppController
 {
 
-    public $uses = ['Customer', 'Location', 'Invoice'];
+    public $uses = ['Customer', 'Location', 'Invoice', 'LocationSetting'];
 
     public function customer ()
     {
@@ -33,7 +33,30 @@ class CustomerController extends AppController
                 'country'         => '',
                 'transactions'    => []
             ];
-            $invoices         = $this->Invoice->find('all', [
+            
+            $setting = $this->LocationSetting->find('first', 
+                [
+                    'conditions'=>[
+                        'value'=>$customer['customer']['store_id'],
+                        'setting_id'=> settId('pos_store_id')
+                    ]
+                ]
+            );
+            $locationId = $setting['LocationSetting']['location_id'];
+            
+            $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);
+            
+            try {
+                new DateTimeZone($locationTimezone);
+            } catch(Exception $e){
+                $locationTimezone = 'America/Los_Angeles';                
+            }
+            
+            $invoices = $this->Invoice->find('all', [
+                'fields' => [
+                    'CONVERT_TZ(ts, "GMT", "' . $locationTimezone . '") ts',
+                    'Invoice.total',
+                ],
                 'conditions' => [
                     'Invoice.customer_id' => $customer['Customer']['ls_customer_id'],
                     'Invoice.store_id' => $customer['Customer']['store_id'],
@@ -43,7 +66,7 @@ class CustomerController extends AppController
             ]);            
             foreach ($invoices as $invoice) {
                 $transaction = [
-                    'date'  => $invoice['Invoice']['ts'],
+                    'date'  => $invoice[0]['ts'],
                     'total' => $invoice['Invoice']['total'],
                     'items' => 0,
                     'lines' => []
