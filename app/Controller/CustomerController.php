@@ -41,7 +41,10 @@ class CustomerController extends AppController
                         'setting_id'=> settId('pos_store_id')
                     ]
                 ]
-            );            
+            );   
+            if(empty($setting)){
+                throw new InvalidArgumentException('Invalid location_id');                
+            }
             $locationId         = $setting['LocationSetting']['location_id'];
             $locationIdRequest  = $this->params->query['location_id'];
             $posStoreIdRequest  = $this->LocationSetting->getSettingValue('pos_store_id', $locationIdRequest);            
@@ -68,23 +71,25 @@ class CustomerController extends AppController
                     'Invoice.completed' => 1                   
                 ],
                 'order' => 'Invoice.ts DESC'
-            ]);            
-            foreach ($invoices as $invoice) {
-                $transaction = [
-                    'date'  => $invoice[0]['ts'],
-                    'total' => $invoice['Invoice']['total'],
-                    'items' => 0,
-                    'lines' => []
-                ];
-                foreach ($invoice['InvoiceLine'] as $line) {
-                    $transaction['lines'][] = [
-                        'description' => ucwords(strtolower($line['description'])),
-                        'quantity'    => $line['quantity'],
-                        'price'       => $line['price']
+            ]);          
+            if(!empty($invoices)){
+                foreach ($invoices as $invoice) {
+                    $transaction = [
+                        'date'  => $invoice[0]['ts'],
+                        'total' => $invoice['Invoice']['total'],
+                        'items' => 0,
+                        'lines' => []
                     ];
-                    $transaction['items'] += $line['quantity'];
+                    foreach ($invoice['InvoiceLine'] as $line) {
+                        $transaction['lines'][] = [
+                            'description' => ucwords(strtolower($line['description'])),
+                            'quantity'    => $line['quantity'],
+                            'price'       => $line['price']
+                        ];
+                        $transaction['items'] += $line['quantity'];
+                    }
+                    $result['transactions'][] = $transaction;
                 }
-                $result['transactions'][] = $transaction;
             }
         }
         catch (InvalidArgumentException $e) {
@@ -109,6 +114,14 @@ class CustomerController extends AppController
                 throw new InvalidArgumentException("Incorrect location_id");
             }         
             
+            $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);
+            
+            try {
+                new DateTimeZone($locationTimezone);
+            } catch(Exception $e){
+                $locationTimezone = 'America/Los_Angeles';                
+            }
+           
             $p         = $this->params->query;     
             $order  = isset($p['order']) ? $p['order'] : 'last_seen';
             $limit  = isset($p['limit']) ? $p['limit'] : 25;
@@ -129,7 +142,7 @@ class CustomerController extends AppController
                 'register'    => coalesce(settVal('register_filter', $this->Location->data['Setting']), false),
             ]);
             $result    = [];
-            $customers = $this->Customer->search($storeId, $filters, $order, $limit, $offset);
+            $customers = $this->Customer->search($storeId, $filters, $order, $limit, $offset, $locationTimezone);
             if (!empty($customers)) {
                 foreach ($customers as $customer) {
                     $result[] = [
