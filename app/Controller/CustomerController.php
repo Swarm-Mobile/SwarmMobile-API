@@ -26,12 +26,12 @@ class CustomerController extends AppController
             $result = [
                 'id'              => $customer['Customer']['customer_id'],
                 'pos_customer_id' => $customer['Customer']['ls_customer_id'],
-                'fullname'        => ucwords(strtolower($customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname'])),
-                'phone'           => $customer['Customer']['phone'],
-                'email'           => $customer['Customer']['email'],
-                'address'         => ucwords(strtolower($customer['Customer']['address1'] . ' ' . $customer['Customer']['address2'])),
-                'city'            => ucwords(strtolower($customer['Customer']['city'])),
-                'state'           => $customer['Customer']['state'],
+                'fullname'        => coalesce(ucwords(strtolower($customer['Customer']['firstname'] . ' ' . $customer['Customer']['lastname'])),''),
+                'phone'           => coalesce($customer['Customer']['phone'],''),
+                'email'           => coalesce($customer['Customer']['email'],''),
+                'address'         => coalesce(ucwords(strtolower($customer['Customer']['address1'] . ' ' . $customer['Customer']['address2'])),''),
+                'city'            => coalesce(ucwords(strtolower($customer['Customer']['city'])),''),
+                'state'           => coalesce($customer['Customer']['state'],''),
                 'country'         => '',
                 'transactions'    => []
             ];
