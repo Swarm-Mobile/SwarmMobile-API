@@ -4,6 +4,8 @@ require_once __DIR__ . '/Component/CompressedFunctions.php';
 
 App::uses('Model', 'Model');
 App::uses('Location', 'Model');
+App::uses('LocationSetting', 'Model');
+App::uses('Invoice', 'Model');
 App::uses('Customer', 'Model');
 App::uses('ValidatorComponent', 'Controller/Component');
 
@@ -114,8 +116,9 @@ class CustomerController extends AppController
                 throw new InvalidArgumentException("Incorrect location_id");
             }         
             
-            $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);
-            
+            $locationSetting = new LocationSetting();
+            $locationTimezone   = $locationSetting->getSettingValue('timezone', $locationId);
+
             try {
                 new DateTimeZone($locationTimezone);
             } catch(Exception $e){
