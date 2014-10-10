@@ -29,7 +29,8 @@ class ValidatorComponent
         return $d && $d->format($format) == $value;
     }
     
-    public static function isTimezone($value){
+    public static function isTimezone($value)
+    {
         try{
             new DateTimeZone($value);
         }catch(Exception $e){
