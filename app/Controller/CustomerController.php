@@ -37,13 +37,15 @@ class CustomerController extends AppController
             $setting = $this->LocationSetting->find('first', 
                 [
                     'conditions'=>[
-                        'value'=>$customer['customer']['store_id'],
+                        'value'=>$customer['Customer']['store_id'],
                         'setting_id'=> settId('pos_store_id')
                     ]
                 ]
-            );
-            $locationId = $setting['LocationSetting']['location_id'];
-            if($locationId != $this->params->query['location_id']){
+            );            
+            $locationId         = $setting['LocationSetting']['location_id'];
+            $locationIdRequest  = $this->params->query['location_id'];
+            $posStoreIdRequest  = $this->LocationSetting->getSettingValue('pos_store_id', $locationIdRequest);            
+            if($customer['Customer']['store_id'] != $posStoreIdRequest){
                 throw new InvalidArgumentException('Invalid location_id');
             }
             
