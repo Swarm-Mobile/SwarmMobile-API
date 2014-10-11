@@ -11,8 +11,7 @@ class LocationSetting extends AppModel
     public $settingId    = 0;
 
     public function getSettingValue ($setting, $locationId = null)
-    {
-        die('hola');
+    {        
         if (empty($locationId)) {
             if (ValidatorComponent::isPositiveInt($locationId)) {
                 $locationId = $this->locationId;
