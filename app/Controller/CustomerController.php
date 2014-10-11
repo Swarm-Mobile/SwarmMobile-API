@@ -41,7 +41,10 @@ class CustomerController extends AppController
                         'setting_id'=> settId('pos_store_id')
                     ]
                 ]
-            );            
+            );   
+            if(empty($setting)){
+                throw new InvalidArgumentException('Invalid location_id');                
+            }
             $locationId         = $setting['LocationSetting']['location_id'];
             $locationIdRequest  = $this->params->query['location_id'];
             $posStoreIdRequest  = $this->LocationSetting->getSettingValue('pos_store_id', $locationIdRequest);            
@@ -68,23 +71,25 @@ class CustomerController extends AppController
                     'Invoice.completed' => 1                   
                 ],
                 'order' => 'Invoice.ts DESC'
-            ]);            
-            foreach ($invoices as $invoice) {
-                $transaction = [
-                    'date'  => $invoice[0]['ts'],
-                    'total' => $invoice['Invoice']['total'],
-                    'items' => 0,
-                    'lines' => []
-                ];
-                foreach ($invoice['InvoiceLine'] as $line) {
-                    $transaction['lines'][] = [
-                        'description' => ucwords(strtolower($line['description'])),
-                        'quantity'    => $line['quantity'],
-                        'price'       => $line['price']
+            ]);          
+            if(!empty($invoices)){
+                foreach ($invoices as $invoice) {
+                    $transaction = [
+                        'date'  => $invoice[0]['ts'],
+                        'total' => $invoice['Invoice']['total'],
+                        'items' => 0,
+                        'lines' => []
                     ];
-                    $transaction['items'] += $line['quantity'];
+                    foreach ($invoice['InvoiceLine'] as $line) {
+                        $transaction['lines'][] = [
+                            'description' => ucwords(strtolower($line['description'])),
+                            'quantity'    => $line['quantity'],
+                            'price'       => $line['price']
+                        ];
+                        $transaction['items'] += $line['quantity'];
+                    }
+                    $result['transactions'][] = $transaction;
                 }
-                $result['transactions'][] = $transaction;
             }
         }
         catch (InvalidArgumentException $e) {
