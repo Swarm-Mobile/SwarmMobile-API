@@ -163,7 +163,7 @@ class Customer extends AppModel
         }        
     }
 
-    public function search ($storeId, $filters = [], $order = 'last_seen', $limit = 25, $offset = 0)
+    public function search ($storeId, $filters = [], $order = 'last_seen', $limit = 25, $offset = 0, $locationTimezone = 'America/Los_Angeles')
     {
         if(!ValidatorComponent::isPositiveInt($storeId)){
            throw new InvalidArgumentException('storeId must be a positive integer.'); 
@@ -174,6 +174,10 @@ class Customer extends AppModel
         if(!ValidatorComponent::isPositiveInt($offset)){
            throw new InvalidArgumentException('offset must be a positive integer.'); 
         }
+        if (!ValidatorComponent::isTimezone($locationTimezone)) {
+            throw new InvalidArgumentException('Incorrect Location Timezone');
+        }
+        
         
         $this->storeId     = $storeId;
         $this->searchQuery = [
@@ -186,7 +190,7 @@ class Customer extends AppModel
                 'Customer.email',
                 'ROUND(COUNT(`Invoice`.`invoice_id`) / (COUNT(Invoice.invoice_id) / COUNT(DISTINCT Invoice.invoice_id))) as transactions',
                 'SUM(Invoice.total)/(COUNT(Invoice.invoice_id)/COUNT(DISTINCT Invoice.invoice_id)) as amount',
-                'MAX(Invoice.ts) as last_seen'
+                'MAX(CONVERT_TZ(Invoice.ts, "GMT", "' . $locationTimezone . '")) as last_seen'
             ],
             'joins'      => [
                 [

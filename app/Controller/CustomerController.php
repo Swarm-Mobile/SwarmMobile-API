@@ -114,6 +114,14 @@ class CustomerController extends AppController
                 throw new InvalidArgumentException("Incorrect location_id");
             }         
             
+            $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);
+            
+            try {
+                new DateTimeZone($locationTimezone);
+            } catch(Exception $e){
+                $locationTimezone = 'America/Los_Angeles';                
+            }
+           
             $p         = $this->params->query;     
             $order  = isset($p['order']) ? $p['order'] : 'last_seen';
             $limit  = isset($p['limit']) ? $p['limit'] : 25;
@@ -134,7 +142,7 @@ class CustomerController extends AppController
                 'register'    => coalesce(settVal('register_filter', $this->Location->data['Setting']), false),
             ]);
             $result    = [];
-            $customers = $this->Customer->search($storeId, $filters, $order, $limit, $offset);
+            $customers = $this->Customer->search($storeId, $filters, $order, $limit, $offset, $locationTimezone);
             if (!empty($customers)) {
                 foreach ($customers as $customer) {
                     $result[] = [
