@@ -1,8 +1,5 @@
 <?php
 
-App::uses('AppModel', 'Model');
-App::uses('Setting', 'Model');
-
 class LocationSetting extends AppModel
 {
 
@@ -15,6 +12,7 @@ class LocationSetting extends AppModel
 
     public function getSettingValue ($setting, $locationId = null)
     {
+        die('hola');
         if (empty($locationId)) {
             if (ValidatorComponent::isPositiveInt($locationId)) {
                 $locationId = $this->locationId;
