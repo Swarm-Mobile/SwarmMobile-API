@@ -124,6 +124,7 @@ class IBeaconCouponsController  extends IBeaconController {
         $deviceCoordinateModel = new IBeaconDeviceCoordinate();
         $response = array();
         foreach ($LocationIdentifierList as $LocationIdentifier){
+            $LocationIdentifier['customerSwarmId'] = $_GET['userid'];
             $this->IBeacon->logging('whatIsHere',  array_merge($LocationIdentifier,$_GET));
             $locations = $locationModel->findByUUID(
                     $LocationIdentifier['uuid'],
@@ -152,15 +153,9 @@ class IBeaconCouponsController  extends IBeaconController {
                     $response['campaigns'] = $campaigns;
                     $response['coupons'] = array();
                     $cuponModel =  new IBeaconCoupons();
-                    if(is_array($campaigns) && !empty($campaigns)){
-                        foreach($campaigns as $campaign){
-                            if(isset($campaign['id']) && !empty($customer)){
-                                $coupon = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
-                                if(!empty($coupon)){
-                                    $response['coupons'][] = $coupon;                            
-                                }
-                            }
-                        }
+                    foreach($campaigns as $campaign){
+                        $response['coupons']  = array_merge($response['coupons'] ,$cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']));
+                         //$response['coupons'][] = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
                     }
                 }
             }
