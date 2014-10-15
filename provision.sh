@@ -19,17 +19,6 @@ mkdir /app/logs
 chmod -R 777 /app/logs
 cd /app
 
-echo "Cloning PHPRedis Repo"
-git clone git://github.com/nicolasff/phpredis.git
-
-echo "Redis Installation"
-cd /app/phpredis
-phpize
-./configure
-make
-make install
-echo "extension=redis.so">/etc/php5/conf.d/redis.ini
-
 echo "Create the virtual host" 
 ln -s /vagrant /app/API;
 echo "
@@ -92,11 +81,15 @@ ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 echo "Disable firewall"
 ufw disable
 
-echo "Creating Databases"
-php /app/API/vendor/swarm-mobile/datamocks/build.php
-
 echo "Restarting services"
 service php5-fpm restart
 service nginx restart
+
+echo "Installing composer"
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+cd /app/API
+composer install
 
 echo "done!"
