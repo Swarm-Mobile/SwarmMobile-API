@@ -76,12 +76,13 @@ class IBeaconComponent  extends Component {
      */
     public function logging ($method,$data) {
         $message = "\nmethod - " . $method . "\n";
+        $data['userid'] = HmacOauth::getUserId();
         if(is_array($data)){
             foreach($data as $key => $val){
                 $message .= $key . ' - ' . $val ."\n";
             }
         }
-        CakeLog::write('ibaecon_location',$message);
+        CakeLog::write('ibeacon_location',$message);
     }
 
 }

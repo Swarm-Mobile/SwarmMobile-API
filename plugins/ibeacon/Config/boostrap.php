@@ -5,7 +5,7 @@
  * and open the template in the editor.
  */
 
-CakeLog::config('ibaecon_location', array(
+CakeLog::config('ibeacon_location', array(
     'engine' => 'File',
     'path' => LOGS,
 ));
