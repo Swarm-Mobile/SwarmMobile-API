@@ -8,7 +8,6 @@ App::uses('UserType', 'Model');
 
 class GrantListener implements CakeEventListener
 {
-    //End TODO
 
     /**
      * @return array associative array or event key names pointing to the function
@@ -147,7 +146,7 @@ class GrantListener implements CakeEventListener
             default:
                 break;
         }
-        if (!isValid) {
+        if (!$isValid) {            
             throw new Exception('You are not allowed to access to this location_id.');
         }
     }

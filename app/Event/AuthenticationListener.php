@@ -28,7 +28,7 @@ class AuthenticationListener implements CakeEventListener
 
     public function fireAuthEvents (CakeEvent $event)
     {
-        $this->authenticateRequest($event);        
+        $this->authenticateRequest($event);
     }
 
     private function cURLCall ($params)
@@ -57,11 +57,7 @@ class AuthenticationListener implements CakeEventListener
 
         $predis       = RedisComponent::getInstance('oAuth');
         $oauthStorage = new OAuth2\Storage\Redis($predis);
-        $token        = $oauthStorage->getAccessToken($token);
-//        $token = [
-//            'expires' => 99999999999,
-//            'user_id' => 25
-//        ];
+        $token        = $oauthStorage->getAccessToken($accessToken);
 
         try {
             if (empty($token)) {
@@ -72,11 +68,9 @@ class AuthenticationListener implements CakeEventListener
                 if ($token['expires'] <= time()) {
                     throw new Exception('The access token provided is invalid.');
                 }
-                else {                   
+                else {
                     $event = new CakeEvent(
-                        'Authentication.passed', 
-                        $this, 
-                        array_merge($token, $params)
+                            'Authentication.passed', $this, array_merge($token, $params)
                     );
                     CakeEventManager::instance()->dispatch($event);
                 }
@@ -84,8 +78,13 @@ class AuthenticationListener implements CakeEventListener
         }
         catch (Exception $e) {
             header("HTTP/1.1 403");
-            header("Content-Type: application/json");
-            header("Cache-Control: no-store");
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: POST, GET");
+            header("Access-Control-Allow-Headers: X-PINGOTHER");
+            header("Content-Type: application/json; charset=UTF-8");
+            header("Access-Control-Max-Age: 1728000");
+            header("Pragma: no-cache");
+            header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
             echo json_encode([
                 'error'             => 'invalid_token',
                 'error_description' => $e->getMessage()
