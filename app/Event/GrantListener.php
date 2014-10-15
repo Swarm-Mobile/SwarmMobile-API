@@ -1,8 +1,12 @@
 <?php
 
+require_once __DIR__ . '/../Controller/Component/CompressedFunctions.php';
+
 App::uses('RedisComponent', 'Controller/Component');
 App::uses('CakeEventListener', 'Event');
 App::uses('Location', 'Model');
+App::uses('LocationSetting', 'Model');
+App::uses('Customer', 'Model');
 App::uses('User', 'Model');
 App::uses('UserType', 'Model');
 
@@ -24,13 +28,13 @@ class GrantListener implements CakeEventListener
     }
 
     public function validation (CakeEvent $event)
-    {
+    {        
         try {
-            if (isset($event->data['location_id'])) {
-                $this->validateLocationId($event->data['token'], $event->data['location_id']);
-            }
+            //if (isset($event->data['location_id'])) {
+            //    $this->validateLocationId($event->data['user_id'], $event->data['location_id']);
+            //}
             if (isset($event->data['customer_id'])) {
-                $this->validateCustomerId($event->data['token'], $event->data['customer_id']);
+                $this->validateCustomerId($event->data['user_id'], $event->data['customer_id']);
             }
         }
         catch (OAuth2AuthenticateException $e) {
@@ -41,10 +45,10 @@ class GrantListener implements CakeEventListener
         }
     }
 
-    private function validateLocationId ($token, $location_id)
-    {
+    private function validateLocationId ($user_id, $location_id)
+    {        
         $user    = new User();
-        $user->read(null, $token['user_id']);
+        $user->read(null, $user_id);
         $isValid = false;
         switch ($user->data['User']['usertype_id']) {
             case UserType::$SUPER_ADMIN:
@@ -65,10 +69,10 @@ class GrantListener implements CakeEventListener
         }
     }
 
-    private function validateCustomerId ($token, $customer_id)
+    private function validateCustomerId ($user_id, $customer_id)
     {
         $user = new User();
-        $user->read(null, $token['user_id']);
+        $user->read(null, $user_id);
         switch ($user->data['User']['usertype_id']) {
             case UserType::$SUPER_ADMIN:
             case UserType::$ACCOUNT_MANAGER:
@@ -78,18 +82,20 @@ class GrantListener implements CakeEventListener
             case UserType::$DEVELOPER:
             case UserType::$EMPLOYEE:
                 $tokenLocations    = $user->getLocationList();
-                $this->Customer->readFromParams(['customer_id' => $customer_id]);
-                $settings          = $this->LocationSetting->find('all', [
+                $customer = new Customer();
+                $customer->readFromParams(['customers_id' => $customer_id]);
+                $locationSetting = new LocationSetting();
+                $settings          = $locationSetting->find('all', [
                     'conditions' => [
-                        'value'      => $this->Customer->data['Customer']['store_id'],
+                        'value'      => $customer->data['Customer']['store_id'],
                         'setting_id' => settId('pos_store_id')
                     ]]
                 );
                 $customerLocations = [];
                 foreach ($settings as $setting) {
-                    $customerLocations = $setting['LocationSetting']['location_id'];
-                }
-                $intersect = array_intersect($customerLocations, $tokenLocations);
+                    $customerLocations[] = $setting['LocationSetting']['location_id'];
+                }                
+                $intersect = array_intersect($customerLocations, $tokenLocations);                
                 if (count($intersect) > 0) {
                     return true;
                 }

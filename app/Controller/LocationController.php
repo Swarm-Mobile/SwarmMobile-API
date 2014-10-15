@@ -10,15 +10,15 @@ App::uses('ValidatorComponent', 'Controller/Component');
 class LocationController extends AppController
 {
 
-    public $uses = ['Invoice', 'LocationSetting'];
+    public $uses = ['Invoice', 'LocationSetting', 'Location'];
 
     public function highlights ()
     {
         $this->layout = 'blank';
-        try {
+        try {            
             $this->Location->readFromParams($this->params->query);
-            $storeId          = $this->LocationSetting->getSettingValue('pos_store_id', $locationId);
-            $locationTimezone = $this->LocationSetting->getSettingValue('timezone', $locationId);
+            $storeId          = $this->LocationSetting->getSettingValue('pos_store_id', $this->Location->id);
+            $locationTimezone = $this->LocationSetting->getSettingValue('timezone', $this->Location->id);
             if (empty($storeId)) {
                 throw new InvalidArgumentException("Incorrect location_id");
             }

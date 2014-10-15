@@ -70,7 +70,7 @@ class AuthenticationListener implements CakeEventListener
                 }
                 else {
                     $event = new CakeEvent(
-                            'Authentication.passed', $this, array_merge($token, $params)
+                        'Authentication.passed', $this, array_merge($token, $params)
                     );
                     CakeEventManager::instance()->dispatch($event);
                 }
