@@ -29,6 +29,9 @@ class GrantListener implements CakeEventListener
             if (isset($event->data['location_id'])) {
                 $this->validateLocationId($event->data['token'], $event->data['location_id']);
             }
+            if (isset($event->data['customer_id'])) {
+                $this->validateCustomerId($event->data['token'], $event->data['customer_id']);
+            }
         }
         catch (OAuth2AuthenticateException $e) {
             $this->response_code    = $e->getCode();
@@ -49,105 +52,50 @@ class GrantListener implements CakeEventListener
                 $isValid = true;
                 break;
             case UserType::$RESELLER:
-                $isValid = (bool) $user->find(
-                    'count', 
-                    [
-                        'conditions' => [],
-                        'fields'     => [
-                            'Location.id',
-                        ],
-                        'joins'      => [
-                            [
-                                'table'      => 'reseller',
-                                'alias'      => 'Reseller',
-                                'type'       => 'INNER',
-                                'conditions' => [
-                                    'User.id = Reseller.user_id',
-                                    'User.id' => $user->data['User']['id']
-                                ]
-                            ],
-                            [
-                                'table'      => 'location',
-                                'alias'      => 'Location',
-                                'type'       => 'INNER',
-                                'conditions' => [
-                                    'Location.reseller_id = Reseller.id',
-                                    'Location.id' => $location_id,
-                                ]
-                            ]
-                        ]
-                    ]
-                );
-                break;
             case UserType::$LOCATION_MANAGER:
-                $isValid = (bool) $user->find(
-                    'count', 
-                    [
-                        'conditions' => [],
-                        'fields'     => [
-                            'LocationManagerLocation.location_id',
-                        ],
-                        'joins'      => [
-                            [
-                                'table'      => 'locationmanager',
-                                'alias'      => 'LocationManager',
-                                'type'       => 'INNER',
-                                'conditions' => [
-                                    'User.id = LocationManager.user_id',
-                                    'User.id' => $user->data['User']['id']
-                                ]
-                            ],
-                            [
-                                'table'      => 'locationmanager_location',
-                                'alias'      => 'LocationManagerLocation',
-                                'type'       => 'INNER',
-                                'conditions' => [
-                                    'LocationManagerLocation.locationmanager_id= LocationManager.id',
-                                    'LocationManagerLocation.location_id' => $location_id,
-                                ]
-                            ]
-                        ]
-                    ]
-                );
-                break;
             case UserType::$DEVELOPER:
-                $isValid = (bool) $user->find(
-                    'count', 
-                    [
-                        'conditions' => [],
-                        'fields'     => [
-                            'Location.id',
-                        ],
-                        'joins'      => [
-                            [
-                                'table'      => 'developer',
-                                'alias'      => 'Developer',
-                                'type'       => 'INNER',
-                                'conditions' => [
-                                    'User.id = Developer.user_id',
-                                    'User.id' => $user->data['User']['id']
-                                ]
-                            ],
-                            [
-                                'table'      => 'location',
-                                'alias'      => 'Location',
-                                'type'       => 'INNER',
-                                'conditions' => [
-                                    'Location.developer_id = Developer.id',
-                                    'Location.id' => $location_id,
-                                ]
-                            ]
-                        ]
-                    ]
-                );
-                break;
             case UserType::$EMPLOYEE:
             case UserType::$GUEST:
             default:
+                $isValid = in_array($location_id, $user->getLocationList());
                 break;
         }
-        if (!$isValid) {            
+        if (!$isValid) {
             throw new Exception('You are not allowed to access to this location_id.');
+        }
+    }
+
+    private function validateCustomerId ($token, $customer_id)
+    {
+        $user = new User();
+        $user->read(null, $token['user_id']);
+        switch ($user->data['User']['usertype_id']) {
+            case UserType::$SUPER_ADMIN:
+            case UserType::$ACCOUNT_MANAGER:
+                return true;
+            case UserType::$RESELLER:
+            case UserType::$LOCATION_MANAGER:
+            case UserType::$DEVELOPER:
+            case UserType::$EMPLOYEE:
+                $tokenLocations    = $user->getLocationList();
+                $this->Customer->readFromParams(['customer_id' => $customer_id]);
+                $settings          = $this->LocationSetting->find('all', [
+                    'conditions' => [
+                        'value'      => $this->Customer->data['Customer']['store_id'],
+                        'setting_id' => settId('pos_store_id')
+                    ]]
+                );
+                $customerLocations = [];
+                foreach ($settings as $setting) {
+                    $customerLocations = $setting['LocationSetting']['location_id'];
+                }
+                $intersect = array_intersect($customerLocations, $tokenLocations);
+                if (count($intersect) > 0) {
+                    return true;
+                }
+            case UserType::$GUEST:
+            default:
+                throw new Exception('You are not allowed to access to this location_id.');
         }
     }
 

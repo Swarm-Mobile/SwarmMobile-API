@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/Component/CompressedFunctions.php';
 
 App::uses('Model', 'Model');
@@ -13,11 +14,11 @@ class LocationController extends AppController
 
     public function highlights ()
     {
-        $this->layout = 'blank';        
-        $locationId   = $this->request->params['location_id'];
-        try {                                    
-            $storeId            = $this->LocationSetting->getSettingValue('pos_store_id', $locationId);
-            $locationTimezone   = $this->LocationSetting->getSettingValue('timezone', $locationId);            
+        $this->layout = 'blank';
+        try {
+            $this->Location->readFromParams($this->params->query);
+            $storeId          = $this->LocationSetting->getSettingValue('pos_store_id', $locationId);
+            $locationTimezone = $this->LocationSetting->getSettingValue('timezone', $locationId);
             if (empty($storeId)) {
                 throw new InvalidArgumentException("Incorrect location_id");
             }
@@ -34,7 +35,7 @@ class LocationController extends AppController
                 'Biggest Ticket' => $this->Invoice->biggestTicket($storeId, $startDate, $endDate, $locationTimezone),
                 'Best Hour'      => $this->Invoice->bestHour($storeId, $startDate, $endDate, $locationTimezone),
                 'Best Day'       => $this->Invoice->bestDay($storeId, $startDate, $endDate, $locationTimezone)
-            ]);            
+            ]);
         }
         catch (InvalidArgumentException $e) {
             $result = ['error' => $e->getMessage()];
