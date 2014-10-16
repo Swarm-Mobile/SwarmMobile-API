@@ -14,13 +14,8 @@ class CategoryController extends AppController
     public function categories ()
     {        
         $this->layout = 'blank';
-        $locationId       = $this->request->params['location_id'];
-        try {
-            $this->Location->read(null, $locationId);
-            if (empty($this->Location->data)) {
-                throw new InvalidArgumentException("Incorrect location_id");
-            }
-
+        try {           
+            $this->Location->readFromParams($this->params->query);
             $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
             if (empty($storeId)) {
                 throw new InvalidArgumentException("Incorrect location_id");

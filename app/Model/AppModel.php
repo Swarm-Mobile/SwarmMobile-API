@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Application model for CakePHP.
  *
@@ -18,7 +19,6 @@
  * @since         CakePHP(tm) v 0.2.9
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-
 App::uses('Model', 'Model');
 
 /**
@@ -29,6 +29,25 @@ App::uses('Model', 'Model');
  *
  * @package       app.Model
  */
-class AppModel extends Model {
+class AppModel extends Model
+{
+
     public $useDbConfig = 'oauth';
+
+    public function readFromParams ($params, $recursive = -1, $fields = null)
+    {
+        $this->recursive = $recursive;
+        if (!isset($params[$this->table . '_id'])) {
+            throw new InvalidArgumentException($this->table . ' is required.');
+        }
+        $id = $params[$this->table . '_id'];
+        if (!ValidatorComponent::isPositiveInt($id)) {
+            throw new InvalidArgumentException($this->table . '_id must be a valid integer.');
+        }
+        $this->read($fields, $id);
+        if (empty($this->data)) {
+            throw new InvalidArgumentException('Incorrect ' . $this->table . '_id');
+        }
+    }
+
 }
