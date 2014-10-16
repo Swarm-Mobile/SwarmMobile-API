@@ -18,7 +18,7 @@ class CustomerController extends AppController
     {
         $this->layout = 'blank';
         try {          
-            $this->Customer->readFromParams($this->params->query);
+            $this->Customer->readFromParams(['customers_id' => $this->params->query['customer_id']]);
             $result = [
                 'id'              => $this->Customer->data['Customer']['customer_id'],
                 'pos_customer_id' => $this->Customer->data['Customer']['ls_customer_id'],
@@ -101,15 +101,14 @@ class CustomerController extends AppController
     {
         $this->layout = 'blank';
         try {
-            $this->Location->readFromParams($this->params->query);            
-
+            $this->Location->readFromParams($this->params->query, 1);                                    
             $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
             if (empty($storeId)) {
                 throw new InvalidArgumentException("Incorrect location_id");
             }
 
             $locationSetting  = new LocationSetting();
-            $locationTimezone = $locationSetting->getSettingValue('timezone', $locationId);
+            $locationTimezone = $locationSetting->getSettingValue('timezone', $this->Location->id);
 
             try {
                 new DateTimeZone($locationTimezone);

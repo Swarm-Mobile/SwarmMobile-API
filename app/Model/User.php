@@ -188,16 +188,16 @@ class User extends AppModel
                 $result = $this->find('all', $this->getLocationRoleKeyQuery('accountmanager'));
                 break;
             case UserType::$RESELLER:
-                $result = $user->find('all', $this->getLocationRoleKeyQuery('reseller'));
+                $result = $this->find('all', $this->getLocationRoleKeyQuery('reseller'));
                 break;
             case UserType::$LOCATION_MANAGER:
-                $result = $user->find('all', $this->getLocationManagerLocationsQuery());                
+                $result = $this->find('all', $this->getLocationManagerLocationsQuery());                
                 break;
             case UserType::$DEVELOPER:
-                $result = $user->find('all', $this->getLocationRoleKeyQuery('developer'));
+                $result = $this->find('all', $this->getLocationRoleKeyQuery('developer'));
                 break;
             case UserType::$EMPLOYEE:
-                $result = $user->find('all', $this->getEmployeeLocationsQuery());                
+                $result = $this->find('all', $this->getEmployeeLocationsQuery());                
                 break;
             case UserType::$GUEST:
             default:

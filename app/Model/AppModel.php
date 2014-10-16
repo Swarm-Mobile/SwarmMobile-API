@@ -20,6 +20,7 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 App::uses('Model', 'Model');
+App::uses('ValidatorComponent', 'Controller/Component');
 
 /**
  * Application model for Cake.
