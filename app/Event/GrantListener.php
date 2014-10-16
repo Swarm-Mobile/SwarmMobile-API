@@ -8,7 +8,6 @@ App::uses('UserType', 'Model');
 
 class GrantListener implements CakeEventListener
 {
-    //End TODO
 
     /**
      * @return array associative array or event key names pointing to the function
