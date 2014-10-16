@@ -1,10 +1,23 @@
 <?php
 
+/**
+ * 
+ * Factory Singleton to create Redis Clients into the FW
+ */
 class RedisComponent
 {
-
+    /**
+     * Contains the Singleton instances of Redis
+     * @var array
+     */
     private static $instances = [];
 
+    /**
+     * Returns a Singleton instance of a Redis adaptor.
+     * @param String $name
+     * @return Predis\Client
+     * @throws Exception
+     */
     public static function getInstance ($name)
     {
         if (!isset(self::$instances[$name])) {

@@ -177,6 +177,13 @@ class User extends AppModel
         }
     }
 
+    /**
+     * Get an array that contains the list of all the
+     * locations associated to the user load into the
+     * Model.
+     * 
+     * @return array
+     */
     public function getLocationList ()
     {
         if (empty($this->data) || empty($this->data['User']['usertype_id'])) {
@@ -212,6 +219,18 @@ class User extends AppModel
         return $return;
     }
 
+    /**
+     * Helper function that returns the
+     * query that search with locations are related
+     * to a role that contains a foreign key into
+     * the location's table. 
+     * 
+     * Example: reseller have a reseller_id column
+     * into the location's table.
+     * 
+     * @param String $role
+     * @return array
+     */
     private function getLocationRoleKeyQuery ($role)
     {
         $ucRole = ucfirst($role);
@@ -238,6 +257,13 @@ class User extends AppModel
         ];
     }
 
+    /**
+     * Helper function that returns the 
+     * query that needs to be used to recover
+     * the locations related to a Location Manager.
+     * 
+     * @return array
+     */
     private function getLocationManagerLocationsQuery ()
     {
         return [
@@ -267,6 +293,13 @@ class User extends AppModel
         ];
     }
     
+    /**
+     * Helper function that returns the 
+     * query that needs to be used to recover
+     * the locations related to an Employee.
+     * 
+     * @return array
+     */
     private function getEmployeeLocationsQuery ()
     {
         return [

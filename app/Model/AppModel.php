@@ -34,7 +34,20 @@ class AppModel extends Model
 {
 
     public $useDbConfig = 'oauth';
-
+    
+    /**
+     * Search inside an Array of params 
+     * an id placed into the index $table.'_id'
+     * and fills the Model. Also checks if this
+     * id is defined into the array, if is a positive
+     * int and if this resource, after the load, 
+     * really exists. 
+     * 
+     * @param array $params
+     * @param int $recursive
+     * @param array $fields
+     * @throws InvalidArgumentException
+     */
     public function readFromParams ($params, $recursive = -1, $fields = null)
     {
         $this->recursive = $recursive;
