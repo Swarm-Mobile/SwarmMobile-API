@@ -57,7 +57,8 @@ class AuthenticationListener implements CakeEventListener
 
         $predis       = RedisComponent::getInstance('oAuth');
         $oauthStorage = new OAuth2\Storage\Redis($predis);
-        $token        = $oauthStorage->getAccessToken($token);
+        $token        = $oauthStorage->getAccessToken($accessToken);
+
 //        $token = [
 //            'expires' => 99999999999,
 //            'user_id' => 25

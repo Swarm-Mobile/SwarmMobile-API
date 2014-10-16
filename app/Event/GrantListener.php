@@ -147,7 +147,7 @@ class GrantListener implements CakeEventListener
             default:
                 break;
         }
-        if (!isValid) {
+        if (!$isValid) {            
             throw new Exception('You are not allowed to access to this location_id.');
         }
     }
