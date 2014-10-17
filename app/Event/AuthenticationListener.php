@@ -25,31 +25,25 @@ class AuthenticationListener implements CakeEventListener
             ],
         ];
     }
-
+    
+    /**
+     * Hack to call to more than one callback function
+     * when the event is triggered.
+     * 
+     * @param CakeEvent $event
+     */
     public function fireAuthEvents (CakeEvent $event)
     {
         $this->authenticateRequest($event);
     }
 
-    private function cURLCall ($params)
-    {
-        $query = '';
-        foreach ($params as $k => $v) {
-            $query .= $k . '=' . $v . '&';
-        }
-        $query = substr($query, 0, -1);
-
-        $request  = curl_init();
-        curl_setopt($request, CURLOPT_URL, $this->authURL);
-        curl_setopt($request, CURLOPT_USERPWD, $this->authUsername . ':' . $this->authPassword);
-        curl_setopt($request, CURLOPT_POST, count($params));
-        curl_setopt($request, CURLOPT_POSTFIELDS, $query);
-        curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
-        $response = curl_exec($request);
-        curl_close($request);
-        return $response;
-    }
-
+    /**
+     * Checks if the OAuth token received in the request
+     * is a valid OAuth token.
+     * 
+     * @param CakeEvent $event
+     * @throws Exception
+     */
     private function authenticateRequest (CakeEvent $event)
     {
         $params      = $event->data['request']->query;

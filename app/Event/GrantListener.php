@@ -27,24 +27,48 @@ class GrantListener implements CakeEventListener
         ];
     }
 
+    /**
+     * Checks if the Access Token user can 
+     * access to the resource that he/she is
+     * requesting 
+     * 
+     * @param CakeEvent $event     
+     */
     public function validation (CakeEvent $event)
     {        
         try {
-            //if (isset($event->data['location_id'])) {
-            //    $this->validateLocationId($event->data['user_id'], $event->data['location_id']);
-            //}
+            if (isset($event->data['location_id'])) {
+                $this->validateLocationId($event->data['user_id'], $event->data['location_id']);
+            }
             if (isset($event->data['customer_id'])) {
                 $this->validateCustomerId($event->data['user_id'], $event->data['customer_id']);
             }
         }
-        catch (OAuth2AuthenticateException $e) {
-            $this->response_code    = $e->getCode();
-            $this->response_message = $e->getMessage();
-            $e->sendHttpResponse();
-            return false;
+        catch (Exception $e) {
+            header("HTTP/1.1 403");
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: POST, GET");
+            header("Access-Control-Allow-Headers: X-PINGOTHER");
+            header("Content-Type: application/json; charset=UTF-8");
+            header("Access-Control-Max-Age: 1728000");
+            header("Pragma: no-cache");
+            header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+            echo json_encode([
+                'error'             => 'invalid_param',
+                'error_description' => $e->getMessage()
+                    ], true);
+            exit();
         }
     }
 
+    /**
+     * Validates if a certain user_id have access
+     * to a certain location_id.
+     * 
+     * @param int $user_id
+     * @param int $location_id
+     * @throws Exception
+     */
     private function validateLocationId ($user_id, $location_id)
     {        
         $user    = new User();
@@ -69,6 +93,15 @@ class GrantListener implements CakeEventListener
         }
     }
 
+    /**
+     * Valiates if a certain user_id have access
+     * to a certain customer_id
+     *      
+     * @param type $user_id
+     * @param type $customer_id
+     * @return boolean
+     * @throws Exception
+     */
     private function validateCustomerId ($user_id, $customer_id)
     {
         $user = new User();
