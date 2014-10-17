@@ -44,11 +44,20 @@ class GrantListener implements CakeEventListener
                 $this->validateCustomerId($event->data['user_id'], $event->data['customer_id']);
             }
         }
-        catch (OAuth2AuthenticateException $e) {
-            $this->response_code    = $e->getCode();
-            $this->response_message = $e->getMessage();
-            $e->sendHttpResponse();
-            return false;
+        catch (Exception $e) {
+            header("HTTP/1.1 403");
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: POST, GET");
+            header("Access-Control-Allow-Headers: X-PINGOTHER");
+            header("Content-Type: application/json; charset=UTF-8");
+            header("Access-Control-Max-Age: 1728000");
+            header("Pragma: no-cache");
+            header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+            echo json_encode([
+                'error'             => 'invalid_param',
+                'error_description' => $e->getMessage()
+                    ], true);
+            exit();
         }
     }
 
