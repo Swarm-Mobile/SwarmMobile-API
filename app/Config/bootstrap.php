@@ -23,7 +23,7 @@
  */
 
 // Start Composer Include
-require '../../vendor/autoload.php';
+require APP . '../vendor/autoload.php';
 
 // Remove and re-prepend CakePHP's autoloader as Composer thinks it is the
 // most important.
