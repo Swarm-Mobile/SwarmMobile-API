@@ -67,6 +67,17 @@ class IBeaconCouponsController  extends IBeaconController {
         // TODO узнать что такое userId
         $data = $this->request->data;
         $this->IBeaconCoupons->confirmation($id,$data['action']);
+        $cupon = $this->IBeaconCoupons->find('first',array('conditions' => array('IBeaconCoupons.id' => $id)));
+        $couponConfigurationModel = new IBeaconCouponConfiguration();
+        $configuration = $couponConfigurationModel->find('first', array(
+            'conditions' => array(
+               'campaign_id' => $cupon['IBeaconCoupons']['campaign_id'],
+            )
+        ));
+        $response = array_merge($configuration['IBeaconCouponConfiguration'],$cupon['IBeaconCoupons']);
+        $responseSDK = $this->IBeaconCoupons->DBKeysToSDK($response);
+        $responseSDK['endDate'] = $cupon['campaign']['end_date'];
+        echo json_encode($responseSDK);
         exit;
     }
     /**
@@ -94,6 +105,7 @@ class IBeaconCouponsController  extends IBeaconController {
         ));
         $response = array_merge($configuration['IBeaconCouponConfiguration'],$coupon['IBeaconCoupons']);
         $responseSDK = $this->IBeaconCoupons->DBKeysToSDK($response);
+        $responseSDK['endDate'] = $coupon['campaign']['end_date'];
         echo json_encode($responseSDK);
         exit;
     }
