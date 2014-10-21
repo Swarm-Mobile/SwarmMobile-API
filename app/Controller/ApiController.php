@@ -189,14 +189,6 @@ class APIController extends AppController
             //$this->call_log();
             exit();
         }
-        catch (OAuth2AuthenticateException $e)
-        {
-            $this->response_code = $e->getCode();
-            $this->response_message = $e->getMessage();
-            //$this->call_log();
-            $e->sendHttpResponse();
-            return false;
-        }
         catch (APIException $e)
         {
             $this->response_code = $e->error_no;
@@ -257,20 +249,12 @@ TEXT;
     }
 
     public function processGET ($params = array ())
-    {
-        if (!$this->debug)
-        {
-            $this->user = $this->authenticate($params['access_token']);
-        }
+    {        
         return true;
     }
 
     public function processPOST ($params = array ())
     {
-        if (!$this->debug)
-        {
-            $this->user = $this->authenticate($params['access_token']);
-        }
         $this->cache = false;
         $this->rollups = false;
         return true;
@@ -459,13 +443,6 @@ SQL;
         {
             mkdir($path);
         }
-    }
-
-    public function authenticate ($accessToken = '')
-    {
-        $oOAuth = new OAuthComponent(new ComponentCollection());
-        $oOAuth->OAuth2->verifyAccessToken($accessToken);
-        return $oOAuth->user();
     }
 
     private function cache ($component, $method, $params, $result, $from_rollups = false)
