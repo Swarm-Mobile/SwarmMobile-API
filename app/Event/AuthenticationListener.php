@@ -1,5 +1,6 @@
 <?php
 
+App::uses('HmacOauth', 'ibeacon.IBeacon');
 App::uses('RedisComponent', 'Controller/Component');
 App::uses('OAuthClientComponent', 'Controller/Component');
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
@@ -46,7 +47,14 @@ class AuthenticationListener implements CakeEventListener
      */
     private function authenticateRequest (CakeEvent $event)
     {
-        if ($_SERVER['REQUEST_URI'] != '/server_health/ok') {
+        list($uri) = explode('?',$_SERVER['REQUEST_URI'].'?');
+        $exceptions = [
+            '/what_is_here',
+            '/where_am_i',
+            '/api/login',
+            '/server_health/ok'
+        ];        
+        if (!in_array($uri, $exceptions)) {
             try {
                 $params = $event->data['request']->query;
                 if (!isset($params['access_token'])) {
