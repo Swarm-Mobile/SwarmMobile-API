@@ -98,7 +98,8 @@ class IBeaconCoupons extends IBeaconModel {
         'text' => 'text',
         'code' => 'code',
         'status' => 'status',
-        'delivery_text' => 'deliveryText'
+        'delivery_text' => 'deliveryText',
+        'campaign_id' => 'campaignIid'
     );
     /**
      *
