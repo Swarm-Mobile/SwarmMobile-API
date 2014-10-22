@@ -54,8 +54,8 @@ class AuthenticationListener implements CakeEventListener
             '\/login',
             '\/what_is_here',
             '\/where_am_i',
-            '\/my\/coupon/',
-            '\/coupon\/campaign/',
+            '\/my\/coupon\/',
+            '\/coupon\/campaign\/',
             '\/test',
             '\/api\/login',
             '\/server_health\/ok'
