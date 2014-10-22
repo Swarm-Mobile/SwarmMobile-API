@@ -11,7 +11,7 @@ class DatabaseConfigShell extends AppShell
     public function main ()
     {
         $this->setEnvironment();
-        $filepath = '/var/app/current/app/Config/database.php';
+        $filepath = '/var/app/ondeck/app/Config/database.php';
         $s3factory = new S3FactoryComponent(new ComponentCollection());
         $s3Client  = $s3factory->loadS3();
         $ret = $s3Client->getObject(array(
