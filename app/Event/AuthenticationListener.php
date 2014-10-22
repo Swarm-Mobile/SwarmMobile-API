@@ -47,54 +47,56 @@ class AuthenticationListener implements CakeEventListener
      */
     private function authenticateRequest (CakeEvent $event)
     {
-        list($uri) = explode('?',$_SERVER['REQUEST_URI'].'?');
         $exceptions = [
-            '/what_is_here',
-            '/where_am_i',
-            '/api/login',
-            '/server_health/ok'
-        ];        
-        if (!in_array($uri, $exceptions)) {
-            try {
-                $params = $event->data['request']->query;
-                if (!isset($params['access_token'])) {
+            '\/what_is_here',
+            '\/where_am_i',
+            '\/api\/login',
+            '\/server_health\/ok'
+        ];
+        foreach ($exceptions as $exception) {
+            if (preg_match('/' . $exception . '/', $_SERVER['REQUEST_URI'])) {
+                return;
+            }
+        }
+        try {
+            $params = $event->data['request']->query;
+            if (!isset($params['access_token'])) {
+                throw new Exception('The access token provided is invalid.');
+            }
+            $accessToken  = $params['access_token'];
+            $predis       = RedisComponent::getInstance('oAuth');
+            $oauthStorage = new OAuth2\Storage\Redis($predis);
+            $token        = $oauthStorage->getAccessToken($accessToken);
+            if (empty($token)) {
+                $oOAuth = new OAuthComponent(new ComponentCollection());
+                $oOAuth->OAuth2->verifyAccessToken($accessToken);
+            }
+            else {
+                if ($token['expires'] <= time()) {
                     throw new Exception('The access token provided is invalid.');
                 }
-                $accessToken  = $params['access_token'];
-                $predis       = RedisComponent::getInstance('oAuth');
-                $oauthStorage = new OAuth2\Storage\Redis($predis);
-                $token        = $oauthStorage->getAccessToken($accessToken);
-                if (empty($token)) {
-                    $oOAuth = new OAuthComponent(new ComponentCollection());
-                    $oOAuth->OAuth2->verifyAccessToken($accessToken);
-                }
                 else {
-                    if ($token['expires'] <= time()) {
-                        throw new Exception('The access token provided is invalid.');
-                    }
-                    else {
-                        $event = new CakeEvent(
-                                'Authentication.passed', $this, array_merge($token, $params)
-                        );
-                        CakeEventManager::instance()->dispatch($event);
-                    }
+                    $event = new CakeEvent(
+                            'Authentication.passed', $this, array_merge($token, $params)
+                    );
+                    CakeEventManager::instance()->dispatch($event);
                 }
             }
-            catch (Exception $e) {
-                header("HTTP/1.1 403");
-                header("Access-Control-Allow-Origin: *");
-                header("Access-Control-Allow-Methods: POST, GET");
-                header("Access-Control-Allow-Headers: X-PINGOTHER");
-                header("Content-Type: application/json; charset=UTF-8");
-                header("Access-Control-Max-Age: 1728000");
-                header("Pragma: no-cache");
-                header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
-                echo json_encode([
-                    'error'             => 'invalid_token',
-                    'error_description' => $e->getMessage()
-                        ], true);
-                exit();
-            }
+        }
+        catch (Exception $e) {
+            header("HTTP/1.1 403");
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: POST, GET");
+            header("Access-Control-Allow-Headers: X-PINGOTHER");
+            header("Content-Type: application/json; charset=UTF-8");
+            header("Access-Control-Max-Age: 1728000");
+            header("Pragma: no-cache");
+            header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+            echo json_encode([
+                'error'             => 'invalid_token',
+                'error_description' => $e->getMessage()
+                    ], true);
+            exit();
         }
     }
 
