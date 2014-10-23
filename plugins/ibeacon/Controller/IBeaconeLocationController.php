@@ -51,7 +51,6 @@ class IBeaconeLocationController extends  IBeaconController {
                     );
                     $location['categorization'] = $categorys;
                     $response['locations'][] = $location;
-                    var_dump($response);
                     $this->pingAsPresence($location['id'], $deviceId);
                 }
             }
