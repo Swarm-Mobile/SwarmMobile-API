@@ -12,7 +12,7 @@
  */
 
 App::uses('IBeaconController', 'ibeacon.Controller');
-App::uses('RedisComponent', 'Controller/Component');
+App::uses('RedisComponent', 'ibeacon.Controller/Component');
 App::uses('IBeaconDeviceCoordinate', 'ibeacon.Model');
 App::uses('User', 'ibeacon.Model/PingAsPresence');
 
@@ -51,6 +51,7 @@ class IBeaconeLocationController extends  IBeaconController {
                     );
                     $location['categorization'] = $categorys;
                     $response['locations'][] = $location;
+                    var_dump($response);
                     $this->pingAsPresence($location['id'], $deviceId);
                 }
             }

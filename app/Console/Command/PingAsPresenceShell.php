@@ -21,12 +21,11 @@ class PingAsPresenceShell extends AppShell
         $redisKeys = $this->redis->keys('*');
         foreach($redisKeys as $hKey) {
             $this->processUserSession($hKey);
-            $this->redis->del($hKey);
         }
     }
 
     /**
-     * Set the redis connection object 
+     * Set the redis connection object
      *
      * @var String redis config name
      */
@@ -42,8 +41,8 @@ class PingAsPresenceShell extends AppShell
     }
 
     /**
-     * Process user sessions and footprints 
-     * 
+     * Process user sessions and footprints
+     *
      * @var Array session data
      */
     private function processUserSession($hKey)
@@ -54,6 +53,15 @@ class PingAsPresenceShell extends AppShell
         $setData['PingSession'] = [];
         list($setData['PingSession']['location_id'], $setData['PingSession']['user_id']) = split(':', $hKey);
         $sessionObj = new PingSession();
+        
+        // Check if the session is still active
+        $date = new DateTime('now', new DateTimeZone('GMT'));
+        $currentTime = $date->format('Y-m-d H:i:s');
+        if (!empty($data['timestamp'])) {
+            $timeDiff = round(abs(strtotime($currentTime) - strtotime($data['timestamp'])) / 60, 2);
+            if($timeDiff < 20) return; 
+        }
+
         // Looping throuh all the hash keys
         foreach ($data as $key => $value) {
             // Check if the key is the deviceId
@@ -92,5 +100,6 @@ class PingAsPresenceShell extends AppShell
                 }
             }
         }
+        $this->redis->del($hKey);
     }
 }
