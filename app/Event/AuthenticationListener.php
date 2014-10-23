@@ -49,8 +49,7 @@ class AuthenticationListener implements CakeEventListener
     {
         //TODO: Handle this through OAuth and HMAC controllers
         $exceptions = [
-            '\/oauth\/',
-            '\/request_client',
+            '\/oauth\/',            
             '\/logout',
             '\/login',
             '\/what_is_here',
@@ -59,9 +58,7 @@ class AuthenticationListener implements CakeEventListener
             '\/coupon\/campaign\/',
             '\/test',
             '\/api\/login',
-            '\/server_health\/ok',
-            '\/user\/register',
-            '\/location\/create'
+            '\/server_health\/ok'                        
         ];
         foreach ($exceptions as $exception) {
             if (preg_match('/' . $exception . '/', $_SERVER['REQUEST_URI'])) {
@@ -71,7 +68,10 @@ class AuthenticationListener implements CakeEventListener
         try {
             $params = $event->data['request']->query;
             if (!isset($params['access_token'])) {
-                throw new Exception('The access token provided is invalid.');
+                $params = $event->data['request']->data;
+                if (!isset($params['access_token'])) {
+                    throw new Exception('The access token provided is invalid.');
+                }
             }
             $accessToken  = $params['access_token'];
             $predis       = RedisComponent::getInstance('oAuth');
