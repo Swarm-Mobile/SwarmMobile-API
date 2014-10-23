@@ -30,9 +30,9 @@ App::uses('LocationComponent', 'Controller/Component');
 class APIController extends AppController
 {
 
-    public $default_cache_time = 300;
+    public $default_cache_time    = 300;
     public $cache_time_exceptions = array ();
-    public $cache_methods = [
+    public $cache_methods         = [
         'avgTicket',
         //'conversionRate',
         'presenceConversionRate',
@@ -44,7 +44,7 @@ class APIController extends AppController
         //'portalTraffic'
         'itemsPerTransaction',
         'returning',
-        'revenue',        
+        'revenue',
         'timeInShop',
         'totalItems',
         'totals',
@@ -53,20 +53,20 @@ class APIController extends AppController
         'walkbys',
         'windowConversion',
     ];
-    public $iterative = true;
-    public $uses = array ('Inbox');
-    public $debug = false;
-    public $cache = true;
-    public $rollups = true;
-    public $user = array ('id_user' => 0, 'username' => '');
-    public $endpoint = '';
-    public $request_start = 0;
-    public $request_end = 0;
-    public $microtime = 0;
-    public $response_code = 200;
-    public $response_message = 'OK';
-    public $params = array ();
-    public $helpers = array ('Html', 'Session');
+    public $iterative             = true;
+    public $uses                  = array ('Inbox');
+    public $debug                 = false;
+    public $cache                 = true;
+    public $rollups               = true;
+    public $user                  = array ('id_user' => 0, 'username' => '');
+    public $endpoint              = '';
+    public $request_start         = 0;
+    public $request_end           = 0;
+    public $microtime             = 0;
+    public $response_code         = 200;
+    public $response_message      = 'OK';
+    public $params                = array ();
+    public $helpers               = array ('Html', 'Session');
 
     // Controller Actions
     public function logout ()
@@ -77,33 +77,27 @@ class APIController extends AppController
 
     public function login ()
     {
-        if ($this->request->is('post'))
-        {
+        if ($this->request->is('post')) {
             $this->Session->destroy('User');
             $redirect = $this->request->data['redirect'];
-            if ($this->Auth->login())
-            {
-                if (empty($redirect))
-                {
-                    $res = array ();
+            if ($this->Auth->login()) {
+                if (empty($redirect)) {
+                    $res                = array ();
                     $res['location_id'] = $this->Session->read("Auth.User.location_id");
-                    $res['username'] = $this->Session->read("Auth.User.username");
-                    $res['uuid'] = $this->Session->read("Auth.User.uuid");
+                    $res['username']    = $this->Session->read("Auth.User.username");
+                    $res['uuid']        = $this->Session->read("Auth.User.uuid");
                     echo json_encode($res);
                     //$this->call_log();
                     exit();
                 }
-                else
-                {
+                else {
                     $this->redirect($redirect);
                 }
             }
-            else
-            {
-                if (empty($redirect))
-                {
-                    $e = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-                    $this->response_code = $e->error_no;
+            else {
+                if (empty($redirect)) {
+                    $e                      = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
+                    $this->response_code    = $e->error_no;
                     $this->response_message = $e->error;
                     //$this->call_log();
                     $e->_displayError();
@@ -125,10 +119,10 @@ class APIController extends AppController
 
     public function index ()
     {
-        $env = getenv('server_location');
-        $this->debug = ($env != 'live');
+        $env                 = getenv('server_location');
+        $this->debug         = ($env != 'live');
         set_time_limit(3600);
-        $this->microtime = microtime(true);
+        $this->microtime     = microtime(true);
         $this->request_start = date('Y-m-d H:i:s');
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: POST, GET");
@@ -137,50 +131,47 @@ class APIController extends AppController
         header("Access-Control-Max-Age: 1728000");
         header("Pragma: no-cache");
         header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
-        try
-        {
-            if ($this->request->is('get'))
-            {
+        try {
+            if ($this->request->is('get')) {
                 $params = $_GET;
                 $this->processGET($params);
             }
-            elseif ($this->request->is('post'))
-            {
+            elseif ($this->request->is('post')) {
                 $params = $_POST;
                 $this->processPOST($params);
             }
-            else
-            {
+            else {
                 throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
             }
 
-            $path = func_get_args();
+            $path         = func_get_args();
             $this->params = $params;
-            if (!isset($path[1]))
-            {
+            if (!isset($path[1])) {
                 $path[1] = '';
             }
             $this->endpoint = $path[0] . '/' . $path[1];
-            $component = ucfirst($path[0]) . 'Component';
-            $component = new $component;
+            $component      = ucfirst($path[0]) . 'Component';
+            if (class_exists($component)) {
+                $component = new $component;
+            }
+            else {
+                throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
+            }
             $request_method = strtolower(env('REQUEST_METHOD'));
             $this->call_log($path[0], $path[1], $request_method);
-            switch ($request_method)
-            {
+            switch ($request_method) {
                 case 'get':
                     if (
                             in_array($path[1], $component->post_actions) ||
                             in_array($path[1], $component->put_actions) ||
                             in_array($path[1], $component->delete_actions)
-                    )
-                    {
+                    ) {
                         throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
                     }
                     break;
                 default:
                     $actions = $request_method . '_actions';
-                    if (!in_array($path[1], $component->$actions))
-                    {
+                    if (!in_array($path[1], $component->$actions)) {
                         throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
                     }
                     break;
@@ -189,9 +180,8 @@ class APIController extends AppController
             //$this->call_log();
             exit();
         }
-        catch (APIException $e)
-        {
-            $this->response_code = $e->error_no;
+        catch (APIException $e) {
+            $this->response_code    = $e->error_no;
             $this->response_message = $e->error;
             //$this->call_log();
             $e->_displayError();
@@ -206,11 +196,12 @@ class APIController extends AppController
         //return true;
         // For now we just want to see post calls, and hence this check makes 
         // sure that our call log does not grow exponentially
-        if(empty($_POST)) return;
+        if (empty($_POST))
+            return;
         $file = __DIR__ . '/../tmp/logs/api_calls/' . date('Y_m_d_h_i_s') .
                 '_' . strtoupper($request_method) . '_' . $component . '_' . $function;
         $post = var_export($_POST, true);
-        $get = var_export($_GET, true);
+        $get  = var_export($_GET, true);
         $text = <<<TEXT
 POST:
 $post
@@ -225,23 +216,18 @@ TEXT;
     public function __construct ($request = null, $response = null)
     {
         parent::__construct($request, $response);
-        if (!empty($this->request))
-        {
-            if ($request->is('post'))
-            {
+        if (!empty($this->request)) {
+            if ($request->is('post')) {
                 $this->rollups = false;
-                $this->cache = false;
+                $this->cache   = false;
             }
-            elseif ($this->request->is('get'))
-            {
-                if (isset($_GET['norollups']))
-                {
-                    $norollups = in_array($_GET['norollups'], ['1', 1, 'yes', true], true);
+            elseif ($this->request->is('get')) {
+                if (isset($_GET['norollups'])) {
+                    $norollups     = in_array($_GET['norollups'], ['1', 1, 'yes', true], true);
                     $this->rollups = !$norollups;
                 }
-                if (isset($_GET['nocache']))
-                {
-                    $nocache = in_array($_GET['nocache'], ['1', 1, 'yes', true], true);
+                if (isset($_GET['nocache'])) {
+                    $nocache     = in_array($_GET['nocache'], ['1', 1, 'yes', true], true);
                     $this->cache = !$nocache;
                 }
             }
@@ -249,13 +235,13 @@ TEXT;
     }
 
     public function processGET ($params = array ())
-    {        
+    {
         return true;
     }
 
     public function processPOST ($params = array ())
     {
-        $this->cache = false;
+        $this->cache   = false;
         $this->rollups = false;
         return true;
     }
@@ -266,12 +252,10 @@ TEXT;
         unset($params['norollups']);
         unset($params['nocache']);
         $classname = ucfirst($component) . 'Component';
-        if (class_exists($classname))
-        {
+        if (class_exists($classname)) {
             $oComponent = new $classname($this->request, $this->cache, $this->rollups);
-            $result = $this->getPreviousResult($component, $method, $params);
-            if ($result === false)
-            {
+            $result     = $this->getPreviousResult($component, $method, $params);
+            if ($result === false) {
                 $result = $oComponent->$method($params);
                 $this->cache($component, $method, $params, $result);
             }
@@ -285,49 +269,43 @@ TEXT;
         unset($params['access_token']);
         unset($params['norollups']);
         unset($params['nocache']);
-        unset($params['rollup']);        
-        if ($component == 'location' && $method == 'purchaseInfo')
-        {
+        unset($params['rollup']);
+        if ($component == 'location' && $method == 'purchaseInfo') {
             $filename = $this->getCacheFilePath($component, $method, $params);
-            if (file_exists($filename))
-            {
+            if (file_exists($filename)) {
                 $cache_time = (isset($this->cache_time_exceptions[$component][$method])) ? $this->cache_time_exceptions[$component][$method] : $this->default_cache_time;
-                if (time() - filemtime($filename) <= $cache_time)
-                {
+                if (time() - filemtime($filename) <= $cache_time) {
                     include $filename;
                     return $result;
                 }
             }
         }
-        else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods))
-        {            
+        else if ($this->rollups && $component == 'location' && in_array($method, $this->cache_methods)) {
             $oModel = new Model(false, 'walkbys', 'rollups');
-            $oDb = $oModel->getDataSource();
-            $sSQL = <<<SQL
+            $oDb    = $oModel->getDataSource();
+            $sSQL   = <<<SQL
 SELECT * 
 FROM $method  
 WHERE location_id = :location_id  
   AND `date` = :start_date
   AND `date` = :end_date
 SQL;
-            $aRes = $oDb->fetchAll($sSQL, [
+            $aRes   = $oDb->fetchAll($sSQL, [
                 ':location_id' => $params['location_id'],
                 ':start_date'  => $params['start_date'],
                 ':end_date'    => $params['end_date']
                     ]
             );
-            if (!empty($aRes))
-            {
-                if ($method != 'totals')
-                {
-                    $data = $this->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-                    $weekday = new DateTime($params['start_date']);
-                    $weekday = strtolower(date_format($weekday, 'l'));
-                    $tmp = $data['data'][$weekday . '_open'];
-                    $isOpen = $tmp != 0;
-                    $open = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
-                    $tmp = $data['data'][$weekday . '_close'];
-                    $close = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
+            if (!empty($aRes)) {
+                if ($method != 'totals') {
+                    $data      = $this->internalCall('location', 'data', array ('location_id' => $params['location_id']));
+                    $weekday   = new DateTime($params['start_date']);
+                    $weekday   = strtolower(date_format($weekday, 'l'));
+                    $tmp       = $data['data'][$weekday . '_open'];
+                    $isOpen    = $tmp != 0;
+                    $open      = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
+                    $tmp       = $data['data'][$weekday . '_close'];
+                    $close     = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
                     $to_return = [
                         'data'    => [
                             'totals'    => [
@@ -381,27 +359,26 @@ SQL;
                     ];
                     return APIComponent::nightClubFormat($to_return, $data);
                 }
-                else
-                {
+                else {
                     return [
-                        'walkbys'               => $aRes[0][$method]['walkbys'],                       
-                        'footTraffic'           => $aRes[0][$method]['footTraffic'],
-                        'presenceTraffic'       => $aRes[0][$method]['presenceTraffic'],
-                        'portalTraffic'         => $aRes[0][$method]['portalTraffic'],
-                        'transactions'          => $aRes[0][$method]['transactions'],
-                        'revenue'               => $aRes[0][$method]['revenue'],
-                        'totalItems'            => $aRes[0][$method]['totalItems'],
-                        'returning'             => $aRes[0][$method]['returning'],
-                        'timeInShop'            => $aRes[0][$method]['timeInShop'],
-                        'traffic'               => $aRes[0][$method]['traffic'],
-                        'devices'               => $aRes[0][$method]['devices'],
-                        'itemsPerTransaction'   => $aRes[0][$method]['itemsPerTransaction'],
-                        'windowConversion'      => $aRes[0][$method]['windowConversion'],
-                        'avgTicket'             => $aRes[0][$method]['avgTicket'],
-                        'conversionRate'        => $aRes[0][$method]['conversionRate'],
-                        'portalConversionRate'  => $aRes[0][$method]['portalConversionRate'],
-                        'presenceConversionRate'=> $aRes[0][$method]['presenceConversionRate'],
-                        'dwell'                 => $aRes[0][$method]['dwell'],
+                        'walkbys'                => $aRes[0][$method]['walkbys'],
+                        'footTraffic'            => $aRes[0][$method]['footTraffic'],
+                        'presenceTraffic'        => $aRes[0][$method]['presenceTraffic'],
+                        'portalTraffic'          => $aRes[0][$method]['portalTraffic'],
+                        'transactions'           => $aRes[0][$method]['transactions'],
+                        'revenue'                => $aRes[0][$method]['revenue'],
+                        'totalItems'             => $aRes[0][$method]['totalItems'],
+                        'returning'              => $aRes[0][$method]['returning'],
+                        'timeInShop'             => $aRes[0][$method]['timeInShop'],
+                        'traffic'                => $aRes[0][$method]['traffic'],
+                        'devices'                => $aRes[0][$method]['devices'],
+                        'itemsPerTransaction'    => $aRes[0][$method]['itemsPerTransaction'],
+                        'windowConversion'       => $aRes[0][$method]['windowConversion'],
+                        'avgTicket'              => $aRes[0][$method]['avgTicket'],
+                        'conversionRate'         => $aRes[0][$method]['conversionRate'],
+                        'portalConversionRate'   => $aRes[0][$method]['portalConversionRate'],
+                        'presenceConversionRate' => $aRes[0][$method]['presenceConversionRate'],
+                        'dwell'                  => $aRes[0][$method]['dwell'],
                     ];
                 }
             }
@@ -412,11 +389,10 @@ SQL;
     private function getCacheFilePath ($component, $method, $params)
     {
         $component = strtolower($component);
-        $method = strtolower($method);
-        $path = ROOT . DS . 'app' . DS . 'tmp' . DS . 'cache' . DS . 'api_calls' . DS . $component . DS . $method;
-        $tmp = '';
-        foreach ($params as $k => $v)
-        {
+        $method    = strtolower($method);
+        $path      = ROOT . DS . 'app' . DS . 'tmp' . DS . 'cache' . DS . 'api_calls' . DS . $component . DS . $method;
+        $tmp       = '';
+        foreach ($params as $k => $v) {
             $tmp .= $k . ':' . $v;
         }
         return $path . DS . md5($tmp) . '.cache';
@@ -425,30 +401,26 @@ SQL;
     private function createCacheFolders ($component, $method)
     {
         $component = strtolower($component);
-        $method = strtolower($method);
-        $path = ROOT . DS . 'app' . DS . 'tmp' . DS . 'cache' . DS . 'api_calls';
-        if (!file_exists($path))
-        {
+        $method    = strtolower($method);
+        $path      = ROOT . DS . 'app' . DS . 'tmp' . DS . 'cache' . DS . 'api_calls';
+        if (!file_exists($path)) {
             mkdir($path);
         }
 
         $path = $path . DS . $component;
-        if (!file_exists($path))
-        {
+        if (!file_exists($path)) {
             mkdir($path);
         }
 
         $path .= DS . $method;
-        if (!file_exists($path))
-        {
+        if (!file_exists($path)) {
             mkdir($path);
         }
     }
 
     private function cache ($component, $method, $params, $result, $from_rollups = false)
     {
-        if (!empty($result) && ($component . '/' . $method) != 'location/data')
-        {
+        if (!empty($result) && ($component . '/' . $method) != 'location/data') {
             unset($params['access_token']);
             unset($params['norollups']);
             unset($params['nocache']);
@@ -457,37 +429,31 @@ SQL;
                     isset($params['start_date']) &&
                     isset($params['end_date']) &&
                     $params['start_date'] != $params['end_date']
-            )
-            {
+            ) {
                 return;
             }
 
             //if ($this->cache) {
-            if ($component == 'location' && $method == 'purchaseInfo')
-            {
+            if ($component == 'location' && $method == 'purchaseInfo') {
                 $this->createCacheFolders($component, $method);
                 $cache_file = $this->getCacheFilePath($component, $method, $params);
-                $handle = fopen($cache_file, 'w+');
+                $handle     = fopen($cache_file, 'w+');
                 fwrite($handle, '<?php $result = ' . var_export($result, true) . ';?>');
                 fclose($handle);
             }
-            else if ($this->rollups)
-            {
-                if (!$from_rollups && $component == 'location' && in_array($method, $this->cache_methods))
-                {
-                    $date = $params['start_date'];
+            else if ($this->rollups) {
+                if (!$from_rollups && $component == 'location' && in_array($method, $this->cache_methods)) {
+                    $date        = $params['start_date'];
                     $location_id = $params['location_id'];
-                    $oModel = new Model(false, 'walkbys', 'rollups');
-                    $oDb = $oModel->getDataSource();
-                    $sSQL = "SELECT id FROM $method WHERE location_id = :location_id AND `date` = :date";
-                    $aRes = $oDb->fetchAll($sSQL, [
+                    $oModel      = new Model(false, 'walkbys', 'rollups');
+                    $oDb         = $oModel->getDataSource();
+                    $sSQL        = "SELECT id FROM $method WHERE location_id = :location_id AND `date` = :date";
+                    $aRes        = $oDb->fetchAll($sSQL, [
                         ':location_id' => $location_id,
                         ':date'        => $date
                     ]);
-                    if (empty($aRes))
-                    {
-                        if ($method != 'totals')
-                        {
+                    if (empty($aRes)) {
+                        if ($method != 'totals') {
                             $sSQL = "
 INSERT IGNORE INTO $method
     SET date = '$date',
@@ -523,8 +489,7 @@ INSERT IGNORE INTO $method
         ts_update = NOW()
 ";
                         }
-                        else
-                        {
+                        else {
                             $sSQL = <<<SQL
 INSERT IGNORE INTO $method
     SET location_id             = {$params['location_id']},
@@ -553,8 +518,7 @@ SQL;
                         }
                         $oDb->query($sSQL);
                     }
-                    else
-                    {
+                    else {
                         //throw new APIException(500, 'duplicated_cache', "This request is already cached");
                     }
                 }
@@ -574,8 +538,8 @@ class APIException extends Exception
     public function __construct ($error_no, $error, $description)
     {
         parent::__construct($error_no);
-        $this->error_no = $error_no;
-        $this->error = $error;
+        $this->error_no    = $error_no;
+        $this->error       = $error;
         $this->description = $description;
     }
 
