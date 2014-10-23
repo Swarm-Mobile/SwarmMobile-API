@@ -6,10 +6,6 @@ App::uses('Model', 'Model');
 class UserComponent extends APIComponent
 {
 
-    public $post_actions   = ['register', 'updateSettings', 'login', 'updatePassword'];
-    public $put_actions    = [];
-    public $delete_actions = [];
-
     /**
      * Register a new user
      * 

@@ -147,9 +147,4 @@ class CustomerController extends AppController
         $this->render('/API/json');
     }
 
-    public function beforeFilter ()
-    {
-        $this->Auth->allow('customer', 'customers');
-    }
-
 }

@@ -6,21 +6,6 @@ App::uses('APIComponent', 'Controller/Component');
 class LocationComponent extends APIComponent
 {
 
-    public $post_actions   = ['create', 'updateSettings'];
-    public $put_actions    = [];
-    public $delete_actions = [];
-
-    //IOS ENDPOINTS
-    public function whereAmI ($params)
-    {
-        
-    }
-
-    public function whatIsHere ($params)
-    {
-        
-    }
-
     public function monthlyTotals ($params)
     {
         $rules = array (

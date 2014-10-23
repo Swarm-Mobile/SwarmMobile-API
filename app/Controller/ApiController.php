@@ -19,7 +19,6 @@ App::uses('SettingGroup', 'Model');
 App::uses('PortalComponent', 'Controller/Component');
 //App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
-App::uses('OAuthClientComponent', 'Controller/Component');
 App::uses('RollupComponent', 'Controller/Component');
 
 App::uses('UserComponent', 'Controller/Component');
@@ -69,36 +68,6 @@ class APIController extends AppController
     public $helpers               = array ('Html', 'Session');
 
     // Controller Actions
-    public function logout ()
-    {
-        $this->Session->destroy('User');
-        $this->redirect(Router::url('/login'));
-    }
-
-    public function login ()
-    {
-        if ($this->request->is('post')) {
-            $this->Session->destroy('User');
-            $redirect = $this->request->data['redirect'];
-            if ($this->Auth->login()) {
-                if (empty($redirect)) {
-                    $res                = array ();
-                    $res['location_id'] = $this->Session->read("Auth.User.location_id");
-                    $res['username']    = $this->Session->read("Auth.User.username");
-                    $res['uuid']        = $this->Session->read("Auth.User.uuid");
-                    echo json_encode($res);
-                    exit();
-                }
-                else {
-                    $this->redirect($redirect);
-                }
-            }
-            else {
-                throw new Exception('Supplied credentials are invalid', 401);
-            }
-        }
-    }
-
     public function index ()
     {
         $env                 = getenv('server_location');
@@ -114,72 +83,31 @@ class APIController extends AppController
         header("Pragma: no-cache");
         header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
         if ($this->request->is('get')) {
-            $params = $_GET;
+            $params = $this->request->query;
         }
         elseif ($this->request->is('post')) {
-            $params = $_POST;
+            $params = $this->request->data;
         }
         else {
             throw new Exception("Method Type Requested aren't granted with your access_token", 401);
         }
-
         $path         = func_get_args();
         $this->params = $params;
-        if (!isset($path[1])) {
-            $path[1] = '';
+        foreach ([0, 1] as $k) {
+            if (!isset($path[$k])) {
+                $path[$k] = '';
+            }
         }
         $this->endpoint = $path[0] . '/' . $path[1];
         $component      = ucfirst($path[0]) . 'Component';
-        if (class_exists($component)) {
+        if (class_exists($component) && !empty($path[0])) {
             $component = new $component;
         }
         else {
             throw new Exception("The requested reference type don't exists", 401);
         }
-        $request_method = strtolower(env('REQUEST_METHOD'));
-        $this->call_log($path[0], $path[1], $request_method);
-        switch ($request_method) {
-            case 'get':
-                if (
-                        in_array($path[1], $component->post_actions) ||
-                        in_array($path[1], $component->put_actions) ||
-                        in_array($path[1], $component->delete_actions)
-                ) {
-                    throw new Exception("Incorrect Request Method", 401);
-                }
-                break;
-            default:
-                $actions = $request_method . '_actions';
-                if (!in_array($path[1], $component->$actions)) {
-                    throw new Exception("Incorrect Request Method", 401);
-                }
-                break;
-        }
         echo json_encode($this->internalCall($path[0], $path[1], $params));
         exit();
-    }
-
-    // Internal functions
-    private function call_log ($component, $function, $request_method)
-    {
-        //return true;
-        // For now we just want to see post calls, and hence this check makes 
-        // sure that our call log does not grow exponentially
-        if (empty($_POST))
-            return;
-        $file = __DIR__ . '/../tmp/logs/api_calls/' . date('Y_m_d_h_i_s') .
-                '_' . strtoupper($request_method) . '_' . $component . '_' . $function;
-        $post = var_export($_POST, true);
-        $get  = var_export($_GET, true);
-        $text = <<<TEXT
-POST:
-$post
-                
-GET:
-$get
-                
-TEXT;
-        file_put_contents($file, $text);
     }
 
     public function internalCall ($component, $method, $params)
@@ -362,13 +290,13 @@ SQL;
             unset($params['nocache']);
             unset($params['rollup']);
             if (
-                isset($params['start_date']) &&
-                isset($params['end_date']) &&
-                $params['start_date'] != $params['end_date']
+                    isset($params['start_date']) &&
+                    isset($params['end_date']) &&
+                    $params['start_date'] != $params['end_date']
             ) {
                 return;
             }
-            
+
             if ($component == 'location' && $method == 'purchaseInfo') {
                 $this->createCacheFolders($component, $method);
                 $cache_file = $this->getCacheFilePath($component, $method, $params);

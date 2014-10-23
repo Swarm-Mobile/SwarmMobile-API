@@ -38,9 +38,4 @@ class LocationController extends AppController
         $this->render('/API/json');
     }
 
-    public function beforeFilter ()
-    {
-        $this->Auth->allow('highlights');
-    }
-
 }

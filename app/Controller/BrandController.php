@@ -35,9 +35,4 @@ class BrandController extends AppController
         $this->render('/API/json');
     }
 
-    public function beforeFilter ()
-    {
-        $this->Auth->allow('brands');
-    }
-
 }

@@ -25,10 +25,10 @@ class DeviceController extends AppController
             'type'          => ['required', 'device_type'],
             'serial_number' => ['required'],
             'ts'            => ['required'],
-        ]);
+        ]);        
         $message         = 'Device updated successfully';
         $device_assigned = true;
-        $device          = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
+        $device          = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);        
         try {
             if (empty($device)) {
                 throw new Exception('Invalid device');
@@ -66,7 +66,7 @@ class DeviceController extends AppController
      */
     public function checkForUpdates ()
     {
-        list($deviceType, $serialNumber, $userId, $firmwareVersion) = $this->validateParams($this->request->data, [
+        list($deviceType, $serialNumber, $userId, $firmwareVersion) = $this->validateParams($this->request->query, [
             'type'             => ['required', 'device_type'],
             'serial_number'    => ['required'],
             'user_id'          => ['required', 'positive_int'],
@@ -83,23 +83,23 @@ class DeviceController extends AppController
             switch (strtolower($deviceType)) {
                 case 'portal':
                     $this->set('result', [
-                        "update_available" => $firmwareVersion == '1.6',
-                        "firmware_version" => "1.6",
-                        "source"           => "http://s3.aws.com/easdad"
+                        "update_available" => $firmwareVersion == '1.11',
+                        "firmware_version" => "1.11",
+                        "source"           => "https://s3-us-west-1.amazonaws.com/swarm-device-firmware/Swarm_v1.11d_NoSerial.hex"
                     ]);
                     break;
                 case 'ping':
                     $this->set('result', [
-                        "update_available" => $firmwareVersion == '1.6',
-                        "firmware_version" => "1.6",
-                        "source"           => "http://s3.aws.com/easdad"
+                        "update_available" => $firmwareVersion == '1.0',
+                        "firmware_version" => "1.0",
+                        "source"           => null
                     ]);
                     break;
                 case 'presence':
                     $this->set('result', [
-                        "update_available" => $firmwareVersion == '1.6',
-                        "firmware_version" => "1.6",
-                        "source"           => "http://s3.aws.com/easdad"
+                        "update_available" => false,
+                        "firmware_version" => null,
+                        "source"           => null
                     ]);
                     break;
             }
@@ -115,7 +115,7 @@ class DeviceController extends AppController
      */
     public function getStatus ()
     {
-        list($locationId, $userId, $deviceType, $serialNumber) = $this->validateParams($this->request->data, [
+        list($locationId, $userId, $deviceType, $serialNumber) = $this->validateParams($this->request->query, [
             'location_id'   => ['required', 'positive_int'],
             'user_id'       => ['required', 'positive_int'],
             'type'          => ['required', 'device_type'],

@@ -6,9 +6,6 @@ class APIComponent
 {
 
     public $api;
-    public $post_actions          = [];
-    public $put_actions           = [];
-    public $delete_actions        = [];
     public static $TZ_CORRECTIONS = array (
         'Austrailia NSW'    => 'Australia/NSW',
         'Australia NSW'     => 'Australia/NSW',
