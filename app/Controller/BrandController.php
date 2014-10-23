@@ -15,7 +15,7 @@ class BrandController extends AppController
     {
         $this->layout = 'blank';
         try {            
-            $this->Location->readFromParams($this->params->query);
+            $this->Location->readFromParams($this->params->query, 1);
             $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
             if (empty($storeId)) {
                 throw new InvalidArgumentException("Incorrect location_id");

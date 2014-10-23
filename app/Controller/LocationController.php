@@ -16,7 +16,7 @@ class LocationController extends AppController
     {
         $this->layout = 'blank';
         try {            
-            $this->Location->readFromParams($this->params->query);
+            $this->Location->readFromParams($this->params->query, 1);
             $storeId          = $this->LocationSetting->getSettingValue('pos_store_id', $this->Location->id);
             $locationTimezone = $this->LocationSetting->getSettingValue('timezone', $this->Location->id);
             if (empty($storeId)) {
