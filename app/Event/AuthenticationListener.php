@@ -48,6 +48,7 @@ class AuthenticationListener implements CakeEventListener
     private function authenticateRequest (CakeEvent $event)
     {
         $exceptions = [
+            '\/request_client',
             '\/logout',
             '\/login',
             '\/what_is_here',
