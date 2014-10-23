@@ -49,6 +49,7 @@ class AuthenticationListener implements CakeEventListener
     {
         //TODO: Handle this through OAuth and HMAC controllers
         $exceptions = [
+            '\/oauth\/',
             '\/request_client',
             '\/logout',
             '\/login',
