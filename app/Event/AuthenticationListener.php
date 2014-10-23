@@ -18,7 +18,7 @@ class AuthenticationListener implements CakeEventListener
      * that should be called in the object when the respective event is fired
      */
     public function implementedEvents ()
-    {
+    {        
         return [
             'Dispatcher.beforeDispatch' => [
                 'callable' => 'fireAuthEvents',

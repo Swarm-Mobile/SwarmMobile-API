@@ -1,18 +1,28 @@
 <?php
 
 App::uses('AppController', 'Controller');
+App::uses('ValidatorComponent', 'Controller/Component');
+App::uses('Location', 'Model');
+App::uses('User', 'Model');
+App::uses('Device', 'Model');
+App::uses('DeviceType', 'Model');
 
 class DeviceController extends AppController
 {
 
+    public $uses = ['Location','User', 'Device', 'DeviceType'];
+    
     public function assign ()
-    {
+    {        
+        if(!isset($this->request->data['location_id']) || ValidatorComponent::isPositiveInt()){          
+        }
         $locationId   = $this->request->data['location_id'];
         $userId       = $this->request->data['user_id'];
-        $serialNumber = $this->request->data['user_id'];
+        $serialNumber = $this->request->data['serial_number'];
         $deviceType   = $this->request->data['device_type'];
         $ts           = $this->request->data['ts'];
-
+        
+        
         return [
             'device_assigned' => true OR false,
             'message'         => 'message'

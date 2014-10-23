@@ -1,12 +1,6 @@
 <?php
 
 CakePlugin::routes();
-//Router::connect('/'                 ,['controller' => 'pages' , 'action' => 'display', 'home']);
-//Router::connect('/how_it_works'     ,['controller' => 'pages' , 'action' => 'display', 'how']);
-Router::connect('/request_client'   ,['controller' => 'api'   , 'action' => 'request_client']);
-//Router::connect('/pages/*'          ,['controller' => 'pages' , 'action' => 'display']);
-//Router::connect('/users/:action'    ,['controller' => 'users']);
-//Router::connect('/inbox/:action'    ,['controller' => 'inbox']);
 Router::connect('/logout'           ,['controller' => 'api', 'action' => 'logout']);
 Router::connect('/login'            ,['controller' => 'api', 'action' => 'login']);
 Router::connect('/admin'            ,['controller' => 'admin', 'action' => 'home']);
