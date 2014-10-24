@@ -18,7 +18,7 @@ class AuthenticationListener implements CakeEventListener
      * that should be called in the object when the respective event is fired
      */
     public function implementedEvents ()
-    {        
+    {
         return [
             'Dispatcher.beforeDispatch' => [
                 'callable' => 'fireAuthEvents',
@@ -47,6 +47,11 @@ class AuthenticationListener implements CakeEventListener
      */
     private function authenticateRequest (CakeEvent $event)
     {
+        $env = getenv('server_location');
+        if ($env != 'live') {
+            return;
+        }
+
         //TODO: Handle this through OAuth and HMAC controllers
         $exceptions = [
             '\/oauth\/',
