@@ -19,7 +19,6 @@ App::uses('SettingGroup', 'Model');
 App::uses('PortalComponent', 'Controller/Component');
 //App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
-App::uses('RollupComponent', 'Controller/Component');
 
 App::uses('UserComponent', 'Controller/Component');
 App::uses('CouponComponent', 'Controller/Component');
@@ -52,36 +51,21 @@ class APIController extends AppController
         'walkbys',
         'windowConversion',
     ];
-    public $iterative             = true;
-    public $uses                  = array ('Inbox');
+    public $iterative             = true;    
     public $debug                 = false;
     public $cache                 = true;
     public $rollups               = true;
     public $user                  = array ('id_user' => 0, 'username' => '');
     public $endpoint              = '';
-    public $request_start         = 0;
-    public $request_end           = 0;
-    public $microtime             = 0;
-    public $response_code         = 200;
-    public $response_message      = 'OK';
     public $params                = array ();
     public $helpers               = array ('Html', 'Session');
 
     // Controller Actions
     public function index ()
-    {
+    {                
         $env                 = getenv('server_location');
         $this->debug         = ($env != 'live');
-        set_time_limit(3600);
-        $this->microtime     = microtime(true);
-        $this->request_start = date('Y-m-d H:i:s');
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: POST, GET");
-        header("Access-Control-Allow-Headers: X-PINGOTHER");
-        header("Content-Type: application/json; charset=UTF-8");
-        header("Access-Control-Max-Age: 1728000");
-        header("Pragma: no-cache");
-        header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+        set_time_limit(3600);                
         if ($this->request->is('get')) {
             $params = $this->request->query;
         }
@@ -91,13 +75,13 @@ class APIController extends AppController
         else {
             throw new Exception("Method Type Requested aren't granted with your access_token", 401);
         }
-        $path         = func_get_args();
+        $path         = explode('/', $this->request->url);
         $this->params = $params;
         foreach ([0, 1] as $k) {
             if (!isset($path[$k])) {
                 $path[$k] = '';
             }
-        }
+        }        
         $this->endpoint = $path[0] . '/' . $path[1];
         $component      = ucfirst($path[0]) . 'Component';
         if (class_exists($component) && !empty($path[0])) {
@@ -106,8 +90,9 @@ class APIController extends AppController
         else {
             throw new Exception("The requested reference type don't exists", 401);
         }
-        echo json_encode($this->internalCall($path[0], $path[1], $params));
-        exit();
+        $result = $this->internalCall($path[0], $path[1], $params);                
+        $this->set('result', $result);
+        $this->render('/API/json');
     }
 
     public function internalCall ($component, $method, $params)
@@ -122,8 +107,8 @@ class APIController extends AppController
             if ($result === false) {
                 $result = $oComponent->$method($params);
                 $this->cache($component, $method, $params, $result);
-            }
-            return $result;
+            }            
+            return $result;        
         }
         throw new Exception("The requested reference type don't exists", 401);
     }

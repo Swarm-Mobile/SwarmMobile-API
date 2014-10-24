@@ -446,7 +446,7 @@ SQL;
     }
 
     public function purchaseInfo ($params)
-    {
+    {        
         $rules = array (
             'location_id' => array ('required', 'int'),
             'start_date'  => array ('required', 'date', 'date_interval'),
@@ -536,9 +536,9 @@ SQL;
         }
         else {
             $data     = $this->api->internalCall('location', 'data', array ('location_id' => $params['location_id']));
-            $aRes     = $this->api->internalCall('location', 'purchaseInfo', $params);
+            $aRes     = $this->api->internalCall('location', 'purchaseInfo', $params);            
             $timezone = $data['data']['timezone'];
-            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);
+            list($start_date, $end_date, $timezone) = $this->parseDates($params, $timezone);           
             return $this->format($aRes, $data, $params, '/location/' . __FUNCTION__, 0, 't2', __FUNCTION__);
         }
     }
@@ -1003,7 +1003,7 @@ SQL;
 
     public function avgTicket ($params)
     {
-        $re                = $this->api->internalCall('location', 'revenue', $params);
+        $re                = $this->api->internalCall('location', 'revenue', $params);        
         $tr                = $this->api->internalCall('location', 'transactions', $params);
         $result            = $this->calculate($re, $tr, true);
         $result['options'] = array (
@@ -1011,7 +1011,7 @@ SQL;
             'location_id' => $params['location_id'],
             'start_date'  => $params['start_date'],
             'end_date'    => $params['end_date'],
-        );
+        );        
         return $result;
     }
 
