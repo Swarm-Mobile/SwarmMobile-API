@@ -47,12 +47,17 @@ class AuthenticationListener implements CakeEventListener
      */
     private function authenticateRequest (CakeEvent $event)
     {
+        //TODO: Handle this through OAuth and HMAC controllers
         $exceptions = [
+            '\/oauth\/',
             '\/request_client',
             '\/logout',
             '\/login',
             '\/what_is_here',
             '\/where_am_i',
+            '\/my\/coupon\/',
+            '\/coupon\/campaign\/',
+            '\/test',
             '\/api\/login',
             '\/server_health\/ok'
         ];

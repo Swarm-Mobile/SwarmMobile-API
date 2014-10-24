@@ -13,7 +13,7 @@ class CategoryController extends AppController
 
     public function categories ()
     {
-        $this->Location->readFromParams($this->params->query);
+        $this->Location->readFromParams($this->params->query,1);
         $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
         if (empty($storeId)) {
             throw new Exception("Incorrect location_id");

@@ -1,7 +1,6 @@
 <?php
 
 App::uses('AppController', 'Controller');
-App::uses('ValidatorComponent', 'Controller/Component');
 App::uses('Location', 'Model');
 App::uses('User', 'Model');
 App::uses('Device', 'Model');
@@ -10,96 +9,211 @@ App::uses('DeviceType', 'Model');
 class DeviceController extends AppController
 {
 
-    public $uses = ['Location','User', 'Device', 'DeviceType'];
-    
+    public $uses = ['Location', 'User', 'Device', 'DeviceType'];
+
+    /**
+     * Assigns a Device to a Location. If the Device doesn't exists 
+     * or is already assigned, throws an Exception.
+     * 
+     * @throws Exception
+     */
     public function assign ()
-    {        
-        if(!isset($this->request->data['location_id']) || ValidatorComponent::isPositiveInt()){          
-        }
-        $locationId   = $this->request->data['location_id'];
-        $userId       = $this->request->data['user_id'];
-        $serialNumber = $this->request->data['serial_number'];
-        $deviceType   = $this->request->data['device_type'];
-        $ts           = $this->request->data['ts'];
-        
-        
-        return [
-            'device_assigned' => true OR false,
-            'message'         => 'message'
-        ];
-    }
-
-    public function checkForUpdates ()
     {
-        $deviceType      = $this->request->query['device_type'];
-        $serialNumber    = $this->request->query['serial_number'];
-        $userId          = $this->request->query['user_id'];
-        $firmwareVersion = $this->request->firmware_version[''];
-    }
-
-    public function getStatus ()
-    {
-        [
-            'type',
-            'serial',
-            'location_id',
-            'user_id',
-            'battery_level',
-            'lat',
-            'long',
-            'time',
-            'store_open',
-            'store_close',
-            'firmware_version',
-            'app_version'
-        ];
-
-        $deviceType;
-        $deviceSerial;
-        $locationId;
-        $userId;
-        $batteryLevel;
-        $lat;
-        $long;
-        $deviceTime;
-        $storeOpen;
-        $storeClose;
-        $firmwareVersion;
-        $appVersion;
-    }
-
-    public function setStatus ()
-    {
-        $p = $this->request->data;
-        if (empty($p['type']) || !in_array(strtolower($p['type']), ['ping', 'portal', 'presence'])) {
-            throw new Exception('type is required and must be presence, portal or presence.');
-        }
-        if(empty($p['serial_number'])){
-            throw new Exception('serial_number is required.');            
-        }
-        if(empty($p['location_id']) || !ValidatorComponent::isPositiveInt($p['location_id'])){
-            throw new Exception('location_id is required and must be an integer.');                        
-        }
-        if(empty($p['user_id']) || !ValidatorComponent::isPositiveInt($p['user_id'])){        
-            throw new Exception('user_id is required and must be an integer.');                                    
-        }
-               
-        $paramSet    = [
-            'type', 'serial_number', 'location_id', 'user_id',
-            'battery_level', 'lat', 'long', 'time', 'store_open',
-            'store_close', 'firmware_version', 'app_version'
-        ];
-        
-        $toSet = [];
-        foreach($paramSet as $param){
-            if(!empty($p[$param])){
-                $toSet[$param] = $p[$param];
+        list($locationId, $userId, $deviceType, $serialNumber, $ts) = $this->validateParams($this->request->data, [
+            'location_id'   => ['required', 'positive_int'],
+            'user_id'       => ['required', 'positive_int'],
+            'type'          => ['required', 'device_type'],
+            'serial_number' => ['required'],
+            'ts'            => ['required'],
+        ]);
+        $message         = 'Device updated successfully';
+        $device_assigned = true;
+        $device          = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
+        try {
+            if (empty($device)) {
+                throw new Exception('Invalid device');
+            }
+            elseif (!empty($device['Device']['location_id'])) {
+                throw new Exception('This device is already assigned to a location', 401);
+            }
+            elseif ($device['Device']['devicetype_id'] != DeviceType::$ID_FROM_NAME[strtolower($deviceType)]) {
+                throw new Exception("This device doesn't correspond with this device type", 401);
+            }
+            else {
+                $this->Device->read(null, $device['Device']['id']);
+                $this->Device->save(['Device' => ['location_id' => $locationId]], true, ['location_id']);
             }
         }
-        
-        $this->User->recursive = -1;
-        $this->User->read(null, $p['user_id']);
-        
+        catch (Exception $e) {
+            $device_assigned = false;
+            $message         = $e->getMessage();
+        }
+
+        $this->set('result', [
+            'device_assigned' => $device_assigned,
+            'message'         => $message
+        ]);
+        $this->render('/API/json');
     }
 
+    /**
+     * Returns if for a particular Device Type and version, there
+     * are firmware updates. In case of the device sent by param
+     * doesn't match with the device type sent by param, throws
+     * an Exception.
+     * 
+     * @throws Exception
+     */
+    public function checkForUpdates ()
+    {
+        list($deviceType, $serialNumber, $userId, $firmwareVersion) = $this->validateParams($this->request->data, [
+            'type'             => ['required', 'device_type'],
+            'serial_number'    => ['required'],
+            'user_id'          => ['required', 'positive_int'],
+            'firmware_version' => ['required']
+        ]);
+        $device = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
+        if (empty($device)) {
+            throw new Exception('Invalid device');
+        }
+        elseif ($device['Device']['devicetype_id'] != DeviceType::$ID_FROM_NAME[strtolower($deviceType)]) {
+            throw new Exception("This device doesn't correspond with this device type", 401);
+        }
+        else {
+            switch (strtolower($deviceType)) {
+                case 'portal':
+                    $this->set('result', [
+                        "update_available" => $firmwareVersion == '1.6',
+                        "firmware_version" => "1.6",
+                        "source"           => "http://s3.aws.com/easdad"
+                    ]);
+                    break;
+                case 'ping':
+                    $this->set('result', [
+                        "update_available" => $firmwareVersion == '1.6',
+                        "firmware_version" => "1.6",
+                        "source"           => "http://s3.aws.com/easdad"
+                    ]);
+                    break;
+                case 'presence':
+                    $this->set('result', [
+                        "update_available" => $firmwareVersion == '1.6',
+                        "firmware_version" => "1.6",
+                        "source"           => "http://s3.aws.com/easdad"
+                    ]);
+                    break;
+            }
+        }
+        $this->render('/API/json');
+    }
+
+    /**
+     * Get the device Status (battery_level, lat, long...) of 
+     * a particular device.
+     * 
+     * @throws Exception
+     */
+    public function getStatus ()
+    {
+        list($locationId, $userId, $deviceType, $serialNumber) = $this->validateParams($this->request->data, [
+            'location_id'   => ['required', 'positive_int'],
+            'user_id'       => ['required', 'positive_int'],
+            'type'          => ['required', 'device_type'],
+            'serial_number' => ['required'],
+        ]);
+        $device = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
+        if (empty($device)) {
+            throw new Exception('Invalid device');
+        }
+        elseif ($device['Device']['location_id'] != $locationId) {
+            throw new Exception('This device is not assigned to this location.', 401);
+        }
+        elseif ($device['Device']['devicetype_id'] != DeviceType::$ID_FROM_NAME[strtolower($deviceType)]) {
+            throw new Exception("This device doesn't correspond with this device type", 401);
+        }
+        else {            
+            $this->set('result', [
+                'type'             => $deviceType,
+                'device_serial'    => $serialNumber,
+                'location_id'      => $locationId,
+                'battery_level'    => $device['Device']['battery_level'],
+                'lat'              => $device['Device']['lat'],
+                'long'             => $device['Device']['long'],
+                'last_sync'        => $device['Device']['last_sync'],
+                'store_open'       => $device['Device']['store_open'],
+                'store_close'      => $device['Device']['store_close'],
+                'firmware_version' => $device['Device']['firmware_version'],
+                'app_version'      => $device['Device']['app_version']
+            ]);
+            $this->render('/API/json');
+        }
+    }
+
+    /**
+     * Sets the device Status (battery_level, lat, long...) of 
+     * a particular device.
+     * 
+     * @throws Exception
+     */
+    public function setStatus ()
+    {
+        $opt    = ['last_sync' => date('Y-m-d H:i:s')];
+        list(
+            $deviceType,
+            $serialNumber,
+            $locationId,
+            $userId,
+            $opt['battery_level'],
+            $opt['lat'],
+            $opt['long'],
+            $opt['time'],
+            $opt['store_open'],
+            $opt['store_close'],
+            $opt['firmware_version'],
+            $opt['app_version']
+        ) = $this->validateParams($this->request->data, [
+            'type'             => ['required', 'device_type'],
+            'serial_number'    => ['required'],
+            'location_id'      => ['required', 'positive_int'],
+            'user_id'          => ['required', 'positive_int'],
+            'battery_level'    => [],
+            'lat'              => [],
+            'long'             => [],
+            'time'             => [],
+            'store_open'       => [],
+            'store_close'      => [],
+            'firmware_version' => [],
+            'app_version'      => []
+        ]);
+        $opt    = array_filter($opt);
+        $device = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
+        if (empty($device)) {
+            throw new Exception('Invalid device');
+        }
+        elseif ($device['Device']['location_id'] != $locationId) {
+            throw new Exception('This device is not assigned to this location.', 401);
+        }
+        elseif ($device['Device']['devicetype_id'] != DeviceType::$ID_FROM_NAME[strtolower($deviceType)]) {
+            throw new Exception("This device doesn't correspond with this device type", 401);
+        }
+        else {
+            $this->Device->read(null, $device['Device']['id']);
+            $this->Device->save(['Device' => $opt], true, array_keys($opt));
+            $device = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
+            $this->set('result', [
+                'type'             => $deviceType,
+                'device_serial'    => $serialNumber,
+                'location_id'      => $locationId,
+                'battery_level'    => $device['Device']['battery_level'],
+                'lat'              => $device['Device']['lat'],
+                'long'             => $device['Device']['long'],
+                'last_sync'        => $device['Device']['last_sync'],
+                'store_open'       => $device['Device']['store_open'],
+                'store_close'      => $device['Device']['store_close'],
+                'firmware_version' => $device['Device']['firmware_version'],
+                'app_version'      => $device['Device']['app_version']
+            ]);
+            $this->render('/API/json');
+        }
+    }
 }
