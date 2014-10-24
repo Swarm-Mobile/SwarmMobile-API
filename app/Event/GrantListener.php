@@ -35,8 +35,10 @@ class GrantListener implements CakeEventListener
      * @param CakeEvent $event     
      */
     public function validation (CakeEvent $event)
-    {        
-        try {
+    {
+
+	    return true;
+	    try {
             if (isset($event->data['location_id'])) {
                 $this->validateLocationId($event->data['user_id'], $event->data['location_id']);
             }

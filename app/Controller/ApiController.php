@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/Component/APIComponent.php';
-//require_once __DIR__ . '/Component/ConsumerAPIComponent.php';
 require_once __DIR__ . '/Component/CompressedFunctions.php';
 
 App::uses('EmailQueueComponent', 'Controller/Component');
@@ -17,7 +16,6 @@ App::uses('SettingGroup', 'Model');
 
 //ONE for every component that extends from APIComponent
 App::uses('PortalComponent', 'Controller/Component');
-//App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
 
 App::uses('UserComponent', 'Controller/Component');
@@ -25,21 +23,29 @@ App::uses('CouponComponent', 'Controller/Component');
 App::uses('CampaignComponent', 'Controller/Component');
 App::uses('LocationComponent', 'Controller/Component');
 
+/**
+ * Class APIController
+ */
 class APIController extends AppController
 {
 
-    public $default_cache_time    = 300;
-    public $cache_time_exceptions = array ();
-    public $cache_methods         = [
+	/**
+	 * @var int Defines a fallback for the file cache expiration if the component doesnt use one
+	 */
+	public $default_cache_time    = 300;
+	/**
+	 * @var array
+	 */
+	public $cache_time_exceptions = array ();
+	/**
+	 * @var array Defines what pieces of data are available for caching through the internal call
+	 */
+	public $cache_methods         = [
         'avgTicket',
-        //'conversionRate',
         'presenceConversionRate',
-        //'portalConversionRate',
         'devices',
         'dwell',
-        //'footTraffic',
         'presenceTraffic',
-        //'portalTraffic'
         'itemsPerTransaction',
         'returning',
         'revenue',
@@ -51,21 +57,377 @@ class APIController extends AppController
         'walkbys',
         'windowConversion',
     ];
-    public $iterative             = true;    
-    public $debug                 = false;
-    public $cache                 = true;
-    public $rollups               = true;
-    public $user                  = array ('id_user' => 0, 'username' => '');
-    public $endpoint              = '';
-    public $params                = array ();
-    public $helpers               = array ('Html', 'Session');
+	/**
+	 * @var bool
+	 */
+	public $iterative             = true;
+	/**
+	 * @var bool
+	 */
+	public $debug                 = false;
+	/**
+	 * @var bool
+	 */
+	public $cache                 = true;
+	/**
+	 * @var bool
+	 */
+	public $rollups               = true;
+	/**
+	 * @var array
+	 */
+	public $user                  = array ('id_user' => 0, 'username' => '');
+	/**
+	 * @var string
+	 */
+	public $endpoint              = '';
+	/**
+	 * @var array
+	 */
+	public $params                = array ();
+	/**
+	 * @var array
+	 */
+	public $helpers               = array ('Html', 'Session');
+
+	/**
+	 * @var array A list of http methods that are available in the system. If the method type sent in is not in the list
+	 *          we wont even try to check in the method access list
+	 */
+	public $availableHttpMethods = [
+		'get',
+		'post',
+		'put',
+		'delete'
+	];
+
+	/**
+	 * @var array Access list for each controller action with the key being the method and the value being an array of
+	 *          available http methods. If there is no key matching the route will use the default. If there is no
+	 *          method defined defaults to deny access
+	 */
+	public $methodAccessList          = [
+		'default' => [
+			'get' => true,
+			'post' => true,
+			'put' => false,
+			'delete' => false
+		]
+	];
+
+	/**
+	 * @return array
+	 * @throws InvalidArgumentException If not http methods are available
+	 */
+	public function getAvailableHttpMethods() {
+		$availableMethods = $this->availableHttpMethods;
+
+		if(empty($availableMethods)){
+			throw new InvalidArgumentException('No acceptable http methods defined');
+		}
+
+		return $availableMethods;
+	}
+
+	/**
+	 * @param array $availableHttpMethods
+	 *
+	 * @return $this
+	 */
+	public function setAvailableHttpMethods( $availableHttpMethods ) {
+		$this->availableHttpMethods = $availableHttpMethods;
+
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isCache() {
+		return $this->cache;
+	}
+
+	/**
+	 * @param boolean $cache
+	 *
+	 * @return $this
+	 */
+	public function setCache( $cache ) {
+		$this->cache = $cache;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getCacheMethods() {
+		return $this->cache_methods;
+	}
+
+	/**
+	 * @param array $cache_methods
+	 *
+	 * @return $this
+	 */
+	public function setCacheMethods( $cache_methods ) {
+		$this->cache_methods = $cache_methods;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getCacheTimeExceptions() {
+		return $this->cache_time_exceptions;
+	}
+
+	/**
+	 * @param array $cache_time_exceptions
+	 *
+	 * @return $this
+	 */
+	public function setCacheTimeExceptions( $cache_time_exceptions ) {
+		$this->cache_time_exceptions = $cache_time_exceptions;
+
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isDebug() {
+		return $this->debug;
+	}
+
+	/**
+	 * @param boolean $debug
+	 *
+	 * @return $this
+	 */
+	public function setDebug( $debug ) {
+		$this->debug = $debug;
+
+		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getDefaultCacheTime() {
+		return $this->default_cache_time;
+	}
+
+	/**
+	 * @param int $default_cache_time
+	 *
+	 * @return $this
+	 */
+	public function setDefaultCacheTime( $default_cache_time ) {
+		$this->default_cache_time = $default_cache_time;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getEndpoint() {
+		return $this->endpoint;
+	}
+
+	/**
+	 * @param string $endpoint
+	 *
+	 * @return $this
+	 */
+	public function setEndpoint( $endpoint ) {
+		$this->endpoint = $endpoint;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getHelpers() {
+		return $this->helpers;
+	}
+
+	/**
+	 * @param array $helpers
+	 *
+	 * @return $this
+	 */
+	public function setHelpers( $helpers ) {
+		$this->helpers = $helpers;
+
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isIterative() {
+		return $this->iterative;
+	}
+
+	/**
+	 * @param boolean $iterative
+	 *
+	 * @return $this
+	 */
+	public function setIterative( $iterative ) {
+		$this->iterative = $iterative;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $action The action to return a specific list for
+	 * @return array
+	 */
+	public function getMethodAccessList($action = null) {
+		if($action === NULL){
+			return $this->methodAccessList;
+		}else{
+			if(array_key_exists($action, $this->methodAccessList)){
+				return $this->methodAccessList[$action];
+			}else{
+				if(!array_key_exists('default',$this->methodAccessList)){
+					throw new InvalidArgumentException('Default Method Access list is not defined');
+				}else{
+					return $this->methodAccessList['default'];
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param array $methodAccessList
+	 *
+	 * @return $this
+	 */
+	public function setMethodAccessList( $methodAccessList ) {
+		if(!is_array($methodAccessList)){
+			throw new InvalidArgumentException('Method Access List must be an array');
+		}
+
+		if(!array_key_exists('default',$methodAccessList)){
+			throw new InvalidArgumentException('Method Access List must contain a default / fallback list');
+		}
+
+		$this->methodAccessList = $methodAccessList;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getParams() {
+		return $this->params;
+	}
+
+	/**
+	 * @param array $params
+	 *
+	 * @return $this
+	 */
+	public function setParams( $params ) {
+		$this->params = $params;
+
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isRollups() {
+		return $this->rollups;
+	}
+
+	/**
+	 * @param boolean $rollups
+	 *
+	 * @return $this
+	 */
+	public function setRollups( $rollups ) {
+		$this->rollups = $rollups;
+
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getUser() {
+		return $this->user;
+	}
+
+	/**
+	 * @param array $user
+	 *
+	 * @return $this
+	 */
+	public function setUser( $user ) {
+		$this->user = $user;
+
+		return $this;
+	}
+
+
+	/**
+	 * Called before the controller action. Used to filter method types against access list
+	 */
+	public function beforeFilter(){
+		$requestMethod = $this->request->method();
+		if(empty($requestMethod)){
+			throw new InvalidArgumentException('No request method available');
+		}
+
+		$requestMethod = strtolower($requestMethod);
+		if(!in_array($requestMethod,$this->getAvailableHttpMethods())){
+			$strMethodsAllowed = strtoupper(implode(', ',$this->getAvailableHttpMethods()));
+			return new CakeResponse([
+				'body' => 'We only allow '.$strMethodsAllowed.' on this version of the API',
+				'code' => 405,
+				'type' => 'json'
+			]);
+		}
+		$action = $this->request->params['action'];
+
+		if(empty($action)){
+			return new CakeResponse([
+				'body' => 'Could not match action',
+				'code' => 404,
+				'type' => 'json'
+			]);
+		}
+
+		$methodAccessList = $this->getMethodAccessList($action);
+
+		if(!in_array($requestMethod,$methodAccessList) || $methodAccessList[$requestMethod] !== true){
+			return new CakeResponse([
+				'body' => strtoupper($requestMethod) . ' not available for this endpoint',
+				'code' => 405,
+				'type' => 'json'
+			]);
+		}
+
+		parent::beforeFilter();
+	}
 
     // Controller Actions
-    public function index ()
+	/**
+	 * @throws Exception
+	 */
+	public function index ()
     {                
         $env                 = getenv('server_location');
         $this->debug         = ($env != 'live');
-        set_time_limit(3600);                
+
         if ($this->request->is('get')) {
             $params = $this->request->query;
         }
@@ -95,7 +457,15 @@ class APIController extends AppController
         $this->render('/API/json');
     }
 
-    public function internalCall ($component, $method, $params)
+	/**
+	 * @param $component
+	 * @param $method
+	 * @param $params
+	 *
+	 * @return array|bool
+	 * @throws Exception
+	 */
+	public function internalCall ($component, $method, $params)
     {
         unset($params['access_token']);
         unset($params['norollups']);
@@ -113,7 +483,15 @@ class APIController extends AppController
         throw new Exception("The requested reference type don't exists", 401);
     }
 
-    private function getPreviousResult ($component, $method, $params)
+	/**
+	 * @param $component
+	 * @param $method
+	 * @param $params
+	 *
+	 * @return array|bool
+	 * @throws Exception
+	 */
+	private function getPreviousResult ($component, $method, $params)
     {
         unset($params['access_token']);
         unset($params['norollups']);
@@ -235,7 +613,14 @@ SQL;
         return false;
     }
 
-    private function getCacheFilePath ($component, $method, $params)
+	/**
+	 * @param $component
+	 * @param $method
+	 * @param $params
+	 *
+	 * @return string
+	 */
+	private function getCacheFilePath ($component, $method, $params)
     {
         $component = strtolower($component);
         $method    = strtolower($method);
@@ -247,7 +632,11 @@ SQL;
         return $path . DS . md5($tmp) . '.cache';
     }
 
-    private function createCacheFolders ($component, $method)
+	/**
+	 * @param $component
+	 * @param $method
+	 */
+	private function createCacheFolders ($component, $method)
     {
         $component = strtolower($component);
         $method    = strtolower($method);
@@ -267,7 +656,14 @@ SQL;
         }
     }
 
-    private function cache ($component, $method, $params, $result, $from_rollups = false)
+	/**
+	 * @param $component
+	 * @param $method
+	 * @param $params
+	 * @param $result
+	 * @param bool $from_rollups
+	 */
+	private function cache ($component, $method, $params, $result, $from_rollups = false)
     {
         if (!empty($result) && ($component . '/' . $method) != 'location/data') {
             unset($params['access_token']);
