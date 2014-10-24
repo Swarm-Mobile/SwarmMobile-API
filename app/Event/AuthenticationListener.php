@@ -69,7 +69,10 @@ class AuthenticationListener implements CakeEventListener
         try {
             $params = $event->data['request']->query;
             if (!isset($params['access_token'])) {
-                throw new Exception('The access token provided is invalid.');
+                $params = $event->data['request']->data;
+                if (!isset($params['access_token'])) {
+                    throw new Exception('The access token provided is invalid.');
+                }
             }
             $accessToken  = $params['access_token'];
             $predis       = RedisComponent::getInstance('oAuth');
