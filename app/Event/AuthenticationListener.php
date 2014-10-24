@@ -59,7 +59,9 @@ class AuthenticationListener implements CakeEventListener
             '\/coupon\/campaign\/',
             '\/test',
             '\/api\/login',
-            '\/server_health\/ok'
+            '\/server_health\/ok',
+            '\/user\/register',
+            '\/location\/create'
         ];
         foreach ($exceptions as $exception) {
             if (preg_match('/' . $exception . '/', $_SERVER['REQUEST_URI'])) {
