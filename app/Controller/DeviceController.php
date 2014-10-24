@@ -5,6 +5,7 @@ App::uses('Location', 'Model');
 App::uses('User', 'Model');
 App::uses('Device', 'Model');
 App::uses('DeviceType', 'Model');
+App::uses('S3Factory' , 'Controller/Component');
 
 class DeviceController extends AppController
 {
@@ -82,10 +83,18 @@ class DeviceController extends AppController
         else {
             switch (strtolower($deviceType)) {
                 case 'portal':
+	                $s3factory = new S3FactoryComponent(new ComponentCollection());
+	                $s3Client  = $s3factory->loadS3();
+					$sourceUrl = $s3Client->getObjectUrl(
+						'swarm-device-firmware',
+						'Swarm_v1.11d_NoSerial.hex',
+						'20 minutes'
+					);
+
                     $this->set('result', [
                         "update_available" => $firmwareVersion == '1.11',
                         "firmware_version" => "1.11",
-                        "source"           => "https://s3-us-west-1.amazonaws.com/swarm-device-firmware/Swarm_v1.11d_NoSerial.hex"
+                        "source"           => $sourceUrl
                     ]);
                     break;
                 case 'ping':
