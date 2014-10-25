@@ -85,11 +85,11 @@ class DeviceController extends AppController
                 case 'portal':
 	                $s3factory = new S3FactoryComponent(new ComponentCollection());
 	                $s3Client  = $s3factory->loadS3();
-					$sourceUrl = $s3Client->getObjectUrl(
-						'swarm-device-firmware',
-						'Swarm_v1.11d_NoSerial.hex',
-						'20 minutes'
-					);
+                        $sourceUrl = $s3Client->getObjectUrl(
+                                'swarm-device-firmware',
+                                'Swarm_v1.11d_NoSerial.hex',
+                                '20 minutes'
+                        );
 
                     $this->set('result', [
                         "update_available" => $firmwareVersion == '1.11',

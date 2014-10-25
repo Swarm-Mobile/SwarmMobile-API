@@ -362,7 +362,7 @@ SQL;
      * @param boolean internal call or api request
      */
     public function locations ($uuid, $internal = false)
-    {
+    {        
         if (empty($uuid)) {
             throw new Exception('User not found. Please provide a valid UUID.', 401);
         }
@@ -402,9 +402,30 @@ SELECT l.id, l.name
     WHERE j.$entityCol = $entityId
 SQL;
         $locations = $oDb->fetchAll($sSQL);
+        $ret    = [];
+        $retDev = [];
         if (!empty($locations)) {
             foreach ($locations as $key => $val) {
-                $ret[$locations[$key]['l']['id']] = $locations[$key]['l']['name'];
+                $ret[$locations[$key]['l']['id']] = $locations[$key]['l']['name'];                
+                $sSQL = <<<SQL
+SELECT dt.name, d.id, d.serial, d.alias
+FROM device d
+INNER JOIN devicetype dt
+ ON d.devicetype_id = dt.id
+ AND d.location_id = :location_id                        
+SQL;
+                $devices = $oDb->fetchAll($sSQL, [':location_id'=>$locations[$key]['l']['id']]);                
+                $retDev[$locations[$key]['l']['id']] = [];
+                if(!empty($devices)){
+                    foreach($devices as $device){
+                        $retDev[$locations[$key]['l']['id']][] = [
+                            'id'=>$device['d']['id'],
+                            'type'=>$device['dt']['name'],
+                            'serial_number'=>$device['d']['serial'],
+                            'alias'=>$device['d']['alias'],
+                        ];
+                    }
+                }
             }
         }
         $res = array ();
@@ -413,6 +434,7 @@ SQL;
         }
         else {
             $res['data']['locations'] = $ret;
+            $res['data']['location-devices'] = $retDev;
             $res['options']           = array (
                 'endpoint' => '/user/' . __FUNCTION__,
                 'uuid'     => $uuid
