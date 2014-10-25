@@ -5,7 +5,7 @@ App::uses('Location', 'Model');
 App::uses('User', 'Model');
 App::uses('Device', 'Model');
 App::uses('DeviceType', 'Model');
-App::uses('S3Factory' , 'Controller/Component');
+require_once(APP . 'Controller/Component/S3FactoryComponent.php');
 
 class DeviceController extends AppController
 {
