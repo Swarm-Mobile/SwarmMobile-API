@@ -5,11 +5,15 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-i386-vagrant-disk1.box"
-config.vm.box = "trusty32"
-config.vm.network :private_network, ip: "192.168.44.100"
-config.vm.synced_folder "./", "/vagrant", owner: "www-data", group: "www-data"
-config.vm.provision :shell do |shell|
-    shell.path = "provision.sh"
-end
+    config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-i386-vagrant-disk1.box"
+    config.vm.box = "trusty32"
+    config.vm.network :private_network, ip: "192.168.44.100"
+    config.vm.synced_folder "./", "/vagrant", owner: "www-data", group: "www-data"
+    config.vm.provision :shell do |shell|
+        shell.path = "provision.sh"
+    end
+    config.vm.provider :virtualbox do |virtualbox|       
+       virtualbox.customize ["modifyvm", :id, "--memory", "1024"]        
+       virtualbox.customize ["modifyvm", :id, "--cpuexecutioncap", "50"]
+     end
 end
