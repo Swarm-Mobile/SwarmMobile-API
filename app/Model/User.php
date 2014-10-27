@@ -204,7 +204,7 @@ class User extends AppModel
             else
                 return true;
         } else {
-            $user = $this->findByEmail($email);
+            $user = $this->find('first',['conditions' => ['User.email' => $email ]]);
             if (!empty($user))
                 return false;
             else
@@ -234,7 +234,7 @@ class User extends AppModel
             else
                 return true;
         } else {
-            $user = $this->findByUsername($username);
+            $user = $this->find('first',['conditions' => ['User.username' => $username ]]);
             if (!empty($user))
                 return false;
             else

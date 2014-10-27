@@ -8,6 +8,11 @@ class Location extends AppModel {
     public $useTable = 'location';
     public $displayField = 'name';
     public $id = 'id';
+
+	public $hasMany = [
+		'LocationEmployee',
+		'LocationLocationmanager'
+	];
     public $hasAndBelongsToMany = array(
         "Setting" => array(
             'joinTable' => 'location_setting'

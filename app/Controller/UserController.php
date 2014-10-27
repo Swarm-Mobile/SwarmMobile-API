@@ -2,120 +2,136 @@
 
 App::uses( 'APIController', 'Controller' );
 App::uses( 'ApiComponent', 'Controller/Component' );
+App::uses( 'UserType', 'Model' );
+App::uses( 'LocationManager', 'Model' );
+App::uses( 'Employee', 'Model' );
+App::uses( 'LocationEmployee', 'Model' );
 
 class UserController extends APIController {
 
 	public $methodAccessList = [
-		'register' => [
+		'register'    => [
 			'post' => true
+		],
+		'getSettings' => [
+			'get' => true
 		]
 	];
 
 	/**
-	 *
-	 * @return array
-	 * @throws Exception
+	 * Create a new User and Location Manager record from POST
+	 * @return CakeResponse Returns response object with JSON already set in the body and status code
 	 */
 	public function register() {
-		$user = new User();
+		$user               = new User();
+		$locationManager    = new LocationManager();
+		$newUser            = false;
+		$newLocationManager = false;
+
 		$user->create( $this->request->data, true );
 
 		if ( $user->validates() ) {
 			// Generate Password Hash
-			$password = $user->hash_password($this->request->data('password'));
-			$user->set('uuid', uniqid());
-			$user->set('salt',$password['salt']);
-			$user->set('password', $password['password']);
+			$password = $user->hash_password( $this->request->data( 'password' ) );
+			$user->set( 'uuid', uniqid() );
+			$user->set( 'salt', $password['salt'] );
+			$user->set( 'password', $password['password'] );
 
 			// Generate the confirmation password also to check hashing is working correctly
-			$confirmPasswordHash = $user->hash_password($this->request->data['confirmPassword'],$password['salt']);
-			$user->set('confirmPassword',$confirmPasswordHash['password']);
+			$confirmPasswordHash = $user->hash_password( $this->request->data['confirmPassword'], $password['salt'] );
+			$user->set( 'confirmPassword', $confirmPasswordHash['password'] );
 
-			try {
-				$newUser = $user->save(null, false);
-				if($newUser){
-					$user_id = '123';die('123');
-					// Create an entry for LocationManager
-					$sSQL = <<<SQL
-INSERT INTO locationmanager
-    SET
-    user_id   = :user_id,
-    firstname = :firstname,
-    lastname  = :lastname
-SQL;
-					$oDb->query( $sSQL, array(
-						':user_id'   => $user_id,
-						':firstname' => $params['firstname'],
-						':lastname'  => $params['lastname'],
-					) );
-					$locationmanager_id = $oDb->lastInsertId();
-
-				}
-			}catch(Exception $e){
-
+			$user->getDataSource()->begin(); // Start a new transaction
+			$newUser = $user->save();
+			if ( $newUser ) {
+				// Create an entry for LocationManager
+				$locationManager->set( 'user_id', $user->id );
+				$locationManager->set( 'firstname', $this->request->data( 'firstname' ) );
+				$locationManager->set( 'lastname', $this->request->data( 'lastname' ) );
+				$newLocationManager = $locationManager->save();
 			}
 
+			if ( $newUser && $newLocationManager ) {
+				$user->getDataSource()->commit();
+				$result = array(
+					'data'    => array(
+						'uuid'               => $user->uuid,
+						'user_id'            => $user->id,
+						'locationmanager_id' => $locationManager->id
+					),
+					'options' => array(
+						'endpoint' => '/user/' . __FUNCTION__,
+					),
+					'message' => array(
+						'success' => 'User has been successfully created.'
+					)
+				);
 
-
-
-//			return array(
-//				'data'    => array(
-//					'uuid'               => $uuid,
-//					'user_id'            => $user_id,
-//					'locationmanager_id' => $locationmanager_id
-//				),
-//				'options' => array(
-//					'endpoint' => '/user/' . __FUNCTION__,
-//				),
-//				'message' => array(
-//					'success' => 'User has been successfully created.'
-//				)
-//			);
-
-
+				return new CakeResponse(
+					array(
+						'status' => 201,
+						'body'   => json_encode( $result ),
+						'type'   => 'json'
+					)
+				);
+			} else {
+				$user->getDataSource()->rollback();
+				$user->validationErrors[] = 'There was an issue persisting the request. Please try again later';
+			}
 		}
 
 		return new CakeResponse(
 			array(
 				'status' => 422,
-				'body' => json_encode($user->validationErrors),
-				'type' => 'json'
+				'body'   => json_encode( $user->validationErrors ),
+				'type'   => 'json'
 			)
 		);
 
 	}
 
 	/**
-	 * User login
 	 *
-	 * @param Array post data
+	 * @param $params
 	 *
-	 * @return Array
+	 * @return CakeResponse Returns response object with JSON already set in the body and status code
 	 */
 	public function login( $params ) {
 		if ( empty( $params['username'] ) || empty( $params['password'] ) ) {
-			throw new Exception( 'Supplied credentials are invalid.' );
+			return new CakeResponse(
+				array(
+					'status' => 401,
+					'body'   => 'Username and Password are required and cannot be empty',
+					'type'   => 'json'
+				)
+			);
 		}
 		$oUser = new User();
 		if ( $user = $oUser->authenticate( $params['username'], $params['password'] ) ) {
-			$ret['data']              = array(
+			$results['data']              = array(
 				'user_id'     => $user['id'],
 				'uuid'        => $user['uuid'],
 				'usertype_id' => $user['usertype_id'],
 			);
-			$ret['data']['locations'] = $this->locations( $user['uuid'], true );
-			$ret['options']           = array(
+			$results['data']['locations'] = $this->locations( $user['uuid'], true );
+			$results['options']           = array(
 				'endpoint' => '/user/' . __FUNCTION__,
 				'username' => $user['username']
 			);
-			$ret['message']           = array(
+			$results['message']           = array(
 				'success' => 'User login successful.'
 			);
-
-			return $ret;
+			$status                       = 200;
 		} else {
-			throw new Exception( 'Supplied credentials are invalid.', 401 );
+			$status  = 401;
+			$results = [ 'error' => 'Invalid Credentials Supplied' ];
 		}
+
+		return new CakeResponse( [
+			'status' => $status,
+			'body'   => json_encode( $results ),
+			'type'   => 'json'
+		] );
 	}
 
 	/**
@@ -125,56 +141,94 @@ SQL;
 	 *
 	 * @return Array
 	 */
-	public function getSettings( $params ) {
-		if ( empty( $params['uuid'] ) ) {
-			throw new Exception( 'User not found. Please provide a valid UUID.' );
+	public function getSettings() {
+
+		$uuid = $this->request->query['uuid'];
+		if ( empty( $uuid ) ) {
+			return new CakeResponse( [
+				'status' => 404,
+				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+				'type'   => 'json'
+			] );
 		}
-		$user = $this->getUserFromUUID( $params['uuid'] );
+		$userModel = new User();
+		$user      = $userModel->find( 'first', [ 'recursive' => - 1, 'conditions' => [ 'uuid' => $uuid ] ] );
+
+		if ( empty( $user ) ) {
+			return new CakeResponse( [
+				'status' => 404,
+				'body'   => json_encode( [ 'error' => 'User not found with supplied UUID' ] ),
+				'type'   => 'json'
+			] );
+		} else {
+			$user = $user['User'];
+		}
 
 		$ret['data'] = array(
-			'username' => $user[0]['user']['username'],
-			'email'    => $user[0]['user']['email']
+			'username' => $user['username'],
+			'email'    => $user['email']
 		);
 
-		if ( ! empty( $user ) ) {
-			$oDb = DBComponent::getInstance( 'user', 'backstage' );
-			switch ( $user[0]['user']['usertype_id'] ) {
-				case 4:
-					$sSQL                     = <<<SQL
-SELECT  firstname, lastname
-    FROM locationmanager
-    WHERE user_id=:user_id
-SQL;
-					$locationmanager          = $oDb->fetchAll( $sSQL, array( ':user_id' => $user[0]['user']['id'] ) );
-					$ret['data']['firstname'] = $locationmanager[0]['locationmanager']['firstname'];
-					$ret['data']['lastname']  = $locationmanager[0]['locationmanager']['lastname'];
-					break;
 
-				case 5:
-					$sSQL                     = <<<SQL
-SELECT  firstname, lastname
-    FROM employee
-    WHERE user_id=:user_id
-SQL;
-					$employee                 = $oDb->fetchAll( $sSQL, array( ':user_id' => $params['user_id'] ) );
-					$ret['data']['firstname'] = $employee[0]['locationmanager']['firstname'];
-					$ret['data']['lastname']  = $employee[0]['locationmanager']['lastname'];
-					break;
-			}
-			$ret['data']['uuid']       = $params['uuid'];
-			$ret['data']['user_id']    = $user[0]['user']['id'];
-			$locations                 = $this->locations( $params['uuid'], true );
-			$ret['data']['locations']  = $locations;
-			$ret['data']['emailPrefs'] = $this->getEmailPrefs( array_keys( $locations ) );
-			$ret['options']            = array(
-				'endpoint' => '/user/' . __FUNCTION__,
-				'uuid'     => $params['uuid'],
-			);
+		switch ( $user['usertype_id'] ) {
+			case UserType::$LOCATION_MANAGER:
+				$locationmanagerModel = new LocationManager();
+				$locationmanager      = $locationmanagerModel->find( 'first', [
+					'recursive' => - 1,
+					[ 'conditions' => [ 'user_id' => $user['id'] ] ]
+				] );
 
-			return $ret;
-		} else {
-			throw new Exception( 'User not found. Please provide a valid UUID.' );
+				if ( ! empty( $locationmanager ) ) {
+					$ret['data']['firstname'] = $locationmanager['LocationManager']['firstname'];
+					$ret['data']['lastname']  = $locationmanager['LocationManager']['lastname'];
+
+					if ( array_key_exists( 'LocationLocationmanager', $locationmanager )
+					     && ! empty( $locationmanager['LocationLocationmanager'] )
+					) {
+						$locations = [ ];
+						foreach ( $locationmanager['LocationLocationmanager'] as $locationMangerRef ) {
+							if ( ! empty( $locationMangerRef['Location'] ) ) {
+								$locations[] = $locationMangerRef['Location'];
+							}
+						}
+						$ret['data']['locations'] = $locations;
+					}
+					break;
+				}
+				break;
+			case UserType::$EMPLOYEE:
+				$employeeModel            = new Employee();
+				$employee                 = $employeeModel->find( 'first', [
+					'recursive'  => 2,
+					'conditions' => [ 'user_id' => $user['id'] ]
+				] );
+				$ret['data']['firstname'] = $employee['Employee']['firstname'];
+				$ret['data']['lastname']  = $employee['Employee']['lastname'];
+
+				if ( array_key_exists( 'LocationEmployee', $employee ) && ! empty( $employee['LocationEmployee'] ) ) {
+					$locations = [ ];
+					foreach ( $employee['LocationEmployee'] as $locationEmployeeRef ) {
+						if ( ! empty( $locationEmployeeRef['Location'] ) ) {
+							$locations[] = $locationEmployeeRef['Location'];
+						}
+					}
+					$ret['data']['locations'] = $locations;
+				}
+				break;
 		}
+		$ret['data']['uuid']       = $uuid;
+		$ret['data']['user_id']    = $user['id'];
+		$ret['data']['emailPrefs'] = $this->getEmailPrefs( array_keys( $locations ) );
+		$ret['options']            = array(
+			'endpoint' => '/user/' . __FUNCTION__,
+			'uuid'     => $uuid,
+		);
+
+		return new CakeResponse( [
+			'status' => 200,
+			'body'   => json_encode( $ret ),
+			'type'   => 'json'
+		] );
 	}
 
 	/**
@@ -375,34 +429,74 @@ SQL;
 	 */
 	public function locations( $uuid, $internal = false ) {
 		if ( empty( $uuid ) ) {
-			throw new Exception( 'User not found. Please provide a valid UUID.', 401 );
+			if ( $internal ) {
+				throw new Exception( 'User not found. Please provide a valid UUID.', 401 );
+			} else {
+				return new CakeResponse( [
+					'status' => 401,
+					'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+					'type'   => 'json'
+				] );
+			}
 		}
 
-		$oUser = new User();
-		$u     = $oUser->find( 'first', array(
-			'fields'     => array( 'User.id', 'User.usertype_id' ),
+		$userModel = new User();
+		$user      = $userModel->find( 'first', array(
+			'recursive'  => - 1,
 			'conditions' => array(
 				'User.uuid' => $uuid
 			)
 		) );
-		if ( empty( $u ) ) {
-			throw new Exception( 'User not found. Please provide a valid UUID.', 401 );
-		}
-		$user      = $u['User'];
-		$oDb       = DBComponent::getInstance( 'user', 'backstage' );
-		$joinTable = '';
-		$joinId    = false;
-		if ( $user['usertype_id'] == 4 ) {
-			$joinTable = 'locationmanager_location';
-			$entityCol = 'locationmanager_id';
-			$entityId  = $this->getLocationManagerId( $user['id'] );
-		} elseif ( $user['usertype_id'] == 5 ) {
-			$joinTable = 'location_employee';
-			$joinId    = $this->getEmployeeId( $user['id'] );
-			$entityCol = 'employee_id';
+		if ( empty( $user ) ) {
+			if ( $internal ) {
+				throw new Exception( 'User not found. Please provide a valid UUID.', 404 );
+			} else {
+				return new CakeResponse( [
+					'status' => 404,
+					'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+					'type'   => 'json'
+				] );
+			}
 		} else {
-			throw new Exception( 'You need to be a location manager or an employee to have locations associated to you.' );
+			$user = $user['User'];
 		}
+
+		if ( ! in_array( $user['usertype_id'], [ UserType::$LOCATION_MANAGER, UserType::$EMPLOYEE ] ) ) {
+			if ( $internal ) {
+				throw new Exception( 'You need to be a location manager or an employee to have locations associated to you.', 401 );
+			} else {
+				return new CakeResponse( [
+					'status' => 401,
+					'body'   => json_encode( [ 'error' => 'You need to be a location manager or an employee to have locations associated to you.' ] ),
+					'type'   => 'json'
+				] );
+			}
+		}
+
+		switch ( $user['usertype_id'] ) {
+			case UserType::$LOCATION_MANAGER:
+
+				break;
+			case UserType::$EMPLOYEE:
+				$locationEmployeeModel = new LocationEmployee();
+				$locations             = $locationEmployeeModel->find( 'all', [ 'conditions' => [ 'employee_id' => $user['id'] ] ] );
+				if ( $internal ) {
+					return $locations;
+				}
+				break;
+		}
+
+
+//		if ( $user['usertype_id'] == 4 ) {
+//			$joinTable = 'locationmanager_location';
+//			$entityCol = 'locationmanager_id';
+//			$entityId  = $this->getLocationManagerId( $user['id'] );
+//		} elseif ( $user['usertype_id'] == 5 ) {
+//			$joinTable = 'location_employee';
+//			$joinId    = $this->getEmployeeId( $user['id'] );
+//			$entityCol = 'employee_id';
+//		}
+
 
 		$sSQL      = <<<SQL
 SELECT l.id, l.name
