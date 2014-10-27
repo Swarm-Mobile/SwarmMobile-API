@@ -47,8 +47,7 @@ class PingAsPresenceShell extends AppShell
      */
     private function processUserSession($hKey)
     {
-        if (empty($hKey)) return;
-
+        if (empty($hKey) || ($hKey === 'ElastiCacheMasterReplicationTimestamp')) return;
         $data = $this->redis->hgetall($hKey);
         $setData['PingSession'] = [];
         list($setData['PingSession']['location_id'], $setData['PingSession']['user_id']) = split(':', $hKey);

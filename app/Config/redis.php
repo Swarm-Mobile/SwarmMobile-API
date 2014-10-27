@@ -6,6 +6,6 @@ return [
   ],    
     'pingAsPresence' => [
         //'host' => 'tcp://ping-as-presence.mddcrl.0001.usw1.cache.amazonaws.com',
-        'host' => 'tcp://localhost',
+        'host' => 'tcp://ping-as-presence.mddcrl.0001.usw1.cache.amazonaws.com',
     ],
 ];
