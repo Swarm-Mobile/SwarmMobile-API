@@ -29,5 +29,4 @@ class AppError
         echo json_encode(['error' => $code, 'error_description' => $description]);
         die();
     }
-
 }
