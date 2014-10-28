@@ -54,7 +54,7 @@ class DeviceController extends AppController
             'device_assigned' => $device_assigned,
             'message'         => $message
         ];
-        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
+        return new JsonResponse(['body' => json_encode($result)]);
     }
 
     /**
@@ -111,7 +111,7 @@ class DeviceController extends AppController
                     break;
             }
         }
-        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
+        return new JsonResponse(['body' => json_encode($result)]);
     }
 
     /**
@@ -152,7 +152,7 @@ class DeviceController extends AppController
                 'firmware_version' => $device['Device']['firmware_version'],
                 'app_version'      => $device['Device']['app_version']
             ];
-            return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
+            return new JsonResponse(['body' => json_encode($result)]);
         }
     }
 
@@ -220,7 +220,7 @@ class DeviceController extends AppController
                 'firmware_version' => $device['Device']['firmware_version'],
                 'app_version'      => $device['Device']['app_version']
             ];
-            return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
+            return new JsonResponse(['body' => json_encode($result)]);
         }
     }
 

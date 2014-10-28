@@ -91,7 +91,7 @@ class APIController extends AppController
             throw new Exception("The requested reference type don't exists", 401);
         }
         $result = $this->internalCall($path[0], $path[1], $params);                
-        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
+        return new JsonResponse(['body' => json_encode($result)]);
     }
 
     public function internalCall ($component, $method, $params)
