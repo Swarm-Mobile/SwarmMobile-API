@@ -248,13 +248,13 @@ class UserController extends APIController {
 		$userModel = new User();
 
 		$user = $userModel->find( 'first', [
-			'recursive'  => - 1,
+			'recursive'  => 1,
 			'conditions' => [
 				'uuid' => $params['uuid']
 			]
 		] );
 
-		if ( count( $user ) !== 1 ) {
+		if ( empty( $user ) ) {
 			return new CakeResponse( [
 				'status' => 404,
 				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
@@ -324,6 +324,7 @@ class UserController extends APIController {
 			$userModel->getDataSource()->commit();
 		} catch ( Exception $e ) {
 			$userModel->getDataSource()->rollback();
+
 			return new CakeResponse( [
 				'status' => 422,
 				'body'   => json_encode( [
@@ -358,44 +359,90 @@ class UserController extends APIController {
 	 *
 	 * @return Array
 	 */
-	public function updatePassword( $params ) {
+	public function updatePassword() {
+		$params = $this->request->data;
+
+		$preflightErrors = [ ];
 		if ( empty( $params['uuid'] ) ) {
-			throw new Exception( 'User not found. Please provide a valid UUID.' );
+			$preflightErrors[] = 'User not found. Please provide a valid UUID.';
 		}
 		if ( empty( $params['currentPassword'] ) ) {
-			throw new Exception( 'Current password provided does not match with the password in our records.' );
+			$preflightErrors[] = 'Current password provided does not match with the password in our records.';
 		}
 		if ( empty( $params['password'] ) || empty( $params['confirmPassword'] ) || ( $params['password'] != $params['confirmPassword'] ) ) {
-			throw new Exception( 'Password and confirmPassword do not match.' );
+			$preflightErrors[] = 'Password and confirmPassword do not match.';
 		}
 		if ( strlen( $params['password'] ) < 5 ) {
-			throw new Exception( 'Password must be atleast 5 characters long.' );
-		}
-		$user = $this->getUserFromUUID( $params['uuid'] );
-		if ( empty( $user ) ) {
-			throw new Exception( 'User not found. Please provide a valid UUID.' );
+			$preflightErrors[] = 'Password must be at least 5 characters long.';
 		}
 
-		$oUser   = new User();
-		$current = $oUser->hash_password( $params['currentPassword'], $user[0]['user']['salt'] );
-		if ( $user[0]['user']['password'] != $current['password'] ) {
-			throw new Exception( 'Current password provided does not match with the password in our records.' );
+		$userModel = new User();
+		$userModel->set('password', $params['password']);
+		$userModel->set('confirmPassword',$params['confirmPassword']);
+		$preflightValidation = $userModel->validates(['password','confirmPassword']);
+
+		if ( ! empty( $preflightErrors ) || !$preflightValidation ) {
+			$errors = array_merge($preflightErrors,$userModel->validationErrors);
+			return new CakeResponse( [
+				'status' => 422,
+				'body'   => json_encode( [
+					'error'  => 'Your request does not pass validation, please try again',
+					'errors' => $errors
+				] ),
+				'type'   => 'json'
+			] );
 		}
 
-		$password = $oUser->hash_password( $params['password'] );
-		$oDb      = DBComponent::getInstance( 'user', 'backstage' );
-		$sSQL     = <<<SQL
-UPDATE  user
-    SET `salt`=:salt,
-        `password`=:password
-    WHERE uuid=:uuid
-SQL;
-		$oDb->query( $sSQL, array(
-				':salt'     => $password['salt'],
-				':password' => $password['password'],
-				':uuid'     => $params['uuid']
-			)
-		);
+
+		$userModel->clear();
+		$userModel->set( 'uuid', $params['uuid'] );
+
+		if ( $userModel->validates( [ 'field_list' => 'uuid' ] ) ) {
+			$userBundle = $userModel->find( 'first',
+				[
+					'recursive'  => - 1,
+					'conditions' => [ 'uuid' => $params['uuid'] ]
+				]
+			);
+		}
+
+		if ( empty( $userBundle ) ) {
+			return new CakeResponse( [
+				'status' => 404,
+				'body'   => json_encode( [
+					'error' => 'User not found. Please provide a valid UUID.',
+				] ),
+				'type'   => 'json'
+			] );
+		} else {
+			$user = $userBundle['User'];
+		}
+
+		$current = $userModel->hash_password( $params['currentPassword'], $user['salt'] );
+		if ( $user['password'] != $current['password'] ) {
+			return new CakeResponse( [
+				'status' => 401,
+				'body'   => json_encode( [
+					'error' => 'Current password provided does not match with the password in our records.',
+				] ),
+				'type'   => 'json'
+			] );
+		}
+
+		$password = $userModel->hash_password( $params['password'] );
+		$userModel->set( 'password', $password['password'] );
+
+		try {
+			$userModel->save( null, null, [ 'password' ] );
+		} catch ( Exception $e ) {
+			return new CakeResponse( [
+				'status' => 422,
+				'body'   => json_encode( [
+					'error' => 'There was an error processing your request. Please try again or contact support',
+				] ),
+				'type'   => 'json'
+			] );
+		}
 		$ret = array(
 			'message' => array(
 				'success' => 'Password updated successfully.'
@@ -406,7 +453,11 @@ SQL;
 			)
 		);
 
-		return $ret;
+		return new CakeResponse( [
+			'status' => 200,
+			'body'   => json_encode( $ret ),
+			'type'   => 'json'
+		] );
 	}
 
 	/**
