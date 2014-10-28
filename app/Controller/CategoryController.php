@@ -31,8 +31,7 @@ class CategoryController extends AppController
                 $result[] = ucwords(strtolower($category['Category']['name']));
             }
         }
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
     }
 
 }

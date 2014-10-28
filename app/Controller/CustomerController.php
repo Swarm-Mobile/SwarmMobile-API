@@ -87,8 +87,7 @@ class CustomerController extends AppController
                 $result['transactions'][] = $transaction;
             }
         }
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
     }
 
     public function customers ()
@@ -143,8 +142,7 @@ class CustomerController extends AppController
                 ];
             }
         }
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
     }
 
 }

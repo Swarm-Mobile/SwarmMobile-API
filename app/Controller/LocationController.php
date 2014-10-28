@@ -34,8 +34,7 @@ class LocationController extends AppController
             'Best Hour'      => $this->Invoice->bestHour($storeId, $startDate, $endDate, $locationTimezone),
             'Best Day'       => $this->Invoice->bestDay($storeId, $startDate, $endDate, $locationTimezone)
         ]);
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
     }
 
 }

@@ -31,8 +31,7 @@ class BrandController extends AppController
                 $result[] = ucwords(strtolower($brand['InvoiceLine']['family']));
             }
         }
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new CakeResponse(['status' => 201, 'body' => json_encode($result), 'type' => 'json']);
     }
 
 }
