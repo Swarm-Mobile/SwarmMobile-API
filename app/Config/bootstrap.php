@@ -23,7 +23,7 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 // Start Composer Include
-require '../../vendor/autoload.php';
+require APP . '../vendor/autoload.php';
 
 // Remove and re-prepend CakePHP's autoloader as Composer thinks it is the
 // most important.
@@ -132,7 +132,6 @@ if ($env == 'live') {
     App::uses('LogListener', 'Event');
     App::uses('AuthenticationListener', 'Event');
     App::uses('GrantListener', 'Event');
-
     CakeEventManager::instance()->attach(new LogListener());
     CakeEventManager::instance()->attach(new AuthenticationListener());
     CakeEventManager::instance()->attach(new GrantListener());

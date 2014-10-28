@@ -11,6 +11,7 @@ class DATABASE_CONFIG
     public $oauth         = array ();
     public $backstage     = array ();
     public $portal        = array ();
+    public $pingAsPresence = array();
     public $local         = array (
         'oauth'         => array (
             'datasource' => 'Database/Mysql',
@@ -83,7 +84,16 @@ class DATABASE_CONFIG
             'password'   => 'vagrant',
             'database'   => 'rollups',
             'prefix'     => '',
-        )
+        ),  
+        'ping-as-presence' =>array (
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host'       => 'ping-as-presence.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login'      => 'swarm_admin',
+            'password'   => '3mUYJuA8',
+            'database'   => 'ping_as_presence',
+            'prefix'     => '',
+        ),
     );
     public $staging       = array (
         'oauth'         => array (
@@ -148,7 +158,16 @@ class DATABASE_CONFIG
             'password'   => 'f4uwrapR',
             'database'   => 'rollups',
             'prefix'     => '',
-        )
+        ),
+        'pingAsPresence' =>array (
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host'       => 'ping-as-presence.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login'      => 'swarm_admin',
+            'password'   => '3mUYJuA8',
+            'database'   => 'ping_as_presence',
+            'prefix'     => '',
+        ),
     );
     public $int           = array (
         'oauth'         => array (
@@ -213,7 +232,16 @@ class DATABASE_CONFIG
             'password'   => '',
             'database'   => 'rollups',
             'prefix'     => '',
-        )
+        ),
+        'pingAsPresence' =>array (
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host'       => 'ping-as-presence.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login'      => 'swarm_admin',
+            'password'   => '3mUYJuA8',
+            'database'   => 'ping_as_presence',
+            'prefix'     => '',
+        ),
     );
     public $live          = array (
         'oauth'         => array (
@@ -278,7 +306,16 @@ class DATABASE_CONFIG
             'password'   => 'f4uwrapR',
             'database'   => 'rollups',
             'prefix'     => '',
-        )
+        ),
+        'pingAsPresence' =>array (
+            'datasource' => 'Database/Mysql',
+            'persistent' => false,
+            'host'       => 'ping-as-presence.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
+            'login'      => 'swarm_admin',
+            'password'   => '3mUYJuA8',
+            'database'   => 'ping_as_presence',
+            'prefix'     => '',
+        ),
     );
     public $hex           = array (
         'oauth'         => array (
@@ -343,7 +380,7 @@ class DATABASE_CONFIG
             'password'   => 'F6gatRad',
             'database'   => 'rollups',
             'prefix'     => '',
-        )
+        ),
     );
 
     function __construct ()
@@ -357,6 +394,7 @@ class DATABASE_CONFIG
             'backstage',
             'rollups',
             'portal',
+            'pingAsPresence'
         );
         $env = ((!empty($env) && isset($this->$env)) ? $env : 'local');
         foreach ($dbs as $dbname) {
