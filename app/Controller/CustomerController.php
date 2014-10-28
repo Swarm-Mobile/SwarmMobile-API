@@ -87,7 +87,7 @@ class CustomerController extends AppController
                 $result['transactions'][] = $transaction;
             }
         }
-        return new JsonResponse(['body' => json_encode($result)]);
+        return new JsonResponse(['body' => $result]);
     }
 
     public function customers ()
@@ -142,7 +142,7 @@ class CustomerController extends AppController
                 ];
             }
         }
-        return new JsonResponse(['body' => json_encode($result)]);
+        return new JsonResponse(['body' => $result]);
     }
 
 }

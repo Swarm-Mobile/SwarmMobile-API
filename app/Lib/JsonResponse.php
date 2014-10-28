@@ -2,6 +2,7 @@
 
 class JsonResponse extends CakeResponse
 {
+
     protected $_statusCodes = [
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -45,14 +46,25 @@ class JsonResponse extends CakeResponse
         504 => 'Gateway Time-out',
         505 => 'Unsupported Version'
     ];
-    protected $_headers = [
+    protected $_headers     = [
         'Access-Control-Allow-Origin'  => '*',
         'Access-Control-Allow-Methods' => 'POST, GET',
         'Access-Control-Allow-Headers' => 'X-PINGOTHER',
-        'Content-Type'                 => 'application/json; charset=UTF-8',
         'Access-Control-Max-Age'       => '1728000',
         'Pragma'                       => 'no-cache',
         'Cache-Control'                => 'no-store; no-cache;must-revalidate; post-check=0; pre-check=0',
     ];
+    protected $_contentType = 'application/json';
+    protected $_body = '{}';
+
+    public function __construct (array $options = array ())
+    {
+        if (isset($options['body'])) {
+            $this->body(json_encode($options['body']));
+        }
+        if (isset($options['status'])) {
+            $this->statusCode($options['status']);
+        }
+    }
 
 }

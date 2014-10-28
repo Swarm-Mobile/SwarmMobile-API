@@ -31,7 +31,7 @@ class CategoryController extends AppController
                 $result[] = ucwords(strtolower($category['Category']['name']));
             }
         }
-        return new JsonResponse(['body' => json_encode($result)]);
+        return new JsonResponse(['body' => $result]);
     }
 
 }
