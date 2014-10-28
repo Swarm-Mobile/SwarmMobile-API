@@ -34,7 +34,7 @@ class AuthenticationListener implements CakeEventListener
      */
     public function fireAuthEvents (CakeEvent $event)
     {
-//        $this->authenticateRequest($event);
+        $this->authenticateRequest($event);
     }
 
     /**

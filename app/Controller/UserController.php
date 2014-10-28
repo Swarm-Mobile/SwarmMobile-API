@@ -155,7 +155,7 @@ class UserController extends APIController {
 				try {
 					$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
 				} catch ( Exception $e ) {
-					// On this call we will still allow failures through but should prob be logged somewhere?
+					$this->log($e->getMessage(),'debug');
 				}
 				$ret['data']['locations'] = $locations;
 				break;
@@ -169,7 +169,7 @@ class UserController extends APIController {
 				try {
 					$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
 				} catch ( Exception $e ) {
-					// On this call we will still allow failures through but should prob be logged somewhere?
+					$this->log($e->getMessage(),'debug');
 				}
 				$ret['data']['locations'] = $locations;
 				break;
