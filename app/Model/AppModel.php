@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Application model for CakePHP.
  *
@@ -18,8 +19,8 @@
  * @since         CakePHP(tm) v 0.2.9
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-
 App::uses('Model', 'Model');
+App::uses('ValidatorComponent', 'Controller/Component');
 
 /**
  * Application model for Cake.
@@ -29,6 +30,38 @@ App::uses('Model', 'Model');
  *
  * @package       app.Model
  */
-class AppModel extends Model {
+class AppModel extends Model
+{
+
     public $useDbConfig = 'oauth';
+    
+    /**
+     * Search inside an Array of params 
+     * an id placed into the index $table.'_id'
+     * and fills the Model. Also checks if this
+     * id is defined into the array, if is a positive
+     * int and if this resource, after the load, 
+     * really exists. 
+     * 
+     * @param array $params
+     * @param int $recursive
+     * @param array $fields
+     * @throws InvalidArgumentException
+     */
+    public function readFromParams ($params, $recursive = -1, $fields = null)
+    {
+        $this->recursive = $recursive;
+        if (!isset($params[$this->table . '_id'])) {
+            throw new InvalidArgumentException($this->table . ' is required.');
+        }
+        $id = $params[$this->table . '_id'];
+        if (!ValidatorComponent::isPositiveInt($id)) {
+            throw new InvalidArgumentException($this->table . '_id must be a valid integer.');
+        }
+        $this->read($fields, $id);
+        if (empty($this->data)) {
+            throw new InvalidArgumentException('Incorrect ' . $this->table . '_id');
+        }
+    }
+
 }

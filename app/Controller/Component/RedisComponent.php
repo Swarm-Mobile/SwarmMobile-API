@@ -23,7 +23,11 @@ class RedisComponent
         if (!isset(self::$instances[$name])) {
             $config = include(APP . '/Config/redis.php');
             if (isset($config[$name])) {
-                self::$instances['name'] = new Predis\Client($config[$name]['host']);
+                $instance = new Predis\Client($config[$name]['host']);
+                if(isset($config[$name]['database'])) {
+                    $instance->select($config[$name]['database']);
+                }
+                self::$instances['name'] = $instance;
             }
             else {
                 throw new Exception('Redis Adaptor not found.');

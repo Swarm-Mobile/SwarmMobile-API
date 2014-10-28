@@ -126,3 +126,13 @@ CakeLog::config('error', array(
 	'types' => array('warning', 'error', 'critical', 'alert', 'emergency'),
 	'file' => 'error',
 ));
+
+/**
+* Event Listeners
+*/
+App::uses('CakeEventManager', 'Event'); 
+App::uses('AuthenticationListener','Event');
+App::uses('GrantListener','Event');
+
+CakeEventManager::instance()->attach(new AuthenticationListener());
+CakeEventManager::instance()->attach(new GrantListener());
