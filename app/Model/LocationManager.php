@@ -1,5 +1,5 @@
 <?php
-App::uses('AppModel', 'Model');
+App::uses( 'AppModel', 'Model' );
 
 /**
  * Class LocationManager
@@ -17,6 +17,11 @@ class LocationManager extends AppModel {
 	public $displayField = 'firstname';
 	public $id = 'id';
 
-	public $hasMany = 'LocationLocationmanager';
+	public $hasMany = [
+		'LocationLocationmanager' => [
+			'className' => 'LocationLocationmanager',
+			'foreignKey' => 'locationmanager_id'
+		]
+	];
 
 } 

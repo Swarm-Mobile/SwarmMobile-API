@@ -10,8 +10,14 @@ class Location extends AppModel {
     public $id = 'id';
 
 	public $hasMany = [
-		'LocationEmployee',
-		'LocationLocationmanager'
+		'location_employee' => [
+			'className' => 'LocationEmployee',
+			'foreignKey' => 'location_id'
+		],
+		'locationmanager_location' => [
+			'className' => 'LocationLocationmanager',
+			'foreignKey' => 'location_id',
+		]
 	];
     public $hasAndBelongsToMany = array(
         "Setting" => array(

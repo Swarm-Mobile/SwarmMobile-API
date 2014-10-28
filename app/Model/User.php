@@ -20,6 +20,8 @@ App::uses('AppModel', 'Model');
 class User extends AppModel
 {
     public $useDbConfig = 'backstage';
+
+	public $actsAs = array('Containable');
     private $hash_algos = array (
         128 => 'sha512',
         64  => 'sha256',
@@ -27,6 +29,16 @@ class User extends AppModel
         32  => 'md5'
     );
     public $useTable    = 'user';
+
+	public $hasOne = ['Employee','LocationManager'];
+
+	public $hasMany = [
+		'UserLocationReport' => [
+			'className' => 'UserLocationReport',
+			'foreignKey' => 'user_id'
+		]
+	];
+
     public $validate    = array (
         'username'        => array (
             'notEmpty'  => array (
@@ -90,11 +102,13 @@ class User extends AppModel
             'notEmpty' => array (
                 'rule'     => array ('notEmpty'),
                 'required' => true,
-	            'message' => 'Confirm Password field cannot be empty'
+	            'message' => 'Confirm Password field cannot be empty',
+	            'on' => 'create'
             ),
             'matchesConfirm' => array(
 	            'rule' => array('validateConfirmPassword','password'),
-	            'message' => 'Password and Confirm Password Field do not match'
+	            'message' => 'Password and Confirm Password Field do not match',
+	            'on' => 'create'
 
             )
         ),

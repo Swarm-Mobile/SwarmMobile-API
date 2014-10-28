@@ -37,12 +37,13 @@ Router::connect('/customers'                    , ['controller' => 'Customer'   
 Router::connect('/location/highlights'          , ['controller' => 'Location'     , 'action' => 'highlights'       , '[method]' => 'GET']);
 
 //User
-Router::connect('/user/getSettings'             , ['controller' => 'User'          , 'action' => 'getSettings'     , '[method]' => 'GET']);
-Router::connect('/user/locations'               , ['controller' => 'User'          , 'action' => 'locations'            , '[method]' => 'GET']);
+Router::connect('/user/getSettings'             , ['controller' => 'User'         , 'action' => 'getSettings'      , '[method]' => 'GET']);
+Router::connect('/user/locations'               , ['controller' => 'User'         , 'action' => 'locations'        , '[method]' => 'GET']);
 Router::connect('/user/login'                   , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'POST']);
 Router::connect('/user/register'                , ['controller' => 'User'         , 'action' => 'register'         , '[method]' => 'POST']);
 Router::connect('/user/updatePassword'          , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'POST']);
-Router::connect('/user/updateSettings'          , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'POST']);
+Router::connect('/user/updateSettings'          , ['controller' => 'User'         , 'action' => 'updateSettings'   , '[method]' => 'POST']);
+Router::connect('/user/getLocationManagerId'    , ['controller' => 'User'          , 'action' => 'getLocationManagerId'            , '[method]' => 'GET']);
 
 //iOS App
 Router::connect('/location/availableSettings'   , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'GET']);

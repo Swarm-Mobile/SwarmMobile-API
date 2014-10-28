@@ -91,56 +91,6 @@ class APIController extends AppController {
 	public $layout = false;
 
 	/**
-	 * @var array A list of http methods that are available in the system. If the method type sent in is not in the list
-	 *          we wont even try to check in the method access list
-	 */
-	protected $availableHttpMethods = [
-		'get',
-		'post',
-		'put',
-		'delete'
-	];
-
-	/**
-	 * @var array Access list for each controller action with the key being the method and the value being an array of
-	 *          available http methods. If there is no key matching the route will use the default. If there is no
-	 *          method defined defaults to deny access
-	 */
-	protected $methodAccessList = [
-		'default' => [
-			'get'    => true,
-			'post'   => true,
-			'put'    => false,
-			'delete' => false
-		]
-	];
-
-	/**
-	 * @return array
-	 * @throws InvalidArgumentException If not http methods are available
-	 */
-	public function getAvailableHttpMethods() {
-		$availableMethods = $this->availableHttpMethods;
-
-		if ( empty( $availableMethods ) ) {
-			throw new InvalidArgumentException( 'No acceptable http methods defined' );
-		}
-
-		return $availableMethods;
-	}
-
-	/**
-	 * @param array $availableHttpMethods
-	 *
-	 * @return $this
-	 */
-	public function setAvailableHttpMethods( $availableHttpMethods ) {
-		$this->availableHttpMethods = $availableHttpMethods;
-
-		return $this;
-	}
-
-	/**
 	 * @return boolean
 	 */
 	public function isCache() {
@@ -376,49 +326,6 @@ class APIController extends AppController {
 		$this->user = $user;
 
 		return $this;
-	}
-
-
-	/**
-	 * Called before the controller action. Used to filter method types against access list
-	 */
-	public function beforeFilter() {
-		$requestMethod = $this->request->method();
-		if ( empty( $requestMethod ) ) {
-			throw new InvalidArgumentException( 'No request method available' );
-		}
-
-		$requestMethod = strtolower( $requestMethod );
-		if ( ! in_array( $requestMethod, $this->getAvailableHttpMethods() ) ) {
-			$strMethodsAllowed = strtoupper( implode( ', ', $this->getAvailableHttpMethods() ) );
-
-			return new CakeResponse( [
-				'body' => 'We only allow ' . $strMethodsAllowed . ' on this version of the API',
-				'code' => 405,
-				'type' => 'json'
-			] );
-		}
-		$action = $this->request->params['action'];
-
-		if ( empty( $action ) ) {
-			return new CakeResponse( [
-				'body' => 'Could not match action',
-				'code' => 404,
-				'type' => 'json'
-			] );
-		}
-
-		$methodAccessList = $this->getMethodAccessList( $action );
-
-		if ( ! in_array( $requestMethod, $methodAccessList ) || $methodAccessList[ $requestMethod ] !== true ) {
-			return new CakeResponse( [
-				'body' => strtoupper( $requestMethod ) . ' not available for this endpoint',
-				'code' => 405,
-				'type' => 'json'
-			] );
-		}
-
-		parent::beforeFilter();
 	}
 
 	// Controller Actions

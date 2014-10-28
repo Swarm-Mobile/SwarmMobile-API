@@ -12,11 +12,15 @@ App::uses( 'AppModel', 'Model' );
  * @property $ts_update string MySQL Timestamp
  */
 class LocationLocationmanager extends AppModel {
+	public $actsAs = array('Containable');
 	public $useDbConfig = 'backstage';
 	public $useTable = 'locationmanager_location';
 	public $id = 'id';
 
 	public $belongsTo = [
-		'LocationManager', 'Location'
+		'LocationManager' => [
+			'className' => 'LocationManager',
+			'foreignKey' => 'locationmanager_id'
+		], 'Location'
 	];
 }

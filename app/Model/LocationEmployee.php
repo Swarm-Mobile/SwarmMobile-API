@@ -12,6 +12,7 @@ App::uses( 'AppModel', 'Model' );
  * @property $ts_update string MySQL Timestamp
  */
 class LocationEmployee extends AppModel {
+	public $actsAs = array('Containable');
 	public $useDbConfig = 'backstage';
 	public $useTable = 'location_employee';
 	public $id = 'id';

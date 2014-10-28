@@ -6,17 +6,9 @@ App::uses( 'UserType', 'Model' );
 App::uses( 'LocationManager', 'Model' );
 App::uses( 'Employee', 'Model' );
 App::uses( 'LocationEmployee', 'Model' );
+App::uses( 'LocationLocationmanager', 'Model' );
 
 class UserController extends APIController {
-
-	public $methodAccessList = [
-		'register'    => [
-			'post' => true
-		],
-		'getSettings' => [
-			'get' => true
-		]
-	];
 
 	/**
 	 * Create a new User and Location Manager record from POST
@@ -92,11 +84,10 @@ class UserController extends APIController {
 
 	/**
 	 *
-	 * @param $params
-	 *
 	 * @return CakeResponse Returns response object with JSON already set in the body and status code
 	 */
-	public function login( $params ) {
+	public function login() {
+		$params = $this->request->data;
 		if ( empty( $params['username'] ) || empty( $params['password'] ) ) {
 			return new CakeResponse(
 				array(
@@ -151,17 +142,22 @@ class UserController extends APIController {
 				'type'   => 'json'
 			] );
 		}
-		$userModel = new User();
-		$user      = $userModel->find( 'first', [ 'recursive' => - 1, 'conditions' => [ 'uuid' => $uuid ] ] );
+		$userModel  = new User();
+		$userBundle = $userModel->find(
+			'first',
+			[
+				'conditions' => [ 'uuid' => $uuid ],
+			] );
 
-		if ( empty( $user ) ) {
+		if ( empty( $userBundle ) ) {
 			return new CakeResponse( [
 				'status' => 404,
 				'body'   => json_encode( [ 'error' => 'User not found with supplied UUID' ] ),
 				'type'   => 'json'
 			] );
 		} else {
-			$user = $user['User'];
+			$emailPreferences = $userBundle['UserLocationReport'];
+			$user             = $userBundle['User'];
 		}
 
 		$ret['data'] = array(
@@ -172,54 +168,57 @@ class UserController extends APIController {
 
 		switch ( $user['usertype_id'] ) {
 			case UserType::$LOCATION_MANAGER:
-				$locationmanagerModel = new LocationManager();
-				$locationmanager      = $locationmanagerModel->find( 'first', [
-					'recursive' => - 1,
-					[ 'conditions' => [ 'user_id' => $user['id'] ] ]
-				] );
-
-				if ( ! empty( $locationmanager ) ) {
-					$ret['data']['firstname'] = $locationmanager['LocationManager']['firstname'];
-					$ret['data']['lastname']  = $locationmanager['LocationManager']['lastname'];
-
-					if ( array_key_exists( 'LocationLocationmanager', $locationmanager )
-					     && ! empty( $locationmanager['LocationLocationmanager'] )
-					) {
-						$locations = [ ];
-						foreach ( $locationmanager['LocationLocationmanager'] as $locationMangerRef ) {
-							if ( ! empty( $locationMangerRef['Location'] ) ) {
-								$locations[] = $locationMangerRef['Location'];
-							}
-						}
-						$ret['data']['locations'] = $locations;
-					}
-					break;
+				if ( ! empty( $userBundle['LocationManager'] ) && ! empty( $userBundle['LocationManager']['id'] ) ) {
+					$ret['data']['firstname'] = $userBundle['LocationManager']['firstname'];
+					$ret['data']['lastname']  = $userBundle['LocationManager']['lastname'];
 				}
+
+				$locations = [ ];
+				try {
+					$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
+				} catch ( Exception $e ) {
+					// On this call we will still allow failures through but should prob be logged somewhere?
+				}
+				$ret['data']['locations'] = $locations;
 				break;
 			case UserType::$EMPLOYEE:
-				$employeeModel            = new Employee();
-				$employee                 = $employeeModel->find( 'first', [
-					'recursive'  => 2,
-					'conditions' => [ 'user_id' => $user['id'] ]
-				] );
-				$ret['data']['firstname'] = $employee['Employee']['firstname'];
-				$ret['data']['lastname']  = $employee['Employee']['lastname'];
-
-				if ( array_key_exists( 'LocationEmployee', $employee ) && ! empty( $employee['LocationEmployee'] ) ) {
-					$locations = [ ];
-					foreach ( $employee['LocationEmployee'] as $locationEmployeeRef ) {
-						if ( ! empty( $locationEmployeeRef['Location'] ) ) {
-							$locations[] = $locationEmployeeRef['Location'];
-						}
-					}
-					$ret['data']['locations'] = $locations;
+				if ( ! empty( $userBundle['Employee'] ) && ! empty( $userBundle['Employee']['id'] ) ) {
+					$ret['data']['firstname'] = $userBundle['Employee']['firstname'];
+					$ret['data']['lastname']  = $userBundle['Employee']['lastname'];
 				}
+
+				$locations = [ ];
+				try {
+					$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
+				} catch ( Exception $e ) {
+					// On this call we will still allow failures through but should prob be logged somewhere?
+				}
+				$ret['data']['locations'] = $locations;
 				break;
 		}
-		$ret['data']['uuid']       = $uuid;
-		$ret['data']['user_id']    = $user['id'];
-		$ret['data']['emailPrefs'] = $this->getEmailPrefs( array_keys( $locations ) );
-		$ret['options']            = array(
+		$ret['data']['uuid']    = $uuid;
+		$ret['data']['user_id'] = $user['id'];
+		if ( ! empty( $emailPreferences ) ) {
+			foreach ( $emailPreferences as $locationPref ) {
+				$str = '';
+				if ( $locationPref['daily'] ) {
+					$str .= 'daily,';
+				}
+				if ( $locationPref['weekly'] ) {
+					$str .= 'weekly,';
+				}
+				if ( $locationPref['monthly'] ) {
+					$str .= 'monthly,';
+				}
+				if ( empty( $str ) ) {
+					$str .= 'none';
+				} else {
+					$str = substr( $str, 0, - 1 );
+				}
+				$ret['data']['emailPrefs'][ $locationPref['location_id'] ] = $str;
+			}
+		}
+		$ret['options'] = array(
 			'endpoint' => '/user/' . __FUNCTION__,
 			'uuid'     => $uuid,
 		);
@@ -234,82 +233,122 @@ class UserController extends APIController {
 	/**
 	 * Update user data
 	 *
-	 * @param Array post data
 	 */
-	public function updateSettings( $params ) {
+	public function updateSettings() {
+		$params = $this->request->data;
+
 		if ( empty( $params['uuid'] ) ) {
-			throw new Exception( 'User not found. Please provide a valid UUID.' );
+			return new CakeResponse( [
+				'status' => 404,
+				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+				'type'   => 'json'
+			] );
 		}
-		$exec  = false;
-		$user  = $this->getUserFromUUID( $params['uuid'] );
-		$oUser = new User();
-		if ( ! empty( $user ) ) {
-			$userQ = "UPDATE user SET ";
-			$bind  = array();
-			// Update only if its different than the current email
-			if ( ! empty( $params['email'] ) && $params['email'] != $user[0]['user']['email'] ) {
-				if ( ! $oUser->checkEmailExists( $params['email'], $user[0]['user']['id'] ) ) {
-					throw new Exception( 'Email already exists.' );
-				}
-				$bind[':email'] = $params['email'];
-				$exec           = true;
-				$userQ .= "email=:email,";
-			}
-			if ( ! empty( $params['username'] ) && $params['username'] != $user[0]['user']['username'] ) {
-				if ( ! $oUser->checkUsernameExists( $params['username'], $user[0]['user']['id'] ) ) {
-					throw new Exception( 'Username already exists.' );
-				}
-				$bind[':username'] = $params['username'];
-				$exec              = true;
-				$userQ .= "username=:username,";
-			}
-			$userQ = substr( $userQ, 0, - 1 );
-			$userQ .= ' WHERE id=' . $user[0]['user']['id'];
-			$oDb = DBComponent::getInstance( 'user', 'backstage' );
-			if ( $exec == true ) {
-				$oDb->query( $userQ, $bind );
-			}
-			$exec    = false;
-			$bind    = array();
-			$entityQ = 'UPDATE ';
-			switch ( $user[0]['user']['usertype_id'] ) {
-				case 5:
-					$entityQ .= 'employee SET ';
-					break;
-				case 4:
-				default:
-					$entityQ .= 'locationmanager SET ';
-			}
 
-			if ( ! empty( $params['firstname'] ) ) {
-				$exec               = true;
-				$bind[':firstname'] = $params['firstname'];
-				$entityQ .= 'firstname=:firstname,';
+		$userModel = new User();
+
+		$user = $userModel->find( 'first', [
+			'recursive'  => - 1,
+			'conditions' => [
+				'uuid' => $params['uuid']
+			]
+		] );
+
+		if ( count( $user ) !== 1 ) {
+			return new CakeResponse( [
+				'status' => 404,
+				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+				'type'   => 'json'
+			] );
+		}
+
+		switch ( $user['User']['usertype_id'] ) {
+			case UserType::$LOCATION_MANAGER:
+				$assocUserModelClassname = 'LocationManager';
+				break;
+			case UserType::$EMPLOYEE:
+				$assocUserModelClassname = 'Employee';
+				break;
+			default:
+				$assocUserModelClassname = false;
+		}
+
+		// Validate the User model first, then validate the associated model if it passes
+		$userModel->set( $user['User'] );
+		$userModel->set( $params );
+
+		if ( ! $userModel->validates() ) {
+			return new CakeResponse( [
+				'status' => 422,
+				'body'   => json_encode( [
+					'error'  => 'User data doesnt pass validation',
+					'errors' => $userModel->validationErrors
+				] ),
+				'type'   => 'json'
+			] );
+		}
+
+		if ( $assocUserModelClassname &&
+		     class_exists( $assocUserModelClassname )
+		     && ! empty( $user[ $assocUserModelClassname ] )
+		) {
+			/** @var Model $assocUserModel */
+			$assocUserModel = new $assocUserModelClassname;
+			$assocUserModel->set( $user[ $assocUserModelClassname ] );
+			$assocUserModel->set( $params );
+
+			if ( ! $assocUserModel->validates() ) {
+				return new CakeResponse( [
+					'status' => 422,
+					'body'   => json_encode( [
+						'error'  => 'User data doesnt pass validation',
+						'errors' => $assocUserModel->validationErrors
+					] ),
+					'type'   => 'json'
+				] );
 			}
-			if ( ! empty( $params['lastname'] ) ) {
-				$exec              = true;
-				$bind[':lastname'] = $params['lastname'];
-				$entityQ .= 'lastname=:lastname,';
-			}
-			$entityQ = substr( $entityQ, 0, - 1 );
-			$entityQ .= ' WHERE user_id=' . $user[0]['user']['id'];
-			if ( $exec == true ) {
-				$oDb->query( $entityQ, $bind );
-			}
-			$ret = array(
-				'message' => array(
-					'success' => 'User data has been successfully saved.'
-				),
-				'options' => array(
-					'endpoint' => '/user/' . __FUNCTION__,
-					'uuid'     => $params['uuid'],
-				)
-			);
 		} else {
-			throw new Exception( 'User not found. Please provide a valid UUID.' );
+			$assocUserModel = false;
 		}
 
-		return $ret;
+
+		// If we got this far everything has validated so save the data
+		$userModel->set( 'ts_update', date( 'Y-m-d H:i:s' ) );
+		$userModel->getDataSource()->begin();
+		try {
+			$userModel->save( null, false, [ 'username', 'email', 'usertype_id', 'ts_update' ] );
+
+			if ( $assocUserModel ) {
+				$assocUserModel->save( null, false, [ 'firstname', 'lastname' ] );
+			}
+			$userModel->getDataSource()->commit();
+		} catch ( Exception $e ) {
+			$userModel->getDataSource()->rollback();
+			return new CakeResponse( [
+				'status' => 422,
+				'body'   => json_encode( [
+					'error' => 'There was an error processing your request. Please try again or contact support',
+				] ),
+				'type'   => 'json'
+			] );
+		}
+
+		return new CakeResponse( [
+			'status' => 202,
+			'body'   => json_encode( [
+				array(
+					'message' => array(
+						'success' => 'User data has been successfully saved.'
+					),
+					'options' => array(
+						'endpoint' => '/user/' . __FUNCTION__,
+						'uuid'     => $params['uuid'],
+					)
+				)
+			] ),
+			'type'   => 'json'
+		] );
+
 	}
 
 	/**
@@ -371,73 +410,19 @@ SQL;
 	}
 
 	/**
-	 * Get location manager id
-	 *
-	 * @param int user_id
-	 *
-	 * @return int locationmanager_id
-	 */
-	public function getLocationManagerId( $user_id ) {
-		if ( empty( $user_id ) ) {
-			return false;
-		}
-		$oDb  = DBComponent::getInstance( 'user', 'backstage' );
-		$sSQL = <<<SQL
-SELECT id
-FROM locationmanager
-WHERE user_id=:user_id
-SQL;
-		$id   = $oDb->fetchAll( $sSQL, array( ':user_id' => $user_id ) );
-		if ( ! empty( $id ) ) {
-			return $id[0]['locationmanager']['id'];
-		} else {
-			throw new Exception( 'ManagerId not found. Please contact your account manager immediately.', 500 );
-		}
-	}
-
-	/**
-	 * Get employee id
-	 *
-	 * @param int user_id
-	 *
-	 * @return int locationmanager_id
-	 */
-	public function getEmployeeId( $user_id ) {
-		if ( empty( $user_id ) ) {
-			return false;
-		}
-		$oDb  = DBComponent::getInstance( 'user', 'backstage' );
-		$sSQL = <<<SQL
-SELECT id
-FROM employee
-WHERE user_id=:user_id
-SQL;
-		$id   = $oDb->fetchAll( $sSQL, array( ':user_id' => $user_id ) );
-		if ( ! empty( $id ) ) {
-			return $id[0]['employee']['id'];
-		} else {
-			throw new Exception( 'EmployeeId not found. Please contact your account manager immediately.', 500 );
-		}
-	}
-
-	/**
 	 * Get locations associated to a user
 	 *
-	 * @param int user_id
-	 * @param int usertype_id
-	 * @param boolean internal call or api request
+	 * @param int $uuid The UUID associated witht the user
+	 *
+	 * @return CakeResponse
 	 */
-	public function locations( $uuid, $internal = false ) {
+	public function locations( $uuid ) {
 		if ( empty( $uuid ) ) {
-			if ( $internal ) {
-				throw new Exception( 'User not found. Please provide a valid UUID.', 401 );
-			} else {
-				return new CakeResponse( [
-					'status' => 401,
-					'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-					'type'   => 'json'
-				] );
-			}
+			return new CakeResponse( [
+				'status' => 401,
+				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+				'type'   => 'json'
+			] );
 		}
 
 		$userModel = new User();
@@ -447,125 +432,103 @@ SQL;
 				'User.uuid' => $uuid
 			)
 		) );
+
 		if ( empty( $user ) ) {
-			if ( $internal ) {
-				throw new Exception( 'User not found. Please provide a valid UUID.', 404 );
-			} else {
-				return new CakeResponse( [
-					'status' => 404,
-					'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-					'type'   => 'json'
-				] );
-			}
+			return new CakeResponse( [
+				'status' => 404,
+				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
+				'type'   => 'json'
+			] );
 		} else {
 			$user = $user['User'];
 		}
 
-		if ( ! in_array( $user['usertype_id'], [ UserType::$LOCATION_MANAGER, UserType::$EMPLOYEE ] ) ) {
-			if ( $internal ) {
-				throw new Exception( 'You need to be a location manager or an employee to have locations associated to you.', 401 );
-			} else {
-				return new CakeResponse( [
-					'status' => 401,
-					'body'   => json_encode( [ 'error' => 'You need to be a location manager or an employee to have locations associated to you.' ] ),
-					'type'   => 'json'
-				] );
-			}
-		}
-
-		switch ( $user['usertype_id'] ) {
-			case UserType::$LOCATION_MANAGER:
-
-				break;
-			case UserType::$EMPLOYEE:
-				$locationEmployeeModel = new LocationEmployee();
-				$locations             = $locationEmployeeModel->find( 'all', [ 'conditions' => [ 'employee_id' => $user['id'] ] ] );
-				if ( $internal ) {
-					return $locations;
-				}
-				break;
+		try {
+			$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
+		} catch ( InvalidArgumentException $ie ) {
+			return new CakeResponse( [
+				'status' => 400,
+				'body'   => json_encode( [ 'error' => $ie->getMessage() ] ),
+				'type'   => 'json'
+			] );
+		} catch ( Exception $e ) {
+			return new CakeResponse( [
+				'status' => 500,
+				'body'   => json_encode( [ 'error' => $e->getMessage() ] ),
+				'type'   => 'json'
+			] );
 		}
 
 
-//		if ( $user['usertype_id'] == 4 ) {
-//			$joinTable = 'locationmanager_location';
-//			$entityCol = 'locationmanager_id';
-//			$entityId  = $this->getLocationManagerId( $user['id'] );
-//		} elseif ( $user['usertype_id'] == 5 ) {
-//			$joinTable = 'location_employee';
-//			$joinId    = $this->getEmployeeId( $user['id'] );
-//			$entityCol = 'employee_id';
-//		}
+		$res['data']['locations'] = $locations;
+		$res['options']           = array(
+			'endpoint' => '/user/' . __FUNCTION__,
+			'uuid'     => $uuid
+		);
 
 
-		$sSQL      = <<<SQL
-SELECT l.id, l.name
-    FROM location l
-    JOIN $joinTable j on
-    l.id = j.location_id
-    WHERE j.$entityCol = $entityId
-SQL;
-		$locations = $oDb->fetchAll( $sSQL );
-		if ( ! empty( $locations ) ) {
-			foreach ( $locations as $key => $val ) {
-				$ret[ $locations[ $key ]['l']['id'] ] = $locations[ $key ]['l']['name'];
-			}
-		}
-		$res = array();
-		if ( $internal ) {
-			return $ret;
-		} else {
-			$res['data']['locations'] = $ret;
-			$res['options']           = array(
-				'endpoint' => '/user/' . __FUNCTION__,
-				'uuid'     => $uuid
-			);
-		}
-
-		return $res;
+		return new CakeResponse( [
+			'status' => 200,
+			'body'   => json_encode( $res ),
+			'type'   => 'json'
+		] );
 	}
 
 	/**
-	 * Get emails preferences for locations
+	 * Internal function to get the locations associated with a user
 	 *
-	 * @param Array location Ids
+	 * @param $usertype_id
+	 * @param $user_id
 	 *
-	 * @return Array
+	 * @return array of Locations
+	 * @throws InvalidArgumentException If the usertype is wrong or empty
+	 *
 	 */
-	public function getEmailPrefs( $locationIds = [ ] ) {
-		$ret = [ ];
-		if ( empty( $locationIds ) ) {
-			return [ ];
-		}
-		$oDb  = DBComponent::getInstance( 'user_location_report', 'backstage' );
-		$sSQL = <<<SQL
-SELECT daily, weekly, monthly
-FROM user_location_report
-WHERE location_id=:location_id
-SQL;
-		foreach ( $locationIds as $locationId ) {
-			$data = $oDb->fetchAll( $sSQL, [ ':location_id' => $locationId ] );
-			if ( ! empty( $data[0] ) && ! empty( $data[0]['user_location_report'] ) ) {
-				$reports = $data[0]['user_location_report'];
-				$str     = '';
-				if ( $reports['daily'] ) {
-					$str .= 'daily,';
-				}
-				if ( $reports['weekly'] ) {
-					$str .= 'weekly,';
-				}
-				if ( $reports['monthly'] ) {
-					$str .= 'monthly,';
-				}
-				if ( empty( $str ) ) {
-					$str .= 'none';
-				} else {
-					$str = substr( $str, 0, - 1 );
-				}
-				$ret[ $locationId ] = $str;
-			}
+	protected function _getLocations( $usertype_id, $user_id ) {
+
+		if ( empty( $usertype_id ) || ! in_array( $usertype_id, [
+				UserType::$LOCATION_MANAGER,
+				UserType::$EMPLOYEE
+			] )
+		) {
+			throw new InvalidArgumentException( 'You need to be a location manager or an employee to have locations associated to you.' );
 		}
 
-		return $ret;
+		$locations = [ ];
+		switch ( $usertype_id ) {
+			case UserType::$LOCATION_MANAGER:
+				$locationLocationManagerModel = new LocationLocationmanager();
+				$locationsBundle              = $locationLocationManagerModel->find(
+					'all',
+					[
+						'conditions' =>
+							[ 'user_id' => $user_id ],
+					] );
+
+				if ( ! empty( $locationsBundle ) ) {
+					foreach ( $locationsBundle as $locationBundle ) {
+						if ( ! empty( $locationBundle ) && ! empty( $locationBundle['Location']['id'] ) ) {
+							$locations[] = $locationBundle['Location'];
+						}
+					}
+				}
+				break;
+			case UserType::$EMPLOYEE:
+				$locationEmployeeModel = new LocationEmployee();
+				$locationsBundle       = $locationEmployeeModel->find( 'all', [ 'conditions' => [ 'employee_id' => $user_id ] ] );
+				if ( ! empty( $locationsBundle ) ) {
+					foreach ( $locationsBundle as $locationBundle ) {
+						if ( ! empty( $locationBundle ) && ! empty( $locationBundle['Location']['id'] ) ) {
+							$locations[] = $locationBundle['Location'];
+						}
+					}
+				}
+
+				return $locations;
+				break;
+		}
+
+		return $locations;
+
 	}
 } 
