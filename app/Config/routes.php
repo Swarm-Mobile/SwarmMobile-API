@@ -51,8 +51,8 @@ Router::connect('/location/create'              , ['controller' => 'Api'        
 Router::connect('/location/updateSettings'      , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'POST']);
 Router::connect('/portal/visitorEvent'          , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'POST']);
 
-Router::connect('/location/monthlyTotals'       , ['controller' => 'Api'          , 'action' => 'monthlyTotals'    , '[method]' => 'GET']);
-Router::connect('/location/historicalTotals'    , ['controller' => 'Api'          , 'action' => 'historicalTotals' , '[method]' => 'GET']);
+Router::connect('/location/monthlyTotals'       , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'GET']);
+Router::connect('/location/historicalTotals'    , ['controller' => 'Api'          , 'action' => 'index'            , '[method]' => 'GET']);
 Router::connect('/device/checkForUpdates'       , ['controller' => 'Device'       , 'action' => 'checkForUpdates'  , '[method]' => 'GET']);
 Router::connect('/device/status'                , ['controller' => 'Device'       , 'action' => 'getStatus'        , '[method]' => 'GET']);
 Router::connect('/device/assign'                , ['controller' => 'Device'       , 'action' => 'assign'           , '[method]' => 'POST']);
