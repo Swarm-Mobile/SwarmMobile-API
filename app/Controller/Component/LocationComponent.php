@@ -1173,6 +1173,27 @@ SQL;
         else {
             $ret['data']['settings'] = $defaults;
         }
+
+        $ret['data']['devices'] = [];
+        $sSQL                   = <<<SQL
+SELECT dt.name, d.id, d.serial, d.alias
+FROM device d
+INNER JOIN devicetype dt
+ON d.devicetype_id = dt.id
+AND d.location_id = :location_id                        
+SQL;
+        $devices                = $oDb->fetchAll($sSQL, [':location_id' => $location_id]);
+        if (!empty($devices)) {
+            foreach ($devices as $device) {
+                $ret['data']['devices'][] = [
+                    'id'            => $device['d']['id'],
+                    'type'          => $device['dt']['name'],
+                    'serial_number' => $device['d']['serial'],
+                    'alias'         => $device['d']['alias'],
+                ];
+            }
+        }
+
         $ret['options'] = array (
             'endpoint'    => '/location/' . __FUNCTION__,
             'location_id' => $location_id

@@ -5,6 +5,7 @@ App::uses('Location', 'Model');
 App::uses('User', 'Model');
 App::uses('Device', 'Model');
 App::uses('DeviceType', 'Model');
+require_once(APP . 'Controller/Component/S3FactoryComponent.php');
 
 class DeviceController extends AppController
 {
@@ -25,10 +26,10 @@ class DeviceController extends AppController
             'type'          => ['required', 'device_type'],
             'serial_number' => ['required'],
             'ts'            => ['required'],
-        ]);        
+        ]);
         $message         = 'Device updated successfully';
         $device_assigned = true;
-        $device          = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);        
+        $device          = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
         try {
             if (empty($device)) {
                 throw new Exception('Invalid device');
@@ -49,11 +50,11 @@ class DeviceController extends AppController
             $message         = $e->getMessage();
         }
 
-        $this->set('result', [
+        $result = [
             'device_assigned' => $device_assigned,
             'message'         => $message
-        ]);
-        $this->render('/API/json');
+        ];
+        return new JsonResponse(['body' => $result]);
     }
 
     /**
@@ -82,29 +83,35 @@ class DeviceController extends AppController
         else {
             switch (strtolower($deviceType)) {
                 case 'portal':
-                    $this->set('result', [
+                    $s3factory = new S3FactoryComponent(new ComponentCollection());
+                    $s3Client  = $s3factory->loadS3();
+                    $sourceUrl = $s3Client->getObjectUrl(
+                            'swarm-device-firmware', 'Swarm_v1.11d_NoSerial.hex', '20 minutes'
+                    );
+
+                    $result = [
                         "update_available" => $firmwareVersion == '1.11',
                         "firmware_version" => "1.11",
-                        "source"           => "https://s3-us-west-1.amazonaws.com/swarm-device-firmware/Swarm_v1.11d_NoSerial.hex"
-                    ]);
+                        "source"           => $sourceUrl
+                    ];
                     break;
                 case 'ping':
-                    $this->set('result', [
+                    $result = [
                         "update_available" => $firmwareVersion == '1.0',
                         "firmware_version" => "1.0",
                         "source"           => null
-                    ]);
+                    ];
                     break;
                 case 'presence':
-                    $this->set('result', [
+                    $result = [
                         "update_available" => false,
                         "firmware_version" => null,
                         "source"           => null
-                    ]);
+                    ];
                     break;
             }
         }
-        $this->render('/API/json');
+        return new JsonResponse(['body' => $result]);
     }
 
     /**
@@ -131,8 +138,8 @@ class DeviceController extends AppController
         elseif ($device['Device']['devicetype_id'] != DeviceType::$ID_FROM_NAME[strtolower($deviceType)]) {
             throw new Exception("This device doesn't correspond with this device type", 401);
         }
-        else {            
-            $this->set('result', [
+        else {
+            $result = [
                 'type'             => $deviceType,
                 'device_serial'    => $serialNumber,
                 'location_id'      => $locationId,
@@ -144,8 +151,8 @@ class DeviceController extends AppController
                 'store_close'      => $device['Device']['store_close'],
                 'firmware_version' => $device['Device']['firmware_version'],
                 'app_version'      => $device['Device']['app_version']
-            ]);
-            $this->render('/API/json');
+            ];
+            return new JsonResponse(['body' => $result]);
         }
     }
 
@@ -159,19 +166,19 @@ class DeviceController extends AppController
     {
         $opt    = ['last_sync' => date('Y-m-d H:i:s')];
         list(
-            $deviceType,
-            $serialNumber,
-            $locationId,
-            $userId,
-            $opt['battery_level'],
-            $opt['lat'],
-            $opt['long'],
-            $opt['time'],
-            $opt['store_open'],
-            $opt['store_close'],
-            $opt['firmware_version'],
-            $opt['app_version']
-        ) = $this->validateParams($this->request->data, [
+                $deviceType,
+                $serialNumber,
+                $locationId,
+                $userId,
+                $opt['battery_level'],
+                $opt['lat'],
+                $opt['long'],
+                $opt['time'],
+                $opt['store_open'],
+                $opt['store_close'],
+                $opt['firmware_version'],
+                $opt['app_version']
+                ) = $this->validateParams($this->request->data, [
             'type'             => ['required', 'device_type'],
             'serial_number'    => ['required'],
             'location_id'      => ['required', 'positive_int'],
@@ -200,7 +207,7 @@ class DeviceController extends AppController
             $this->Device->read(null, $device['Device']['id']);
             $this->Device->save(['Device' => $opt], true, array_keys($opt));
             $device = $this->Device->find('first', ['conditions' => ['Device.serial' => $serialNumber]]);
-            $this->set('result', [
+            $result = [
                 'type'             => $deviceType,
                 'device_serial'    => $serialNumber,
                 'location_id'      => $locationId,
@@ -212,8 +219,9 @@ class DeviceController extends AppController
                 'store_close'      => $device['Device']['store_close'],
                 'firmware_version' => $device['Device']['firmware_version'],
                 'app_version'      => $device['Device']['app_version']
-            ]);
-            $this->render('/API/json');
+            ];
+            return new JsonResponse(['body' => $result]);
         }
     }
+
 }

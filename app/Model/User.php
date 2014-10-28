@@ -340,7 +340,7 @@ class User extends AppModel
                     'table'      => 'location',
                     'alias'      => 'Location',
                     'type'       => 'INNER',
-                    'conditions' => ['Location.developer_id = ' . $ucRole . '.id']
+                    'conditions' => ['Location.'.$role.'_id = ' . $ucRole . '.id']
                 ]
             ]
         ];

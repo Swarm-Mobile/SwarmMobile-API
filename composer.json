@@ -18,6 +18,7 @@
     "require": {
         "aws/aws-sdk-php": "2.*",
         "bshaffer/oauth2-server-php": "v1.3",
-        "predis/predis": "1.1.*@dev"       
+        "predis/predis": "1.1.*@dev",            
+        "phpunit/phpunit": "4.3.*"    
     }
 }

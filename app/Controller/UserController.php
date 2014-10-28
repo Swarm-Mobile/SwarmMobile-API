@@ -12,7 +12,7 @@ class UserController extends APIController {
 
 	/**
 	 * Create a new User and Location Manager record from POST
-	 * @return CakeResponse Returns response object with JSON already set in the body and status code
+	 * @return JsonResponse Returns response object with JSON already set in the body and status code
 	 */
 	public function register() {
 		$user               = new User();
@@ -59,43 +59,27 @@ class UserController extends APIController {
 					)
 				);
 
-				return new CakeResponse(
-					array(
-						'status' => 201,
-						'body'   => json_encode( $result ),
-						'type'   => 'json'
-					)
-				);
+				return new JsonResponse( [ 'body' => $result, 'status' => 201 ] );
 			} else {
 				$user->getDataSource()->rollback();
 				$user->validationErrors[] = 'There was an issue persisting the request. Please try again later';
 			}
 		}
 
-		return new CakeResponse(
-			array(
-				'status' => 422,
-				'body'   => json_encode( $user->validationErrors ),
-				'type'   => 'json'
-			)
-		);
-
+		return new JsonResponse( [ 'body' => $user->validationErrors, 'status' => 422 ] );
 	}
 
 	/**
 	 *
-	 * @return CakeResponse Returns response object with JSON already set in the body and status code
+	 * @return JsonResponse Returns response object with JSON already set in the body and status code
 	 */
 	public function login() {
 		$params = $this->request->data;
 		if ( empty( $params['username'] ) || empty( $params['password'] ) ) {
-			return new CakeResponse(
-				array(
-					'status' => 401,
-					'body'   => 'Username and Password are required and cannot be empty',
-					'type'   => 'json'
-				)
-			);
+			return new JsonResponse( [
+				'body'   => [ 'error' => 'Username and Password are required and cannot be empty' ],
+				'status' => 401
+			] );
 		}
 		$oUser = new User();
 		if ( $user = $oUser->authenticate( $params['username'], $params['password'] ) ) {
@@ -118,11 +102,7 @@ class UserController extends APIController {
 			$results = [ 'error' => 'Invalid Credentials Supplied' ];
 		}
 
-		return new CakeResponse( [
-			'status' => $status,
-			'body'   => json_encode( $results ),
-			'type'   => 'json'
-		] );
+		return new JsonResponse( [ 'body' => $results, 'status' => $status ] );
 	}
 
 	/**
@@ -136,10 +116,9 @@ class UserController extends APIController {
 
 		$uuid = $this->request->query['uuid'];
 		if ( empty( $uuid ) ) {
-			return new CakeResponse( [
-				'status' => 404,
-				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-				'type'   => 'json'
+			return new JsonResponse( [
+				'body'   => [ 'error' => 'User not found. Please provide a valid UUID.' ],
+				'status' => 404
 			] );
 		}
 		$userModel  = new User();
@@ -150,10 +129,9 @@ class UserController extends APIController {
 			] );
 
 		if ( empty( $userBundle ) ) {
-			return new CakeResponse( [
-				'status' => 404,
-				'body'   => json_encode( [ 'error' => 'User not found with supplied UUID' ] ),
-				'type'   => 'json'
+			return new JsonResponse( [
+				'body'   => [ 'error' => 'User not found with supplied UUID' ],
+				'status' => 404
 			] );
 		} else {
 			$emailPreferences = $userBundle['UserLocationReport'];
@@ -223,11 +201,7 @@ class UserController extends APIController {
 			'uuid'     => $uuid,
 		);
 
-		return new CakeResponse( [
-			'status' => 200,
-			'body'   => json_encode( $ret ),
-			'type'   => 'json'
-		] );
+		return new JsonResponse( [ 'body' => $ret ] );
 	}
 
 	/**
@@ -238,10 +212,9 @@ class UserController extends APIController {
 		$params = $this->request->data;
 
 		if ( empty( $params['uuid'] ) ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 404,
-				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-				'type'   => 'json'
+				'body'   => [ 'error' => 'User not found. Please provide a valid UUID.' ],
 			] );
 		}
 
@@ -255,10 +228,9 @@ class UserController extends APIController {
 		] );
 
 		if ( empty( $user ) ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 404,
-				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-				'type'   => 'json'
+				'body'   => [ 'error' => 'User not found. Please provide a valid UUID.' ],
 			] );
 		}
 
@@ -278,13 +250,12 @@ class UserController extends APIController {
 		$userModel->set( $params );
 
 		if ( ! $userModel->validates() ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 422,
-				'body'   => json_encode( [
-					'error'  => 'User data doesnt pass validation',
+				'body'   => [
+					'error'  => 'User data does not pass validation',
 					'errors' => $userModel->validationErrors
-				] ),
-				'type'   => 'json'
+				],
 			] );
 		}
 
@@ -298,13 +269,12 @@ class UserController extends APIController {
 			$assocUserModel->set( $params );
 
 			if ( ! $assocUserModel->validates() ) {
-				return new CakeResponse( [
+				return new JsonResponse( [
 					'status' => 422,
-					'body'   => json_encode( [
-						'error'  => 'User data doesnt pass validation',
+					'body'   => [
+						'error'  => 'User data does not pass validation',
 						'errors' => $assocUserModel->validationErrors
-					] ),
-					'type'   => 'json'
+					],
 				] );
 			}
 		} else {
@@ -325,18 +295,17 @@ class UserController extends APIController {
 		} catch ( Exception $e ) {
 			$userModel->getDataSource()->rollback();
 
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 422,
-				'body'   => json_encode( [
+				'body'   => [
 					'error' => 'There was an error processing your request. Please try again or contact support',
-				] ),
-				'type'   => 'json'
+				],
 			] );
 		}
 
-		return new CakeResponse( [
+		return new JsonResponse( [
 			'status' => 202,
-			'body'   => json_encode( [
+			'body'   => [
 				array(
 					'message' => array(
 						'success' => 'User data has been successfully saved.'
@@ -346,8 +315,7 @@ class UserController extends APIController {
 						'uuid'     => $params['uuid'],
 					)
 				)
-			] ),
-			'type'   => 'json'
+			]
 		] );
 
 	}
@@ -377,23 +345,21 @@ class UserController extends APIController {
 		}
 
 		$userModel = new User();
-		$userModel->set('password', $params['password']);
-		$userModel->set('confirmPassword',$params['confirmPassword']);
-		$preflightValidation = $userModel->validates(['password','confirmPassword']);
+		$userModel->set( 'password', $params['password'] );
+		$userModel->set( 'confirmPassword', $params['confirmPassword'] );
+		$preflightValidation = $userModel->validates( [ 'password', 'confirmPassword' ] );
 
-		if ( ! empty( $preflightErrors ) || !$preflightValidation ) {
-			$errors = array_merge($preflightErrors,$userModel->validationErrors);
-			return new CakeResponse( [
+		if ( ! empty( $preflightErrors ) || ! $preflightValidation ) {
+			$errors = array_merge( $preflightErrors, $userModel->validationErrors );
+
+			return new JsonResponse( [
 				'status' => 422,
-				'body'   => json_encode( [
+				'body'   => [
 					'error'  => 'Your request does not pass validation, please try again',
 					'errors' => $errors
-				] ),
-				'type'   => 'json'
+				],
 			] );
 		}
-
-
 		$userModel->clear();
 		$userModel->set( 'uuid', $params['uuid'] );
 
@@ -407,12 +373,11 @@ class UserController extends APIController {
 		}
 
 		if ( empty( $userBundle ) ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 404,
-				'body'   => json_encode( [
+				'body'   => [
 					'error' => 'User not found. Please provide a valid UUID.',
-				] ),
-				'type'   => 'json'
+				]
 			] );
 		} else {
 			$user = $userBundle['User'];
@@ -420,12 +385,11 @@ class UserController extends APIController {
 
 		$current = $userModel->hash_password( $params['currentPassword'], $user['salt'] );
 		if ( $user['password'] != $current['password'] ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 401,
-				'body'   => json_encode( [
+				'body'   => [
 					'error' => 'Current password provided does not match with the password in our records.',
-				] ),
-				'type'   => 'json'
+				],
 			] );
 		}
 
@@ -435,12 +399,11 @@ class UserController extends APIController {
 		try {
 			$userModel->save( null, null, [ 'password' ] );
 		} catch ( Exception $e ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 422,
-				'body'   => json_encode( [
+				'body'   => [
 					'error' => 'There was an error processing your request. Please try again or contact support',
-				] ),
-				'type'   => 'json'
+				],
 			] );
 		}
 		$ret = array(
@@ -453,11 +416,7 @@ class UserController extends APIController {
 			)
 		);
 
-		return new CakeResponse( [
-			'status' => 200,
-			'body'   => json_encode( $ret ),
-			'type'   => 'json'
-		] );
+		return new JsonResponse( [ 'body' => $ret ] );
 	}
 
 	/**
@@ -465,14 +424,13 @@ class UserController extends APIController {
 	 *
 	 * @param int $uuid The UUID associated witht the user
 	 *
-	 * @return CakeResponse
+	 * @return JsonResponse
 	 */
 	public function locations( $uuid ) {
 		if ( empty( $uuid ) ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 401,
-				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-				'type'   => 'json'
+				'body'   => [ 'error' => 'User not found. Please provide a valid UUID.' ],
 			] );
 		}
 
@@ -485,10 +443,9 @@ class UserController extends APIController {
 		) );
 
 		if ( empty( $user ) ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 404,
-				'body'   => json_encode( [ 'error' => 'User not found. Please provide a valid UUID.' ] ),
-				'type'   => 'json'
+				'body'   => [ 'error' => 'User not found. Please provide a valid UUID.' ],
 			] );
 		} else {
 			$user = $user['User'];
@@ -497,16 +454,14 @@ class UserController extends APIController {
 		try {
 			$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
 		} catch ( InvalidArgumentException $ie ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 400,
-				'body'   => json_encode( [ 'error' => $ie->getMessage() ] ),
-				'type'   => 'json'
+				'body'   => [ 'error' => $ie->getMessage() ],
 			] );
 		} catch ( Exception $e ) {
-			return new CakeResponse( [
+			return new JsonResponse( [
 				'status' => 500,
-				'body'   => json_encode( [ 'error' => $e->getMessage() ] ),
-				'type'   => 'json'
+				'body'   => [ 'error' => $e->getMessage() ]
 			] );
 		}
 
@@ -518,11 +473,7 @@ class UserController extends APIController {
 		);
 
 
-		return new CakeResponse( [
-			'status' => 200,
-			'body'   => json_encode( $res ),
-			'type'   => 'json'
-		] );
+		return new JsonResponse( [ 'body' => $res ] );
 	}
 
 	/**
