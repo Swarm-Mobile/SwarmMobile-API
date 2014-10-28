@@ -87,8 +87,7 @@ class CustomerController extends AppController
                 $result['transactions'][] = $transaction;
             }
         }
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new JsonResponse(['body' => $result]);
     }
 
     public function customers ()
@@ -143,8 +142,7 @@ class CustomerController extends AppController
                 ];
             }
         }
-        $this->set('result', $result);
-        $this->render('/API/json');
+        return new JsonResponse(['body' => $result]);
     }
 
 }
