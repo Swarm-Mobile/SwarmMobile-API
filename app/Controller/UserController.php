@@ -510,7 +510,7 @@ class UserController extends APIController {
 				if ( ! empty( $locationsBundle ) ) {
 					foreach ( $locationsBundle as $locationBundle ) {
 						if ( ! empty( $locationBundle ) && ! empty( $locationBundle['Location']['id'] ) ) {
-							$locations[] = [$locationBundle['Location']['id'] => $locationBundle['Location']['name']];
+							$locations[$locationBundle['Location']['id']] = $locationBundle['Location']['name'];
 						}
 					}
 				}
@@ -521,7 +521,7 @@ class UserController extends APIController {
 				if ( ! empty( $locationsBundle ) ) {
 					foreach ( $locationsBundle as $locationBundle ) {
 						if ( ! empty( $locationBundle ) && ! empty( $locationBundle['Location']['id'] ) ) {
-							$locations[] = [$locationBundle['Location']['id'] => $locationBundle['Location']['name']];
+							$locations[$locationBundle['Location']['id']] = $locationBundle['Location']['name'];
 						}
 					}
 				}
