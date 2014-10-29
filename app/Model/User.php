@@ -324,6 +324,7 @@ class User extends AppModel
     {
         $ucRole = ucfirst($role);
         return [
+            'recursive'  => -1,
             'conditions' => [],
             'fields'     => ['Location.id as location_id'],
             'joins'      => [
@@ -356,6 +357,7 @@ class User extends AppModel
     private function getLocationManagerLocationsQuery ()
     {
         return [
+            'recursive'  => -1,
             'conditions' => [],
             'fields'     => [
                 'Location.location_id',
@@ -392,6 +394,7 @@ class User extends AppModel
     private function getEmployeeLocationsQuery ()
     {
         return [
+            'recursive'  => -1,
             'conditions' => [],
             'fields'     => [
                 'Location.location_id',
