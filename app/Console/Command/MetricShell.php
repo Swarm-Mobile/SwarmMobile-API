@@ -97,7 +97,7 @@ SQL;
         }
         $this->output("locations to process (ID's)     : " . implode(' ', $locations));
         $this->output("---------------------------------------------");
-        $oAPI = new APIController();
+        $oAPI = new ApiController();
         $oAPI->cache = false;
         $oAPI->rollups = true;
         $index = 0;

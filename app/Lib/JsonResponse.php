@@ -1,4 +1,5 @@
 <?php
+App::uses('CakeResponse', 'Network');
 
 class JsonResponse extends CakeResponse
 {
