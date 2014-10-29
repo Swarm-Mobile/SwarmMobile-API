@@ -139,7 +139,7 @@ class APIComponent
         $new_start_date = new DateTime($start_date);
         do {
             $weekday = strtolower($end->format('l'));
-            if ($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0) {
+            if ($data['data'][$weekday . '_open'] !== '0' && $data['data'][$weekday . '_close'] !== '0') {
                 $d++;
             }
             date_add($new_start_date, date_interval_create_from_date_string('1 days'));
@@ -408,8 +408,8 @@ SQL;
             foreach ($this->hours as $hour) {
                 if (!isset($result['data']['breakdown'][$date]['hours'][$hour])) {
                     $open                                            = (
-                            $data['data'][$weekday . '_open'] != 0 &&
-                            $data['data'][$weekday . '_close'] != 0 &&
+                            $data['data'][$weekday . '_open'] !== '0' &&
+                            $data['data'][$weekday . '_close'] !== '0' &&
                             (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
                             (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
                             );
@@ -421,7 +421,7 @@ SQL;
             }
             ksort($tmp['data']['breakdown'][$date]['hours']);
             if (!isset($tmp['data']['breakdown'][$date]['totals']['isOpen'])) {
-                $isOpen                                              = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+                $isOpen                                              = $data['data'][$weekday . '_open'] !== '0' && $data['data'][$weekday . '_close'] !== '0';
                 $tmp['data']['breakdown'][$date]['totals']['isOpen'] = $isOpen;
             }
             if (!isset($tmp['data']['breakdown'][$date]['totals']['close'])) {
@@ -434,7 +434,7 @@ SQL;
                 $tmp['data']['breakdown'][$date]['totals']['open'] = 0;
             }
             if (!isset($tmp['data']['breakdown'][$date]['totals'])) {
-                $isOpen                                    = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+                $isOpen                                    = $data['data'][$weekday . '_open'] !== '0' && $data['data'][$weekday . '_close'] !== '0';
                 $tmp['data']['breakdown'][$date]['totals'] = array (
                     'open'   => 0,
                     'close'  => 0,
@@ -459,7 +459,7 @@ SQL;
     {
         $i       = 0;
         $weekday = strtolower(date('l', strtotime($oRow[$t2]['date'])));
-        if ($data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0) {
+        if ($data['data'][$weekday . '_open'] !== '0' && $data['data'][$weekday . '_close'] !== '0') {
             return 0;
         }
         $open_hour  = (int) strstr($data['data'][$weekday . '_open'], ':', true);
@@ -492,8 +492,8 @@ SQL;
                 $hour = '0' . $hour;
             }
             if (
-                    $data['data'][$weekday . '_open'] != 0 &&
-                    $data['data'][$weekday . '_close'] != 0 &&
+                    $data['data'][$weekday . '_open'] !== '0' &&
+                    $data['data'][$weekday . '_close'] !== '0' &&
                     (int) $hour >= (int) strstr($data['data'][$weekday . '_open'], ':', true) &&
                     (int) $hour <= (int) strstr($data['data'][$weekday . '_close'], ':', true)
             ) {
@@ -571,7 +571,7 @@ SQL;
             $date    = $oRow[$t2]['date'];
             $hour    = $oRow[$t2]['hour'];
             $cValue  = $oRow[$t1][$dbAlias];
-            $isOpen  = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+            $isOpen  = $data['data'][$weekday . '_open'] !== '0' && $data['data'][$weekday . '_close'] !== '0';
             if ($hour < 10) {
                 $hour = '0' . $hour;
             }

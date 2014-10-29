@@ -374,7 +374,7 @@ SQL;
         }
         else {
             $weekday = strtolower(date('l', strtotime($params['start_date'])));
-            $isOpen  = $data['data'][$weekday . '_open'] != 0 && $data['data'][$weekday . '_close'] != 0;
+            $isOpen  = $data['data'][$weekday . '_open'] !== '0' && $data['data'][$weekday . '_close'] !== '0';
             foreach ($metrics as $k => $v) {
                 if ($isOpen) {
                     $tmp           = $this->api->internalCall($v[0], $v[1], $params);

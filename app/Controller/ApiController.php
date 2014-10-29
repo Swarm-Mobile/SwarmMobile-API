@@ -150,7 +150,7 @@ SQL;
                     $weekday   = new DateTime($params['start_date']);
                     $weekday   = strtolower(date_format($weekday, 'l'));
                     $tmp       = $data['data'][$weekday . '_open'];
-                    $isOpen    = $tmp != 0;
+                    $isOpen    = $tmp !== '0';
                     $open      = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
                     $tmp       = $data['data'][$weekday . '_close'];
                     $close     = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
