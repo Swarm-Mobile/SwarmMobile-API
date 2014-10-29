@@ -10,86 +10,42 @@ apt-get update;
 debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password vagrant';
 debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password vagrant';
 
-echo "Installing needed packages"
-apt-get -y install make mysql-server vim git redis-server php5-fpm mysql-client nginx htop php5-cli php5-mysql php5-curl php5-gd php-pear php5-mcrypt php5-dev
+apt-get -y install mysql-server mysql-client vim git redis-server;
 
-echo "Making /app"
-mkdir /app
-mkdir /app/logs
-chmod -R 777 /app/logs
-cd /app
+echo "deb http://repos.zend.com/zend-server/7.0/deb_ssl1.0 server non-free" >> /etc/apt/sources.list
+wget http://repos.zend.com/zend.key -O- | apt-key add -
+aptitude update
+aptitude -y install zend-server-php-5.5
 
-echo "Create the virtual host" 
-ln -s /vagrant /app/API;
-echo "
-worker_processes  1;
-events {
-    worker_connections  1024;
-}
-http {
-    include             mime.types;
-    default_type        application/octet-stream;
-    sendfile            on;
-    keepalive_timeout   65;
-    include /etc/nginx/conf.d/*.conf;
-    include /etc/nginx/sites-enabled/*;
-}
-" > /etc/nginx/nginx.conf
+echo "Creating Directory Links"
+rm -rf /var/www;
+ln -s /vagrant /var/www;
 
-rm /etc/nginx/sites-enabled/default
-rm /etc/nginx/sites-available/default
+apt-get -y install mysql-server mysql-client vim git redis-server;
 
-echo "
-server {
-        listen   80;        
-        root   /app/API/app/webroot/;
-        index  index.php index.html;
-        access_log /app/logs/api.access.log;
-        error_log /app/logs/api.error.log;
-        location / {
-            try_files \$uri \$uri/ /index.php?\$args;
-        }
-        location ~ \.php\$ {
-            try_files \$uri =404;
-            include /etc/nginx/fastcgi_params;
-            fastcgi_pass    127.0.0.1:9000;
-            fastcgi_read_timeout 300;
-            fastcgi_index   index.php;
-            fastcgi_param server_location local;
-            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        }
-        location ~ /\.ht {
-            deny  all;
-        }
-}
-" > /etc/nginx/sites-available/api
+echo "Creating Virtual Host"
+echo "<VirtualHost *:80>
+         DocumentRoot /var/www/app/webroot
+         SetEnv APPLICATION_ENV "development"
+         php_value include_path ".:/var/www/:/usr/local/zend/share/pear"
+         <Directory /var/www/app/webroot>
+                 Options Indexes FollowSymLinks MultiViews
+                 DirectoryIndex index.php
+                 AllowOverride ALL
+                 Order allow,deny
+                 allow from all
+         </Directory>
 
-echo "
-[www]
-user = www-data
-group = www-data
-listen =  127.0.0.1:9000;
-pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-" > /etc/php5/fpm/pool.d/www.conf
+         ErrorLog ${APACHE_LOG_DIR}/error.log
 
-ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
+         # Possible values include: debug, info, notice, warn, error, crit,
+         # alert, emerg.
+         LogLevel warn
 
-echo "Disable firewall"
+         CustomLog ${APACHE_LOG_DIR}/access.log combined
+      </VirtualHost>" > /etc/apache2/sites-enabled/000-default
+service apache2 restart
 ufw disable
-
-echo "Restarting services"
-service php5-fpm restart
-service nginx restart
-
-echo "Installing composer"
-curl -sS https://getcomposer.org/installer | php
-mv composer.phar /usr/local/bin/composer
-
-cd /app/API
-composer install
+ln -s /usr/local/zend/bin/php /usr/bin
 
 echo "done!"

@@ -19,15 +19,13 @@ App::uses('SettingGroup', 'Model');
 App::uses('PortalComponent', 'Controller/Component');
 //App::uses('ConsumerComponent', 'Controller/Component');
 App::uses('NetworkComponent', 'Controller/Component');
-App::uses('OAuthClientComponent', 'Controller/Component');
-App::uses('RollupComponent', 'Controller/Component');
 
 App::uses('UserComponent', 'Controller/Component');
 App::uses('CouponComponent', 'Controller/Component');
 App::uses('CampaignComponent', 'Controller/Component');
 App::uses('LocationComponent', 'Controller/Component');
 
-class APIController extends AppController
+class ApiController extends AppController
 {
 
     public $default_cache_time    = 300;
@@ -53,197 +51,47 @@ class APIController extends AppController
         'walkbys',
         'windowConversion',
     ];
-    public $iterative             = true;
-    public $uses                  = array ('Inbox');
+    public $iterative             = true;    
     public $debug                 = false;
     public $cache                 = true;
     public $rollups               = true;
     public $user                  = array ('id_user' => 0, 'username' => '');
     public $endpoint              = '';
-    public $request_start         = 0;
-    public $request_end           = 0;
-    public $microtime             = 0;
-    public $response_code         = 200;
-    public $response_message      = 'OK';
     public $params                = array ();
     public $helpers               = array ('Html', 'Session');
 
     // Controller Actions
-    public function logout ()
-    {
-        $this->Session->destroy('User');
-        $this->redirect(Router::url('/login'));
-    }
-
-    public function login ()
-    {
-        if ($this->request->is('post')) {
-            $this->Session->destroy('User');
-            $redirect = $this->request->data['redirect'];
-            if ($this->Auth->login()) {
-                if (empty($redirect)) {
-                    $res                = array ();
-                    $res['location_id'] = $this->Session->read("Auth.User.location_id");
-                    $res['username']    = $this->Session->read("Auth.User.username");
-                    $res['uuid']        = $this->Session->read("Auth.User.uuid");
-                    echo json_encode($res);
-                    //$this->call_log();
-                    exit();
-                }
-                else {
-                    $this->redirect($redirect);
-                }
-            }
-            else {
-                if (empty($redirect)) {
-                    $e                      = new APIException(401, 'authentication_failed', 'Supplied credentials are invalid');
-                    $this->response_code    = $e->error_no;
-                    $this->response_message = $e->error;
-                    //$this->call_log();
-                    $e->_displayError();
-                    return false;
-                }
-            }
-        }
-    }
-
-    public function request_client ()
-    {
-        $data = array (
-            'username'     => $this->data['username'],
-            'redirect_uri' => $this->data['redirect_uri'],
-            'description'  => $this->data['description']
-        );
-        $this->Inbox->save($data);
-    }
-
     public function index ()
-    {
+    {                
         $env                 = getenv('server_location');
         $this->debug         = ($env != 'live');
-        set_time_limit(3600);
-        $this->microtime     = microtime(true);
-        $this->request_start = date('Y-m-d H:i:s');
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: POST, GET");
-        header("Access-Control-Allow-Headers: X-PINGOTHER");
-        header("Content-Type: application/json; charset=UTF-8");
-        header("Access-Control-Max-Age: 1728000");
-        header("Pragma: no-cache");
-        header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
-        try {
-            if ($this->request->is('get')) {
-                $params = $_GET;
-                $this->processGET($params);
-            }
-            elseif ($this->request->is('post')) {
-                $params = $_POST;
-                $this->processPOST($params);
-            }
-            else {
-                throw new APIException(401, 'invalid_grant', "Method Type Requested aren't granted with your access_token");
-            }
-
-            $path         = func_get_args();
-            $this->params = $params;
-            if (!isset($path[1])) {
-                $path[1] = '';
-            }
-            $this->endpoint = $path[0] . '/' . $path[1];
-            $component      = ucfirst($path[0]) . 'Component';
-            if (class_exists($component)) {
-                $component = new $component;
-            }
-            else {
-                throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
-            }
-            $request_method = strtolower(env('REQUEST_METHOD'));
-            $this->call_log($path[0], $path[1], $request_method);
-            switch ($request_method) {
-                case 'get':
-                    if (
-                            in_array($path[1], $component->post_actions) ||
-                            in_array($path[1], $component->put_actions) ||
-                            in_array($path[1], $component->delete_actions)
-                    ) {
-                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
-                    }
-                    break;
-                default:
-                    $actions = $request_method . '_actions';
-                    if (!in_array($path[1], $component->$actions)) {
-                        throw new APIException(401, 'invalid_grant', "Incorrect Request Method");
-                    }
-                    break;
-            }
-            echo json_encode($this->internalCall($path[0], $path[1], $params));
-            //$this->call_log();
-            exit();
+        set_time_limit(3600);                
+        if ($this->request->is('get')) {
+            $params = $this->request->query;
         }
-        catch (APIException $e) {
-            $this->response_code    = $e->error_no;
-            $this->response_message = $e->error;
-            //$this->call_log();
-            $e->_displayError();
-            return false;
+        elseif ($this->request->is('post')) {
+            $params = $this->request->data;
         }
-    }
-
-    // Internal functions
-
-    private function call_log ($component, $function, $request_method)
-    {
-        //return true;
-        // For now we just want to see post calls, and hence this check makes 
-        // sure that our call log does not grow exponentially
-        if (empty($_POST))
-            return;
-        $file = __DIR__ . '/../tmp/logs/api_calls/' . date('Y_m_d_h_i_s') .
-                '_' . strtoupper($request_method) . '_' . $component . '_' . $function;
-        $post = var_export($_POST, true);
-        $get  = var_export($_GET, true);
-        $text = <<<TEXT
-POST:
-$post
-                
-GET:
-$get
-                
-TEXT;
-        file_put_contents($file, $text);
-    }
-
-    public function __construct ($request = null, $response = null)
-    {
-        parent::__construct($request, $response);
-        if (!empty($this->request)) {
-            if ($request->is('post')) {
-                $this->rollups = false;
-                $this->cache   = false;
-            }
-            elseif ($this->request->is('get')) {
-                if (isset($_GET['norollups'])) {
-                    $norollups     = in_array($_GET['norollups'], ['1', 1, 'yes', true], true);
-                    $this->rollups = !$norollups;
-                }
-                if (isset($_GET['nocache'])) {
-                    $nocache     = in_array($_GET['nocache'], ['1', 1, 'yes', true], true);
-                    $this->cache = !$nocache;
-                }
-            }
+        else {
+            throw new Exception("Method Type Requested aren't granted with your access_token", 401);
         }
-    }
-
-    public function processGET ($params = array ())
-    {
-        return true;
-    }
-
-    public function processPOST ($params = array ())
-    {
-        $this->cache   = false;
-        $this->rollups = false;
-        return true;
+        $path         = explode('/', $this->request->url);
+        $this->params = $params;
+        foreach ([0, 1] as $k) {
+            if (!isset($path[$k])) {
+                $path[$k] = '';
+            }
+        }        
+        $this->endpoint = $path[0] . '/' . $path[1];
+        $component      = ucfirst($path[0]) . 'Component';
+        if (class_exists($component) && !empty($path[0])) {
+            $component = new $component;
+        }
+        else {
+            throw new Exception("The requested reference type don't exists", 401);
+        }
+        $result = $this->internalCall($path[0], $path[1], $params);                
+        return new JsonResponse(['body' => $result]);
     }
 
     public function internalCall ($component, $method, $params)
@@ -258,10 +106,10 @@ TEXT;
             if ($result === false) {
                 $result = $oComponent->$method($params);
                 $this->cache($component, $method, $params, $result);
-            }
-            return $result;
+            }            
+            return $result;        
         }
-        throw new APIException(404, 'endpoint_not_found', "The requested reference type don't exists");
+        throw new Exception("The requested reference type don't exists", 401);
     }
 
     private function getPreviousResult ($component, $method, $params)
@@ -302,7 +150,7 @@ SQL;
                     $weekday   = new DateTime($params['start_date']);
                     $weekday   = strtolower(date_format($weekday, 'l'));
                     $tmp       = $data['data'][$weekday . '_open'];
-                    $isOpen    = $tmp != 0;
+                    $isOpen    = $tmp !== '0';
                     $open      = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
                     $tmp       = $data['data'][$weekday . '_close'];
                     $close     = ($isOpen) ? (int) strstr($tmp, ':', true) : -1;
@@ -433,7 +281,6 @@ SQL;
                 return;
             }
 
-            //if ($this->cache) {
             if ($component == 'location' && $method == 'purchaseInfo') {
                 $this->createCacheFolders($component, $method);
                 $cache_file = $this->getCacheFilePath($component, $method, $params);
@@ -518,42 +365,9 @@ SQL;
                         }
                         $oDb->query($sSQL);
                     }
-                    else {
-                        //throw new APIException(500, 'duplicated_cache', "This request is already cached");
-                    }
                 }
             }
         }
-    }
-
-}
-
-class APIException extends Exception
-{
-
-    public $error_no;
-    public $error;
-    public $description;
-
-    public function __construct ($error_no, $error, $description)
-    {
-        parent::__construct($error_no);
-        $this->error_no    = $error_no;
-        $this->error       = $error;
-        $this->description = $description;
-    }
-
-    public function _displayError ()
-    {
-        header("Cache-Control: no-store");
-        header("HTTP/1.1 {$this->error_no}");
-        echo json_encode(
-                array (
-                    'error'             => $this->error,
-                    'error_description' => $this->description
-                )
-        );
-        die();
     }
 
 }

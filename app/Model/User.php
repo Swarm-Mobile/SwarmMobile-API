@@ -2,10 +2,26 @@
 
 App::uses('AppModel', 'Model');
 
+
+/**
+ * Class User
+ *
+ * @property $id integer Unique ID for the User record
+ * @property $uuid string Globally unique id for the User
+ * @property $email string Email address for the user
+ * @property $username string Username
+ * @property $password Password
+ * @property $salt Salt for encryption of the password
+ * @property $usertype_id Access control indicator for the user @see UserType
+ * @property $is_demo boolean Flag indicating if the record is only for demo purposes
+ * @property $ts_creation string MySQL timestamp when the record was created
+ * @property $ts_update string MySQL timestamp when the record was last updated
+ */
 class User extends AppModel
 {
-
     public $useDbConfig = 'backstage';
+
+	public $actsAs = array('Containable');
     private $hash_algos = array (
         128 => 'sha512',
         64  => 'sha256',
@@ -13,49 +29,88 @@ class User extends AppModel
         32  => 'md5'
     );
     public $useTable    = 'user';
+
+	public $hasOne = ['Employee','LocationManager'];
+
+	public $hasMany = [
+		'UserLocationReport' => [
+			'className' => 'UserLocationReport',
+			'foreignKey' => 'user_id'
+		]
+	];
+
     public $validate    = array (
         'username'        => array (
             'notEmpty'  => array (
                 'rule'     => array ('notEmpty'),
                 'required' => true,
+	            'message' => 'Usernames cannot be empty'
             ),
             'minLength' => array (
                 'rule' => array ('minLength', '3'),
+	            'message' => 'Usernames must be at least 3 characters long'
+            ),
+            'checkUsernameExists' => array(
+	            'rule' => array('checkUsernameExists'),
+	            'message' => 'Username already exists. Please try a different username.',
+	            'on' => 'create'
             )
         ),
         'email'           => array (
-            'email'    => 'email',
-            'notEmpty' => array (
-                'rule'     => array ('notEmpty'),
-                'required' => true,
-            )
+	        'notEmpty' => array (
+		        'rule'     => array ('notEmpty'),
+		        'required' => true,
+		        'message' => 'Email address cannot be empty'
+	        ),
+            'email'    => array(
+	            'rule' => 'email',
+	            'message' => 'Email entered was not valid.',
+            ),
+	        'checkEmailExists' => array(
+		        'rule' => array('checkEmailExists'),
+		        'message' => 'Email already exists. Please try a different email.',
+		        'on' => 'create'
+	        )
         ),
         'firstname'       => array (
             'notEmpty' => array (
                 'rule'     => array ('notEmpty'),
                 'required' => true,
+	            'message' => 'First Name cannot be empty'
             )
         ),
         'lastname'        => array (
             'notEmpty' => array (
                 'rule'     => array ('notEmpty'),
                 'required' => true,
+	            'message' => 'Last Name cannot be empty'
             )
         ),
         'password'        => array (
             'notEmpty'  => array (
                 'rule'     => array ('notEmpty'),
                 'required' => true,
+	            'message' => 'Password cannot be empty'
             ),
             'minLength' => array (
-                'rule' => array ('minLength', '5')
+                'rule' => array ('minLength', '5'),
+	            'message' => 'Passwords must be at least 5 characters long'
+
             ),
         ),
         'confirmPassword' => array (
             'notEmpty' => array (
                 'rule'     => array ('notEmpty'),
                 'required' => true,
+	            'message' => 'Confirm Password field cannot be empty',
+	            'on' => 'create'
             ),
+            'matchesConfirm' => array(
+	            'rule' => array('validateConfirmPassword','password'),
+	            'message' => 'Password and Confirm Password Field do not match',
+	            'on' => 'create'
+
+            )
         ),
     );
 
@@ -133,10 +188,26 @@ class User extends AppModel
         return ($res) ? $res['User'] : false;
     }
 
-    public function checkEmailExists ($email, $userId = 0)
+
+	/**
+	 * @param $email
+	 * @param integer|array|null $args Either a user id or an array of validation data
+	 *
+	 * @return bool
+	 */
+    public function checkEmailExists ($email, $arg2 = null)
     {
+	    // If $args is array that means it came from a validation rule and get the id from the object data
+	    if(is_array($arg2)){
+		    $userId = $this->data[$this->name]['id'];
+	    }elseif(is_numeric($arg2)){
+		    $userId = $arg2;
+	    }else{
+		    throw new InvalidArgumentException('Argument 2 should either be an array of validation data or user id');
+	    }
+
         if (!empty($userId)) {
-            $user = $this->find('all', array (
+	        $user = $this->find('all', array (
                 'conditions' => array (
                     'User.id !=' => $userId,
                     'User.email' => $email
@@ -147,7 +218,7 @@ class User extends AppModel
             else
                 return true;
         } else {
-            $user = $this->findByEmail($email);
+            $user = $this->find('first',['conditions' => ['User.email' => $email ]]);
             if (!empty($user))
                 return false;
             else
@@ -155,10 +226,18 @@ class User extends AppModel
         }
     }
 
-    public function checkUsernameExists ($username, $userId = 0)
+    public function checkUsernameExists ($username, $arg2 = 0)
     {
+	    // If $args is array that means it came from a validation rule and get the id from the object data
+	    if(is_array($arg2)){
+		    $userId = $this->data[$this->name]['id'];
+	    }elseif(is_numeric($arg2)){
+		    $userId = $arg2;
+	    }else{
+		    throw new InvalidArgumentException('Argument 2 should either be an array of validation data or user id');
+	    }
         if (!empty($userId)) {
-            $user = $this->find('all', array (
+	        $user = $this->find('all', array (
                 'conditions' => array (
                     'User.id !='    => $userId,
                     'User.username' => $username
@@ -169,13 +248,23 @@ class User extends AppModel
             else
                 return true;
         } else {
-            $user = $this->findByUsername($username);
+            $user = $this->find('first',['conditions' => ['User.username' => $username ]]);
             if (!empty($user))
                 return false;
             else
                 return true;
         }
     }
+
+	public function validateConfirmPassword($checkField, $password){
+
+		$fieldName = '';
+		foreach ($checkField as $key => $value){
+			$fieldName = $key;
+			break;
+		}
+		return $this->data[$this->name][$password] === $this->data[$this->name][$fieldName];
+	}
 
     /**
      * Get an array that contains the list of all the
@@ -235,6 +324,7 @@ class User extends AppModel
     {
         $ucRole = ucfirst($role);
         return [
+            'recursive'  => -1,
             'conditions' => [],
             'fields'     => ['Location.id as location_id'],
             'joins'      => [
@@ -251,7 +341,7 @@ class User extends AppModel
                     'table'      => 'location',
                     'alias'      => 'Location',
                     'type'       => 'INNER',
-                    'conditions' => ['Location.developer_id = ' . $ucRole . '.id']
+                    'conditions' => ['Location.'.$role.'_id = ' . $ucRole . '.id']
                 ]
             ]
         ];
@@ -267,6 +357,7 @@ class User extends AppModel
     private function getLocationManagerLocationsQuery ()
     {
         return [
+            'recursive'  => -1,
             'conditions' => [],
             'fields'     => [
                 'Location.location_id',
@@ -303,6 +394,7 @@ class User extends AppModel
     private function getEmployeeLocationsQuery ()
     {
         return [
+            'recursive'  => -1,
             'conditions' => [],
             'fields'     => [
                 'Location.location_id',

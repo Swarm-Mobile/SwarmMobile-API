@@ -12,7 +12,6 @@
  */
 
 App::uses('IBeaconController', 'ibeacon.Controller');
-
 App::uses('IBeaconDeviceCoordinate', 'ibeacon.Model');
 
 class IBeaconeLocationController extends  IBeaconController {
@@ -39,6 +38,7 @@ class IBeaconeLocationController extends  IBeaconController {
                             $LocationIdentifier['longitude'],
                             $location['d']['id']
                     );
+                    $deviceId = $location['d']['id'];
                     unset($location['d']['id']);
                     $location = array_merge($LocationIdentifier,$location['IBeaconLocation']);
                     $brands = $locationModel->findBrandById($location['id']);
@@ -54,5 +54,4 @@ class IBeaconeLocationController extends  IBeaconController {
         }
         echo json_encode($response);exit;
     }
-
 }
