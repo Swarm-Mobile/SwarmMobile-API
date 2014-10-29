@@ -34,7 +34,7 @@ class AppModel extends Model
 {
 
     public $useDbConfig = 'oauth';
-    
+
     /**
      * Search inside an Array of params 
      * an id placed into the index $table.'_id'
@@ -46,21 +46,21 @@ class AppModel extends Model
      * @param array $params
      * @param int $recursive
      * @param array $fields
-     * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function readFromParams ($params, $recursive = -1, $fields = null)
     {
         $this->recursive = $recursive;
         if (!isset($params[$this->table . '_id'])) {
-            throw new InvalidArgumentException($this->table . ' is required.');
+            throw new Exception($this->table . ' is required.');
         }
         $id = $params[$this->table . '_id'];
         if (!ValidatorComponent::isPositiveInt($id)) {
-            throw new InvalidArgumentException($this->table . '_id must be a valid integer.');
+            throw new Exception($this->table . '_id must be a valid integer.');
         }
         $this->read($fields, $id);
         if (empty($this->data)) {
-            throw new InvalidArgumentException('Incorrect ' . $this->table . '_id');
+            throw new Exception('Incorrect ' . $this->table . '_id');
         }
     }
 

@@ -2,7 +2,6 @@
 
 App::uses('HmacOauth', 'ibeacon.IBeacon');
 App::uses('RedisComponent', 'Controller/Component');
-App::uses('OAuthClientComponent', 'Controller/Component');
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('CakeEventListener', 'Event');
 App::uses('CakeSession', 'Model/Datasource');
@@ -22,7 +21,7 @@ class AuthenticationListener implements CakeEventListener
         return [
             'Dispatcher.beforeDispatch' => [
                 'callable' => 'fireAuthEvents',
-                'priority' => '1'
+                'priority' => '2'
             ],
         ];
     }
@@ -49,7 +48,7 @@ class AuthenticationListener implements CakeEventListener
     {
         //TODO: Handle this through OAuth and HMAC controllers
         $exceptions = [
-            '\/oauth\/',            
+            '\/oauth\/',
             '\/logout',
             '\/login',
             '\/what_is_here',
@@ -58,7 +57,7 @@ class AuthenticationListener implements CakeEventListener
             '\/coupon\/campaign\/',
             '\/test',
             '\/api\/login',
-            '\/server_health\/ok'                        
+            '\/server_health\/ok'
         ];
         foreach ($exceptions as $exception) {
             if (preg_match('/' . $exception . '/', $_SERVER['REQUEST_URI'])) {

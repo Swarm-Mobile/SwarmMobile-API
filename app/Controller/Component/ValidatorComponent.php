@@ -1,7 +1,7 @@
 <?php
 
 class ValidatorComponent
-{
+{        
 
     public static function isPositiveInt ($value)
     {

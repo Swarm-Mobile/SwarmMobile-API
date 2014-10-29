@@ -3,10 +3,6 @@
 App::uses('APIComponent', 'Controller/Component');
 
 class NetworkComponent extends APIComponent {
-
-    public $post_actions    = [];
-    public $put_actions     = [];
-    public $delete_actions  = [];
     
     public function wifiConnections($params) {
         $rules = array(
