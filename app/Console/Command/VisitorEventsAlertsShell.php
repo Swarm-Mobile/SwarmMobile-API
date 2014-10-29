@@ -23,7 +23,7 @@ SQL;
                 $date = new DateTime('now', new DateTimeZone('GMT'));
                 $currentTime = $date->format('Y-m-d H:i:s');
                 $timeDiff = round(abs(strtotime($currentTime) - strtotime($result[0]['visitorEvent']['ts_creation'])) / 60, 2);
-                if($timeDiff > 1) {
+                if($timeDiff > 10) {
                     $msg .= "<p>Alert: No portal event seen for the last 10 mins.</p>";
                     $msg .= "<p>Last message seen at: " .$result[0]['visitorEvent']['ts_creation']. " GMT time</p>";
                 }
