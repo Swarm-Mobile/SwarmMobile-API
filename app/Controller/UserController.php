@@ -1,6 +1,6 @@
 <?php
 
-App::uses( 'APIController', 'Controller' );
+App::uses( 'ApiController', 'Controller' );
 App::uses( 'ApiComponent', 'Controller/Component' );
 App::uses( 'UserType', 'Model' );
 App::uses( 'LocationManager', 'Model' );
@@ -8,7 +8,7 @@ App::uses( 'Employee', 'Model' );
 App::uses( 'LocationEmployee', 'Model' );
 App::uses( 'LocationLocationmanager', 'Model' );
 
-class UserController extends APIController {
+class UserController extends ApiController {
 
 	/**
 	 * Create a new User and Location Manager record from POST
