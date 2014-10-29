@@ -25,7 +25,7 @@ App::uses('CouponComponent', 'Controller/Component');
 App::uses('CampaignComponent', 'Controller/Component');
 App::uses('LocationComponent', 'Controller/Component');
 
-class APIController extends AppController
+class ApiController extends AppController
 {
 
     public $default_cache_time    = 300;
