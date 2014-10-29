@@ -167,7 +167,7 @@ class UserController extends ApiController {
 
 				$locations = [ ];
 				try {
-					$locations = $this->_getLocations( $user['usertype_id'], $user['id'] );
+					$locations = $this->_getLocations( $user['usertype_id'], $userBundle['Employee']['id'] );
 				} catch ( Exception $e ) {
 					$this->log($e->getMessage(),'debug');
 				}
@@ -510,18 +510,18 @@ class UserController extends ApiController {
 				if ( ! empty( $locationsBundle ) ) {
 					foreach ( $locationsBundle as $locationBundle ) {
 						if ( ! empty( $locationBundle ) && ! empty( $locationBundle['Location']['id'] ) ) {
-							$locations[] = $locationBundle['Location'];
+							$locations[$locationBundle['Location']['id']] = $locationBundle['Location']['name'];
 						}
 					}
 				}
 				break;
 			case UserType::$EMPLOYEE:
 				$locationEmployeeModel = new LocationEmployee();
-				$locationsBundle       = $locationEmployeeModel->find( 'all', [ 'conditions' => [ 'employee_id' => $user_id ] ] );
+				$locationsBundle       = $locationEmployeeModel->find( 'all', [ 'conditions' => [ 'user_id' => $user_id ] ] );
 				if ( ! empty( $locationsBundle ) ) {
 					foreach ( $locationsBundle as $locationBundle ) {
 						if ( ! empty( $locationBundle ) && ! empty( $locationBundle['Location']['id'] ) ) {
-							$locations[] = $locationBundle['Location'];
+							$locations[$locationBundle['Location']['id']] = $locationBundle['Location']['name'];
 						}
 					}
 				}
