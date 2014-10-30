@@ -27,7 +27,8 @@ class UserController extends ApiController
         if ($user->validates()) {
             // Generate Password Hash
             $password = $user->hash_password($this->request->data('password'));
-            $user->set('uuid', uniqid());
+            $uuid = uniqid();
+            $user->set('uuid', $uuid);
             $user->set('salt', $password['salt']);
             $user->set('usertype_id', UserType::$LOCATION_MANAGER);
             $user->set('password', $password['password']);
@@ -50,7 +51,7 @@ class UserController extends ApiController
                 $user->getDataSource()->commit();
                 $result = array (
                     'data'    => array (
-                        'uuid'               => $user->uuid,
+                        'uuid'               => $uuid,
                         'user_id'            => $user->id,
                         'locationmanager_id' => $locationManager->id
                     ),
