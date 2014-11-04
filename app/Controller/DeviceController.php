@@ -83,6 +83,9 @@ class DeviceController extends AppController
         else {
             switch (strtolower($deviceType)) {
                 case 'portal':
+                    if(!in_array($firmwareVersion, ['1.05','1.07','1.11'])){
+                        throw new Exception('Invalid version');
+                    }
                     $s3factory = new S3FactoryComponent(new ComponentCollection());
                     $s3Client  = $s3factory->loadS3();
                     $sourceUrl = $s3Client->getObjectUrl(
