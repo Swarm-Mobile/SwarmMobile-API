@@ -34,9 +34,9 @@ class DeviceController extends AppController
             if (empty($device)) {
                 throw new Exception('Invalid device');
             }
-            elseif (!empty($device['Device']['location_id'])) {
-                throw new Exception('This device is already assigned to a location', 401);
-            }
+            //elseif (!empty($device['Device']['location_id'])) {
+            //    throw new Exception('This device is already assigned to a location', 401);
+            //}
             elseif ($device['Device']['devicetype_id'] != DeviceType::$ID_FROM_NAME[strtolower($deviceType)]) {
                 throw new Exception("This device doesn't correspond with this device type", 401);
             }
@@ -83,6 +83,9 @@ class DeviceController extends AppController
         else {
             switch (strtolower($deviceType)) {
                 case 'portal':
+                    if(!in_array($firmwareVersion, ['1.05','1.07','1.11'])){
+                        throw new Exception('Invalid version');
+                    }
                     $s3factory = new S3FactoryComponent(new ComponentCollection());
                     $s3Client  = $s3factory->loadS3();
                     $sourceUrl = $s3Client->getObjectUrl(
@@ -90,15 +93,15 @@ class DeviceController extends AppController
                     );
 
                     $result = [
-                        "update_available" => $firmwareVersion == '1.11',
+                        "update_available" => $firmwareVersion != '1.11',
                         "firmware_version" => "1.11",
                         "source"           => $sourceUrl
                     ];
                     break;
                 case 'ping':
                     $result = [
-                        "update_available" => $firmwareVersion == '1.0',
-                        "firmware_version" => "1.0",
+                        "update_available" => false,
+                        "firmware_version" => null,
                         "source"           => null
                     ];
                     break;

@@ -15,7 +15,7 @@
         )
     );
     //GET /coupon/campaign/4?userid=1
-    Router::connect(
+    Router::connect(                 
         '/coupon/campaign/:campaignId',
         array(
             'plugin' => 'ibeacon',
