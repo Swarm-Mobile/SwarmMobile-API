@@ -440,15 +440,15 @@ class UserController extends ApiController
      *
      * @return JsonResponse
      */
-    public function locations ($uuid)
-    {
-        if (empty($uuid)) {
+    public function locations ()
+    {        
+        if (empty($this->request->query['uuid'])) {
             return new JsonResponse([
                 'status' => 401,
                 'body'   => [ 'error' => 'User not found. Please provide a valid UUID.'],
                     ]);
         }
-
+        $uuid = $this->request->query['uuid'];
         $userModel = new User();
         $user      = $userModel->find('first', array (
             'recursive'  => - 1,

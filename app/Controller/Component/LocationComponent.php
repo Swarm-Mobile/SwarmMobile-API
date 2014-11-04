@@ -1163,7 +1163,7 @@ SQL;
                 if (empty($ret['data']['settings'][$name])) {
                     $ret['data']['settings'][$name] = array (
                         'label'       => $s['label'],
-                        'id'          => $s['id'],
+                        'setting_id'  => $s['id'],
                         'value'       => $s['value'],
                         'description' => $s['desc']
                     );
@@ -1308,7 +1308,7 @@ SQL;
 
         $combination = $params['address1'] . " " . $params['city'];
         if ($location->nameAddressCombination($combination, $params['name']) > 0) {
-            throw new Exception('bad_request', 'Location name, address and city combination already exists in our records.');
+            throw new Exception('Location name, address and city combination already exists in our records.');
         }
 
         $params['country'] = strtoupper($params['country']);
