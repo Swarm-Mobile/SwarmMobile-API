@@ -160,10 +160,10 @@ class IBeaconCouponsController  extends IBeaconController {
                     );
                     $location['categorization'] = $categorys;
                     $response['locations'][] = $location;
-                    $response['campaigns'] = $campaigns;
                     $response['coupons'] = array();
                     $cuponModel =  new IBeaconCoupons();
                     foreach($campaigns as $campaign){
+                        $response['campaigns'][] = $campaigns;
                         $response['coupons']  = array_merge($response['coupons'] ,$cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']));
                          //$response['coupons'][] = $cuponModel->findByCustomerIdAndCampaignId($customer['IBeaconCustomers']['id'],$campaign['id']);
                     }
