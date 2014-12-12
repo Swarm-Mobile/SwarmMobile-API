@@ -130,7 +130,7 @@ if(
     isset($_SERVER['Swawrm-Runscope-Call']) && 
     $_SERVER['Swawrm-Runscope-Call'] = 'TwWT8Kc8Y4jyvmSA5ZMxdU4FmGg2tA'
 ){
-    putenv('server_location', 'runscope');
+    putenv('server_location=runscope');
     $_SERVER['server_location'] = 'runscope';
 }
 $env = getenv('server_location');
