@@ -128,6 +128,13 @@ CakeLog::config('error', array (
 $env = getenv('server_location');
 //$env = 'live';
 if ($env == 'live') {
+    if(
+        isset($_SERVER['Swawrm-Runscope-Call']) && 
+        $_SERVER['Swawrm-Runscope-Call'] = 'TwWT8Kc8Y4jyvmSA5ZMxdU4FmGg2tA'
+    ){
+        putenv('server_location', 'runscope');
+        $_SERVER['server_location'] = 'runscope';
+    }
     App::uses('CakeEventManager', 'Event');
     App::uses('LogListener', 'Event');
     App::uses('AuthenticationListener', 'Event');

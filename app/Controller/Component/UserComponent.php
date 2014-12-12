@@ -412,7 +412,8 @@ SELECT dt.name, d.id, d.serial, d.alias
 FROM device d
 INNER JOIN devicetype dt
  ON d.devicetype_id = dt.id
- AND d.location_id = :location_id                        
+ AND d.location_id = :location_id        
+ AND d.devicetype_id = 2
 SQL;
                 $devices = $oDb->fetchAll($sSQL, [':location_id'=>$locations[$key]['l']['id']]);                
                 $retDev[$locations[$key]['l']['id']] = [];
