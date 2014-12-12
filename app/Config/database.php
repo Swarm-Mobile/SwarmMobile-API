@@ -15,7 +15,7 @@ class DATABASE_CONFIG
 
     function __construct ()
     {
-        $env    = getenv('server_location');
+        $env    = $_SERVER['server_location'];
         $file   = __DIR__ . '/DB/' . (file_exists(__DIR__ . '/DB/' . $env . '.php') ? $env .'.php' : 'local.php');
         $config = include($file);        
         foreach ($config as $db => $dsn) {            
