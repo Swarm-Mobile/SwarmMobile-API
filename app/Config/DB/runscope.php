@@ -43,7 +43,7 @@ return [
         'host'       => 'staging-all.cdmer9ay9s4r.us-west-1.rds.amazonaws.com',
         'login'      => 'swarmdata',
         'password'   => '4Ha2Rap4ePHe',
-        'database'   => 'swarm_backstage',
+        'database'   => 'swarm_backstage_old',
         'prefix'     => '',
     ],
     'portal'         => [
