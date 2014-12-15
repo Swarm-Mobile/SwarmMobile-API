@@ -125,9 +125,9 @@ CakeLog::config('error', array (
 /**
  * Event Listeners
  */
-$env = getenv('server_location');
 //$env = 'live';
-if ($env == 'live') {
+$env = $_SERVER['server_location'];
+if (in_array($env, ['live', 'runscope'])) {
     App::uses('CakeEventManager', 'Event');
     App::uses('LogListener', 'Event');
     App::uses('AuthenticationListener', 'Event');

@@ -63,7 +63,7 @@ class ApiController extends AppController
     // Controller Actions
     public function index ()
     {                
-        $env                 = getenv('server_location');
+        $env                 = $_SERVER['server_location'];
         $this->debug         = ($env != 'live');
         set_time_limit(3600);                
         if ($this->request->is('get')) {
