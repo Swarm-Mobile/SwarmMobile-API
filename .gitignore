@@ -32,3 +32,5 @@ Thumbs.db
 .project
 vendor
 .idea
+
+/tests/coverage/*

@@ -1,7 +1,5 @@
 <?php
 
-require_once(__DIR__ . '/../../Controller/Component/DBComponent.php');
-require_once(__DIR__ . '/../../Controller/Component/CompressedFunctions.php');
 require_once(__DIR__ . '/../../Controller/Component/S3FactoryComponent.php');
 App::uses('AppShell', 'Console/Command');
 App::uses('S3Factory' , 'Controller/Component');

@@ -1,67 +1,341 @@
 <?php
 
-/**
- * Application model for CakePHP.
- *
- * This file is application-wide model file. You can put all
- * application-wide model-related methods here.
- *
- * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link          http://cakephp.org CakePHP(tm) Project
- * @package       app.Model
- * @since         CakePHP(tm) v 0.2.9
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
- */
 App::uses('Model', 'Model');
 App::uses('ValidatorComponent', 'Controller/Component');
 
-/**
- * Application model for Cake.
- *
- * Add your application-wide methods in the class below, your models
- * will inherit them.
- *
- * @package       app.Model
- */
 class AppModel extends Model
 {
 
     public $useDbConfig = 'oauth';
+    public $useTable = null;
+    public $validate    = [];
 
-    /**
-     * Search inside an Array of params 
-     * an id placed into the index $table.'_id'
-     * and fills the Model. Also checks if this
-     * id is defined into the array, if is a positive
-     * int and if this resource, after the load, 
-     * really exists. 
-     * 
-     * @param array $params
-     * @param int $recursive
-     * @param array $fields
-     * @throws Exception
-     */
-    public function readFromParams ($params, $recursive = -1, $fields = null)
+    public static function validationErrors ($fields = [], $source = [], $checkSpecialCases = true)
+    {        
+        $class = get_called_class();
+        $validationModel = new $class();
+        if($class == 'AppModel'){
+            $validationModel->useTable = false;
+        }
+        $validationModel->setValidationFields($fields, $checkSpecialCases);
+        $validationModel->create($source);            
+        return $validationModel->validates() ? [] : $validationModel->validationErrors;
+    }
+
+    public function setValidationFields ($fields = [], $checkSpecialCases = true)
     {
-        $this->recursive = $recursive;
-        if (!isset($params[$this->table . '_id'])) {
-            throw new Exception($this->table . ' is required.');
+        $this->validate = [];
+        foreach ($fields as $field) {
+            switch ($field) {
+                case 'type':                    
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getDeviceTypeValidationRule($field)
+                    );
+                    break;
+                case 'start_date':
+                case 'end_date':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getDateValidationRule($field)
+                    );
+                    break;
+                case 'month':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getMonthValidationRule($field)
+                    );
+                    break;
+                case 'year':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getYearValidationRule($field)
+                    );
+                    break;
+                case 'password':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getMinLenghtValidationRule($field, 5)
+                    );
+                    break;
+                case 'confirmPassword':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getMatchesValidationRule($field, 'password')
+                    );
+                    break;
+                case 'username':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getMinLenghtValidationRule($field, 5),
+                        ($checkSpecialCases)?$this->_getUsernameExistsValidationRule($field):[]                        
+                    );
+                    break;
+                case 'email':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getEmailValidationRule($field),
+                        ($checkSpecialCases)?$this->_getEmailExistsValidationRule($field):[]                        
+                    );
+                    break;
+                case 'devicetype_id':
+                case 'deviceenvironment_id':
+                case 'location_id':
+                case 'customer_id':
+                case 'user_id':
+                case 'major':
+                case 'minor':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        $this->_getIntValidationRule($field)
+                    );
+                    break;
+                case 'serial':
+                case 'manufacturer_serial':                
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field),
+                        ($checkSpecialCases)?$this->_getUniqueValidationRule($field):[]
+                    );
+                    break;
+                case 'currentPassword':
+                case 'mac':
+                case 'alias':
+                case 'name':
+                case 'description':
+                case 'uuid':
+                case 'source':
+                case 'address1':
+                case 'city':
+                case 'zipcode':
+                case 'country':
+                case 'firstname':
+                case 'lastname':
+                case 'company':
+                case 'state':
+                case 'country':
+                case 'phone':
+                case 'fullname':
+                case 'ts':
+                case 'firmware_version':
+                    $this->validate[$field] = array_merge(
+                        $this->_getNotEmptyValidationRule($field)
+                    );
+                    break;
+                default:                                        
+                    throw new Swarm\ApplicationErrorException(SwarmErrorCodes::VALIDATOR_NOT_FOUND);
+            }
+        }        
+        return $this;
+    }
+
+    private function _getNotEmptyValidationRule ($field)
+    {
+        return [
+            'notEmpty' => [
+                'rule'     => ['notEmpty'],
+                'required' => true,
+                'message'  => $field . ' cannot be empty'
+            ]
+        ];
+    }
+
+    private function _getIntValidationRule ($field)
+    {
+        return [
+            'int' => [
+                'rule'    => '/^[0-9]+$/',
+                'message' => $field . ' must be an integer'
+            ]
+        ];
+    }
+
+    private function _getUniqueValidationRule ($field)
+    {
+        return [
+            'isUnique' => [
+                'rule'     => ['isUnique'],
+                'required' => true,                
+                'message'  => $field . ' already exists'              
+            ]
+        ];
+    }
+
+    private function _getMonthValidationRule ($field)
+    {
+        return [
+            'isMonth' => [
+                'rule'    => ['isMonth'],
+                'message' => $field . ' must be between 01 and 12 (0 included in months < 10).'
+            ]
+        ];
+    }
+
+    private function _getYearValidationRule ($field)
+    {
+        return [
+            'isMonth' => [
+                'rule'    => ['isYear'],
+                'message' => $field . ' must be a valid year after 2012.'
+            ]
+        ];
+    }
+
+    private function _getMinLenghtValidationRule ($field, $length)
+    {
+        return [
+            'minLength' => [
+                'rule'    => ['minLength', $length],
+                'message' => $field . ' must be at least ' . $length . ' characters long'
+            ],
+        ];
+    }
+
+    private function _getMatchesValidationRule ($field, $matchesField)
+    {
+        return [
+            'matchesConfirm' => [
+                'rule'    => ['validateConfirmPassword', $matchesField],
+                'message' => $field . ' and ' . $matchesField . ' do not match',
+                'on'      => 'create'
+            ]
+        ];
+    }
+
+    private function _getUsernameExistsValidationRule ($field)
+    {
+        return [
+            'checkUsernameExists' => [
+                'rule'    => ['checkUsernameExists'],
+                'message' => $field . ' already exists. Please try a different one.',
+                'on'      => 'create'
+            ]
+        ];
+    }
+
+    private function _getEmailValidationRule ($field)
+    {
+        return [
+            'email' => [
+                'rule'    => 'email',
+                'message' => $field . ' entered was not valid.',
+            ]
+        ];
+    }
+
+    private function _getEmailExistsValidationRule ($field)
+    {
+        return [
+            'checkEmailExists' => [
+                'rule'    => ['checkEmailExists'],
+                'message' => $field . ' already exists. Please try a different one.',
+                'on'      => 'create'
+            ]
+        ];
+    }
+
+    private function _getDateValidationRule ($field)
+    {
+        return [
+            'date' => [
+                'rule'    => ['date'],
+                'message' => $field . ' must be a date (yyyy-mm-dd)'
+            ]
+        ];
+    }
+
+    private function _getDeviceTypeValidationRule ($field)
+    {
+        return [
+            'deviceType' => [
+                'rule'    => ['isDeviceType'],
+                'message' => $field . ' is not a valid device type.',
+                'on'      => 'create'
+            ]
+        ];
+    }
+
+    public function isMonth ($month, $arg2 = 0)
+    {
+        return in_array($month['month'], [
+            '01', '02', '03', '04', '05', '06',
+            '07', '08', '09', '10', '11', '12'
+        ]);
+    }
+
+    public function isYear ($year, $arg2 = 0)
+    {
+        $year = $year['year'];
+        return is_numeric($year) && $year >= 2012 && $year <= (date('Y') + 1);
+    }
+
+    public function checkEmailExists ($email, $arg2 = null)
+    {
+        // If $args is array that means it came from a validation rule and get the id from the object data
+        if (is_array($arg2)) {
+            $userId = $this->data[$this->name]['id'];
         }
-        $id = $params[$this->table . '_id'];
-        if (!ValidatorComponent::isPositiveInt($id)) {
-            throw new Exception($this->table . '_id must be a valid integer.');
+        elseif (is_numeric($arg2)) {
+            $userId = $arg2;
         }
-        $this->read($fields, $id);
-        if (empty($this->data)) {
-            throw new Exception('Incorrect ' . $this->table . '_id');
+        else {
+            throw new InvalidArgumentException(SwarmErrorCodes::setError('Argument 2 should either be an array of validation data or user id'));
         }
+
+        if (!empty($userId)) {
+            $user = $this->find('all', [
+                'conditions' => [
+                    'User.id !=' => $userId,
+                    'User.email' => $email
+                ]
+            ]);
+        }
+        else {
+            $user = $this->find('first', ['conditions' => ['User.email' => $email]]);
+        }
+        return empty($user);
+    }
+
+    public function checkUsernameExists ($username, $arg2 = 0)
+    {
+        if (is_array($arg2)) {
+            $userId = $this->data[$this->name]['id'];
+        }
+        elseif (is_numeric($arg2)) {
+            $userId = $arg2;
+        }
+        else {
+            throw new InvalidArgumentException(
+                SwarmErrorCodes::setError('Argument 2 should either be an array of validation data or user id')
+            );
+        }
+        if (!empty($userId)) {
+            $user = $this->find('all', [
+                'conditions' => [
+                    'User.id !='    => $userId,
+                    'User.username' => $username
+                ]
+            ]);
+        }
+        else {
+            $user = $this->find('first', ['conditions' => ['User.username' => $username]]);
+        }
+        return empty($user);
+    }
+
+    public function validateConfirmPassword ($checkField, $password)
+    {
+
+        $fieldName = '';
+        foreach ($checkField as $key => $value) {
+            $fieldName = $key;
+            break;
+        }
+        return $this->data[$this->name][$password] === $this->data[$this->name][$fieldName];
+    }
+
+    public function isDeviceType ($deviceType, $arg2 = null)
+    {       
+        return in_array(strtolower($deviceType['type']), ['portal', 'presence', 'ping']);
     }
 
 }

@@ -1,14 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../Controller/Component/CompressedFunctions.php';
-
-App::uses('RedisComponent', 'Controller/Component');
 App::uses('CakeEventListener', 'Event');
-App::uses('Location', 'Model');
-App::uses('LocationSetting', 'Model');
-App::uses('Customer', 'Model');
-App::uses('User', 'Model');
-App::uses('UserType', 'Model');
+App::uses('Location', 'Model/Location');
+App::uses('LocationSetting', 'Model/Location');
+App::uses('Customer', 'Model/POS');
+App::uses('User', 'Model/User');
+App::uses('UserType', 'Model/User');
 
 class GrantListener implements CakeEventListener
 {
@@ -36,12 +33,15 @@ class GrantListener implements CakeEventListener
      */
     public function validation (CakeEvent $event)
     {
-	    try {
+        try {
             if (isset($event->data['location_id'])) {
                 $this->validateLocationId($event->data['user_id'], $event->data['location_id']);
             }
             if (isset($event->data['customer_id'])) {
                 $this->validateCustomerId($event->data['user_id'], $event->data['customer_id']);
+            }
+            if (isset($event->data['uuid'])) {
+                $this->validateUUID($event->data['user_id'], $event->data['uuid']);
             }
         }
         catch (Exception $e) {
@@ -53,10 +53,12 @@ class GrantListener implements CakeEventListener
             header("Access-Control-Max-Age: 1728000");
             header("Pragma: no-cache");
             header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
-            echo json_encode([
-                'error'             => 'invalid_param',
-                'error_description' => $e->getMessage()
-                    ], true);
+            echo json_encode(
+                [
+                    'error'             => 'invalid_param',
+                    'error_description' => $e->getMessage()
+                ], true
+            );
             exit();
         }
     }
@@ -70,7 +72,7 @@ class GrantListener implements CakeEventListener
      * @throws Exception
      */
     private function validateLocationId ($user_id, $location_id)
-    {        
+    {
         $user    = new User();
         $user->read(null, $user_id);
         $isValid = false;
@@ -89,7 +91,9 @@ class GrantListener implements CakeEventListener
                 break;
         }
         if (!$isValid) {
-            throw new Exception('You are not allowed to access to this location_id.');
+            throw new Swarm\UnauthorizedException(
+                SwarmErrorCodes::setError('You are not allowed to access to this location_id.')
+            );
         }
     }
 
@@ -115,27 +119,54 @@ class GrantListener implements CakeEventListener
             case UserType::$DEVELOPER:
             case UserType::$EMPLOYEE:
                 $tokenLocations    = $user->getLocationList();
-                $customer = new Customer();
-                $customer->readFromParams(['customers_id' => $customer_id]);
-                $locationSetting = new LocationSetting();
+                $customer          = new Customer();
+                $customer->read(null, $customer_id);
+                if (empty($customer->data)) {
+                    throw new Swarm\UnauthorizedException(
+                        SwarmErrorCodes::setError('Incorrect customer_id')
+                    );                    
+                }
+                $locationSetting   = new LocationSetting();
                 $settings          = $locationSetting->find('all', [
                     'conditions' => [
                         'value'      => $customer->data['Customer']['store_id'],
-                        'setting_id' => settId('pos_store_id')
+                        'setting_id' => LocationSetting::POS_STORE_ID
                     ]]
                 );
                 $customerLocations = [];
                 foreach ($settings as $setting) {
                     $customerLocations[] = $setting['LocationSetting']['location_id'];
-                }                
-                $intersect = array_intersect($customerLocations, $tokenLocations);                
+                }
+                $intersect = array_intersect($customerLocations, $tokenLocations);
                 if (count($intersect) > 0) {
                     return true;
                 }
             case UserType::$GUEST:
             default:
-                throw new Exception('You are not allowed to access to this location_id.');
+               throw new Swarm\UnauthorizedException(
+                    SwarmErrorCodes::setError('You are not allowed to access to this location_id.')
+               );
         }
+    }
+
+    /**
+     * Valiates if a certain user_id a certain uuid
+     *      
+     * @param type $user_id
+     * @param type uuid
+     * @return boolean
+     * @throws Exception
+     */
+    private function validateUUID ($user_id, $uuid)
+    {
+        $user = new User();
+        $user->read(null, $user_id);
+        if ($user->data['User']['uuid'] != $uuid) {
+            throw new Swarm\UnauthorizedException(
+                SwarmErrorCodes::setError("UUID don't match with the token user_id.")
+            );            
+        }
+        return true;
     }
 
 }

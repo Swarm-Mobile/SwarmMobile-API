@@ -30,7 +30,7 @@ class LogListener implements CakeEventListener
      * @param CakeEvent $event
      */
     public function logRequest (CakeEvent $event)
-    {
+    {        
         if (!empty($event->data['request']->data)) {
             $logFolder = APP . 'tmp/logs/post/';
             if (!is_dir($logFolder)) {
