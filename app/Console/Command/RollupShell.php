@@ -56,7 +56,7 @@ class RollupShell extends AppShell
             $swarmBorn = new DateTime('2013-01-01');
             return ($firstDate < $swarmBorn) ? '2013-01-01' : $result[0][0]['first_date'];
         }
-        throw new Swarm\ApplicationErrorException('No data on sessions registered for this location.');
+        throw new Swarm\ApplicationErrorException(SwarmErrorCodes::setError('No data on sessions registered for this location.'));
     }
 
     private function getLocationList ($locationId)
