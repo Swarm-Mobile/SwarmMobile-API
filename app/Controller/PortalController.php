@@ -108,8 +108,7 @@ class PortalController extends AppController
         try {
             $totals->incby(['portalTraffic'], $row['totalCount'], $row['locationID'], $rollupsDate);
         }
-        catch (Exception $e) {
-            CakeLog::debug('ERRORTOTALS:' . $e->getMessage());
+        catch (Exception $e) {            
             if ($this->errorsCount < 3) {
                 $this->errorsCount++;
                 $this->totals[$row['locationID']][$rollupsDate] = null;
