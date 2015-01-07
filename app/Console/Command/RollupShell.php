@@ -62,7 +62,7 @@ class RollupShell extends AppShell
         $db     = $model->getDataSource();
         $query  = [
             'fields'     => ['DATE(ts) as first_date'],
-            'table'      => $db->fullTableName($table),
+            'table'      => $db->fullTableName('visitorEvent'),
             'alias'      => 'VisitorEvent',
             'conditions' => ['location_id' => $locationId],
             'limit'      => 1,
