@@ -1,6 +1,9 @@
 <?php
 
 App::uses('AppShell', 'Console/Command');
+App::uses('EmailQueueComponent', 'Controller/Component');
+App::uses('AppModel', 'Model');
+App::uses('Totals', 'Model/Totals/');
 
 class CsvFtpShell extends AppShell
 {
@@ -16,7 +19,7 @@ class CsvFtpShell extends AppShell
                 'host'     => 'ftp.hothousenyc.com',
                 'username' => 'swarm',
                 'password' => 'bigbuzz15$',
-                'dir'      => '..\\FTPDrive:\ftproot\swarm\\'
+                'dir'      => '.'
             ],
             'locations'   => [
                 '1288' => 'SoHo', '1340' => 'Boston', '1341' => 'Chicago', '1342' => 'Georgetown'
@@ -33,26 +36,20 @@ class CsvFtpShell extends AppShell
         }
         else {
             $locationName = $this->params['location'];
-            $response     = OAuthRedisComponent::getToken($this->devUsername, $this->devPassword);
-            if (empty($response)) {
-                $this->out("OAuth service failed. Please check your username/password combination");
-                die();
-            }
-
             $date      = new DateTime('now', new DateTimeZone('GMT'));
             $date->sub(new DateInterval('P1D'));
             $endDate   = $startDate = $date->format('Y-m-d');
             $filename  = $locationName . $startDate . '.csv';
             $fh        = fopen('/var/tmp/' . $filename, 'w');
 
-            fputcsv($fh, array_merge(['name'], $metrics));
+            fputcsv($fh, array_merge(['locationName'], $this->metrics));
             foreach ($this->locations[$locationName]['locations'] as $locationId => $name) {
                 $totals = new Totals();
                 $totals->create(
                         [
-                    'location_id' => $locationId,
-                    'start_date'  => $startDate,
-                    'end_date'    => $endDate
+                            'location_id' => $locationId,
+                            'start_date'  => $startDate,
+                            'end_date'    => $endDate
                         ]
                         , true);
                 $total  = $totals->getFromRaw();
@@ -63,27 +60,57 @@ class CsvFtpShell extends AppShell
                 $row = substr($row, 0, -1);
                 fwrite($fh, $row . "\n");
             }
+            fclose($fh);
             $this->uploadToFTP($this->locations[$locationName]['credentials'], $filename);
         }
     }
 
     public function uploadToFTP ($credentials, $filename = '')
     {
+        $locationName = $this->params['location'];
         if (empty($filename)) {
-            $this->out("Need a valid file path to upload to FTP");
+            $msg = "Need a valid file to upload to FTP Location: $locationName";
+            $this->emailAlert($msg, 'error');
+            die();
+        }
+        $file = '/var/tmp/' . $filename;
+        if(!file_exists($file)) {
+            $msg = "File cound not be created on the server.";
+            $this->emailAlert($msg, 'error');
             die();
         }
         // setup connection
         $conn = ftp_connect($credentials['host']);
+        if(!$conn) {
+            $msg = "FTP connection failed for location $locationName";
+            $this->emailAlert($msg, 'error');
+        }
+        
         //login
         if (!ftp_login($conn, $credentials['username'], $credentials['password'])) {
-            $this->out("FTP connection failed");
+            $msg = "FTP login failed for location $locationName";
+            $this->emailAlert($msg, 'error');
         }
-        if (ftp_put($conn, $credentials['dir'])) {
+        ftp_pasv($conn, TRUE);
+        $destFile = $filename;
+        if (ftp_put($conn, $destFile, $file, FTP_ASCII)) {
             $this->out("Successfully uploaded the file");
         }
         else {
-            "email";
+            $msg = "FTP file upload failed for location $locationName";
+            $this->emailAlert($msg, 'error');
+        }
+        ftp_close($conn);
+    }
+
+    public function emailAlert($msg = '', $error = '')
+    {
+        EmailQueueComponent::queueEmail(
+            'info@swarm-mobile.com', 'Info', 'jinesh.lalan@swarm-mobile.com', 'AM', "Alert: FTP File upload issue", "$msg"
+        );
+        if($error == 'error') {
+            $this->out($msg);
+            die();
         }
     }
 
