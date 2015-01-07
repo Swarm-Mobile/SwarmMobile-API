@@ -34,29 +34,48 @@ class RollupShell extends AppShell
         $locationSetting = new LocationSetting();
         $locationSetting->create(['location_id' => $locationId], true);
         $networkId       = $locationSetting->getSettingValue(LocationSetting::NETWORK_ID);
-        $tables          = ['sessions_archive', 'sessions'];
-        $model           = new Model(false, 'sessions', 'swarmdata');
-        $db              = $model->getDataSource();
-        foreach ($tables as $table) {
-            $query  = [
-                'fields'     => ['DATE(time_login) as first_date'],
-                'table'      => $db->fullTableName($table),
-                'alias'      => 'Session',
-                'conditions' => ['network_id' => $networkId],
-                'limit'      => 1,
-                'order'      => ['time_login ASC']
-            ];
-            $sql    = $db->buildStatement($query, $model);
-            $result = $db->query($sql);
-            if (empty($result)) {
-                continue;
+        $swarmBorn       = new DateTime('2013-01-01');
+        if (!empty($networkId)) {
+            $tables = ['sessions_archive', 'sessions'];
+            $model  = new Model(false, 'sessions', 'swarmdata');
+            $db     = $model->getDataSource();
+            foreach ($tables as $table) {
+                $query  = [
+                    'fields'     => ['DATE(time_login) as first_date'],
+                    'table'      => $db->fullTableName($table),
+                    'alias'      => 'Session',
+                    'conditions' => ['network_id' => $networkId],
+                    'limit'      => 1,
+                    'order'      => ['time_login ASC']
+                ];
+                $sql    = $db->buildStatement($query, $model);
+                $result = $db->query($sql);
+                if (empty($result)) {
+                    continue;
+                }
+                $firstDate = $result[0][0]['first_date'];
+                $firstDate = new DateTime($firstDate);
+                return ($firstDate < $swarmBorn) ? '2013-01-01' : $result[0][0]['first_date'];
             }
-            $firstDate = $result[0][0]['first_date'];
-            $firstDate = new DateTime($firstDate);
-            $swarmBorn = new DateTime('2013-01-01');
-            return ($firstDate < $swarmBorn) ? '2013-01-01' : $result[0][0]['first_date'];
         }
-        throw new Swarm\ApplicationErrorException(SwarmErrorCodes::setError('No data on sessions registered for this location.'));
+        $model  = new Model(false, 'visitorEvent', 'portal');
+        $db     = $model->getDataSource();
+        $query  = [
+            'fields'     => ['DATE(ts) as first_date'],
+            'table'      => $db->fullTableName($table),
+            'alias'      => 'VisitorEvent',
+            'conditions' => ['location_id' => $locationId],
+            'limit'      => 1,
+            'order'      => ['ts ASC']
+        ];
+        $sql    = $db->buildStatement($query, $model);
+        $result = $db->query($sql);
+        if (empty($result)) {
+            throw new Swarm\ApplicationErrorException(SwarmErrorCodes::setError('No data on sessions registered for this location.'));
+        }
+        $firstDate = $result[0][0]['first_date'];
+        $firstDate = new DateTime($firstDate);
+        return ($firstDate < $swarmBorn) ? '2013-01-01' : $result[0][0]['first_date'];
     }
 
     private function getLocationList ($locationId)
@@ -76,7 +95,7 @@ class RollupShell extends AppShell
                     'location_id >'  => 0,
                     'location_id IS NOT NULL',
                     'location_id !=' => '',
-                    'devicetype_id'   => DeviceType::$PORTAL
+                    'devicetype_id'  => DeviceType::$PORTAL
             ]]);
             $locations             = array_merge(array_values($presenceLocations), array_values($portalLocations));
             $locations             = array_unique($locations);
@@ -112,11 +131,12 @@ class RollupShell extends AppShell
                             ' SD:' . $startDateFormatted .
                             ' ED:' . $endDateFormatted .
                             ' M: ' . $metric
-                    ,false);
+                            , false);
                     try {
                         $model->storeInCache($model->getFromRaw());
-                    } catch (Swarm\ApplicationErrorException $e){
-                        if ($e->getCode() == SwarmErrorCodes::LOCATION_WITHOUT_NETWORK){
+                    }
+                    catch (Swarm\ApplicationErrorException $e) {
+                        if ($e->getCode() == SwarmErrorCodes::LOCATION_WITHOUT_NETWORK) {
                             continue;
                         }
                     }
@@ -146,7 +166,7 @@ class RollupShell extends AppShell
 
     private function processLocations ($locations, $parts)
     {
-        $rebuild      = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];        
+        $rebuild      = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $filterMetric = (empty($this->params['filter_metric'])) ? 'all' : $this->params['filter_metric'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
         $this->output("Full Rebuild                  : $rebuild_text");
@@ -197,7 +217,7 @@ class RollupShell extends AppShell
         $this->setEnvironment();
         $locationId    = (empty($this->params['location_id'])) ? 'all' : $this->params['location_id'];
 
-        $part      = (empty($this->params['part'])) ? '1/1' : $this->params['part'];        
+        $part     = (empty($this->params['part'])) ? '1/1' : $this->params['part'];
         $parts    = explode('/', $part);
         $minute   = date('i') % 30;
         $parts[0] = $parts[0] == 'start' ? $minute + 1 : $parts[0];
