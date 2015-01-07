@@ -67,7 +67,7 @@ class AuthenticationListener implements CakeEventListener
     private function getAuthenticationType ($event)
     {
         $hmacEndpoints   = ['\/what_is_here'];
-        $noAuthEndpoints = ['\/oauth\/', '\/logout', '\/login', '\/server_health\/ok'];
+        $noAuthEndpoints = ['\/oauth\/', '\/logout', '\/login', '\/user\/register', '\/server_health\/ok'];
 
         foreach ($hmacEndpoints as $endpoint) {
             if (preg_match('/' . $endpoint . '/', $_SERVER['REQUEST_URI'])) {
