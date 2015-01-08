@@ -1,6 +1,5 @@
 <?php
 
-App::uses('HmacOauth', 'ibeacon.IBeacon');
 App::uses('RedisComponent', 'Controller/Component');
 App::uses('OAuthComponent', 'OAuth.Controller/Component');
 App::uses('CakeEventListener', 'Event');
@@ -34,7 +33,55 @@ class AuthenticationListener implements CakeEventListener
      */
     public function fireAuthEvents (CakeEvent $event)
     {
-        $this->authenticateRequest($event);
+        $authType = $this->getAuthenticationType($event);
+        switch ($authType) {
+            case 'oauth':
+                return $this->authenticateOAuthRequest($event);                
+            case 'hmac':
+                return $this->authenticateHMACRequest($event);                
+            case 'no-auth':
+                return;
+            default:
+                $this->renderException(new SwarmNotFoundException('Endpoint not found', 404));
+                break;
+        }
+    }
+
+    private function renderException (Exception $e)
+    {
+        header("HTTP/1.1 403");
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: POST, GET");
+        header("Access-Control-Allow-Headers: X-PINGOTHER");
+        header("Content-Type: application/json; charset=UTF-8");
+        header("Access-Control-Max-Age: 1728000");
+        header("Pragma: no-cache");
+        header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
+        echo json_encode([
+            'error'             => 'invalid_token',
+            'error_description' => $e->getMessage()
+                ], true);
+        exit();
+    }
+
+    private function getAuthenticationType ($event)
+    {
+        $hmacEndpoints   = ['\/what_is_here'];
+        $noAuthEndpoints = ['\/oauth\/', '\/logout', '\/login', '\/user\/register', '\/server_health\/ok'];
+
+        foreach ($hmacEndpoints as $endpoint) {
+            if (preg_match('/' . $endpoint . '/', $_SERVER['REQUEST_URI'])) {
+                return 'hmac';
+            }
+        }
+
+        foreach ($noAuthEndpoints as $endpoint) {
+            if (preg_match('/' . $endpoint . '/', $_SERVER['REQUEST_URI'])) {
+                return 'no-auth';
+            }
+        }
+
+        return 'oauth';
     }
 
     /**
@@ -44,32 +91,16 @@ class AuthenticationListener implements CakeEventListener
      * @param CakeEvent $event
      * @throws Exception
      */
-    private function authenticateRequest (CakeEvent $event)
+    private function authenticateOAuthRequest (CakeEvent $event)
     {
-        //TODO: Handle this through OAuth and HMAC controllers
-        $exceptions = [
-            '\/oauth\/',
-            '\/logout',
-            '\/login',
-            '\/what_is_here',
-            '\/where_am_i',
-            '\/my\/coupon\/',
-            '\/coupon\/campaign\/',
-            '\/test',
-            '\/api\/login',
-            '\/server_health\/ok'
-        ];
-        foreach ($exceptions as $exception) {
-            if (preg_match('/' . $exception . '/', $_SERVER['REQUEST_URI'])) {
-                return;
-            }
-        }
         try {
             $params = $event->data['request']->query;
             if (!isset($params['access_token'])) {
                 $params = $event->data['request']->data;
                 if (!isset($params['access_token'])) {
-                    throw new Exception('The access token provided is invalid.');
+                    throw new Swarm\UnauthorizedException(
+                        SwarmErrorCodes::setError('The access token provided is invalid.')
+                    );
                 }
             }
             $accessToken  = $params['access_token'];
@@ -82,30 +113,53 @@ class AuthenticationListener implements CakeEventListener
             }
             else {
                 if ($token['expires'] <= time()) {
-                    throw new Exception('The access token provided is invalid.');
+                    throw new Swarm\UnauthorizedException(
+                        SwarmErrorCodes::setError('The access token provided is invalid.')
+                    );
                 }
                 else {
-                    $event = new CakeEvent(
-                            'Authentication.passed', $this, array_merge($token, $params)
-                    );
+                    $event = new CakeEvent('Authentication.passed', $this, array_merge($token, $params));
                     CakeEventManager::instance()->dispatch($event);
                 }
             }
         }
         catch (Exception $e) {
-            header("HTTP/1.1 403");
-            header("Access-Control-Allow-Origin: *");
-            header("Access-Control-Allow-Methods: POST, GET");
-            header("Access-Control-Allow-Headers: X-PINGOTHER");
-            header("Content-Type: application/json; charset=UTF-8");
-            header("Access-Control-Max-Age: 1728000");
-            header("Pragma: no-cache");
-            header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
-            echo json_encode([
-                'error'             => 'invalid_token',
-                'error_description' => $e->getMessage()
-                    ], true);
-            exit();
+            $this->renderException($e);
+        }
+    }
+
+    private function authenticateHMACRequest ($event)
+    {
+        App::uses('Partner', 'Model/User');
+
+        $request   = $event->data['request'];
+        $date      = $request->header('Swarm-Timestamp');
+        $remoteId  = $request->header('Swarm-Remote-Id');
+        $partnerId = $request->header('Swarm-Partner-Id');
+        $signature = $request->header('Swarm-Api-Challange');
+
+        if (empty($remoteId)) {
+            $remoteId = "none";
+        }
+
+        $partnerModel = new Partner();
+        $partner      = $partnerModel->find('first', [
+            'conditions' => [
+                'name' => $partnerId,
+            ]
+        ]);       
+
+        if (empty($partner)) {
+            $this->renderException(new UnauthorizedException('Invalid Partner', 401));
+        }
+        else {
+            $key       = $partner['Partner']['key'];
+            $stepOne   = base64_encode(hash_hmac('sha256', $partnerId, $key, true));
+            $stepTwo   = base64_encode(hash_hmac('sha256', $stepOne, $remoteId, true));
+            $stepThree = base64_encode(hash_hmac('sha256', $stepTwo, $date, true));                        
+            if ($signature !== $stepThree) {
+                $this->renderException(new UnauthorizedException('Invalid HMAC signature', 401));
+            }
         }
     }
 

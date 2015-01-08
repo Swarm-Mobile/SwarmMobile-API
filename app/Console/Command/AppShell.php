@@ -29,12 +29,20 @@ class AppShell extends Shell
 {
 
     private $console = true;
+    public $output   = true;
 
-    public function output ($text)
+    public function output ($text, $breakLine = true)
     {
-        $this->out($text);
-        if (!$this->console) {
-            echo $text . "\n";
+        if ($this->output) {
+            if (!$breakLine) {
+                $this->out("\r", (int) $breakLine);
+                $this->out(str_repeat(" ", 80), (int) $breakLine);
+                $this->out("\r", (int) $breakLine);
+            }
+            $this->out($text, (int) $breakLine);
+            if (!$this->console) {
+                echo $text . ($breakLine) ? "\n" : "\r";
+            }
         }
     }
 
@@ -45,16 +53,19 @@ class AppShell extends Shell
 
     public function setEnvironment ($env = false)
     {
-        if (!$env) {
-            $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
-            $pattern  = '/.*SetEnv server_location "(.*)"/';
-            if (preg_match_all($pattern, $htaccess, $matches)) {
-                putenv('server_location=' . $matches[1][0]);
-                $_SERVER['server_location'] = $matches[1][0];
+        $cenv = getenv('server_location');
+        if ($cenv != 'phpunit') {
+            if (!$env) {
+                $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
+                $pattern  = '/.*SetEnv server_location "(.*)"/';
+                if (preg_match_all($pattern, $htaccess, $matches)) {
+                    putenv('server_location=' . $matches[1][0]);
+                    $_SERVER['server_location'] = $matches[1][0];
+                }
             }
-        }
-        else {
-            $_SERVER['server_location'] = $env;
+            else {
+                $_SERVER['server_location'] = $env;
+            }
         }
     }
 

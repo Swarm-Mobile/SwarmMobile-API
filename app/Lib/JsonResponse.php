@@ -58,7 +58,7 @@ class JsonResponse extends CakeResponse
     protected $_contentType = 'application/json';
     protected $_body = '{}';
 
-    public function __construct (array $options = array ())
+    public function __construct (array $options = [])
     {
         if (isset($options['body'])) {
             $this->body(json_encode($options['body']));

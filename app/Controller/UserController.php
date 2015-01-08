@@ -1,24 +1,127 @@
 <?php
 
-App::uses('ApiController', 'Controller');
-App::uses('ApiComponent', 'Controller/Component');
-App::uses('UserType', 'Model');
-App::uses('LocationManager', 'Model');
-App::uses('Employee', 'Model');
-App::uses('LocationEmployee', 'Model');
-App::uses('LocationLocationmanager', 'Model');
+App::uses('UserType', 'Model/User');
 
-class UserController extends ApiController
+class UserController extends AppController
 {
 
-    /**
-     * Create a new User and Location Manager record from POST
-     * @return JsonResponse Returns response object with JSON already set in the body and status code
-     */
+    protected $locationManager;
+    protected $employee;
+    protected $location;
+    protected $locationEmployee;
+    protected $locationLocationManager;
+    protected $user;
+    protected $userLocationReport;
+
+    public function getLocationManager ()
+    {
+        if (empty($this->locationManager)) {
+            App::uses('LocationManager', 'Model/User');
+            $this->locationManager = new LocationManager();
+        }
+        return $this->locationManager;
+    }
+
+    public function getEmployee ()
+    {
+        if (empty($this->employee)) {
+            App::uses('Employee', 'Model/User');
+            $this->employee = new Employee();
+        }
+        return $this->employee;
+    }
+
+    public function getLocation ()
+    {
+        if (empty($this->location)) {
+            App::uses('Location', 'Model/Location');
+            $this->location = new Location();
+        }
+        return $this->location;
+    }
+
+    public function getLocationEmployee ()
+    {
+        if (empty($this->locationEmployee)) {
+            App::uses('LocationEmployee', 'Model/Location');
+            $this->locationEmployee = new LocationEmployee();
+        }
+        return $this->locationEmployee;
+    }
+
+    public function getLocationLocationManager ()
+    {
+        if (empty($this->locationLocationManager)) {
+            App::uses('LocationLocationmanager', 'Model/Location');
+            $this->locationLocationManager = new LocationLocationmanager();
+        }
+        return $this->locationLocationManager;
+    }
+
+    public function getUser ()
+    {
+        if (empty($this->user)) {
+            App::uses('User', 'Model/User');
+            $this->user = new User();
+        }
+        return $this->user;
+    }
+
+    public function getUserLocationReport ()
+    {
+        if (empty($this->userLocationReport)) {
+            App::uses('UserLocationReport', 'Model/User');
+            $this->userLocationReport = new UserLocationReport();
+        }
+        return $this->userLocationReport;
+    }
+
+    public function setLocationManager (LocationManager $locationManager)
+    {
+        $this->locationManager = $locationManager;
+        return $this;
+    }
+
+    public function setEmployee (Employee $employee)
+    {
+        $this->employee = $employee;
+        return $this;
+    }
+
+    public function setLocation (Location $location)
+    {
+        $this->location = $location;
+        return $this;
+    }
+
+    public function setLocationEmployee (LocationEmployee $locationEmployee)
+    {
+        $this->locationEmployee = $locationEmployee;
+        return $this;
+    }
+
+    public function setLocationLocationManager (LocationLocationmanager $locationLocationManager)
+    {
+        $this->locationLocationManager = $locationLocationManager;
+        return $this;
+    }
+
+    public function setUser (User $user)
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function setUserLocationReport (UserLocationReport $userLocationReport)
+    {
+        $this->userLocationReport = $userLocationReport;
+        return $this;
+    }
+
     public function register ()
     {
-        $user               = new User();
-        $locationManager    = new LocationManager();
+        $user               = $this->getUser();
+        $locationManager    = $this->getLocationManager();
         $newUser            = false;
         $newLocationManager = false;
 
@@ -27,14 +130,14 @@ class UserController extends ApiController
         if ($user->validates()) {
             // Generate Password Hash
             $password = $user->hash_password($this->request->data('password'));
-            $uuid = uniqid();
+            $uuid     = uniqid();
             $user->set('uuid', $uuid);
             $user->set('salt', $password['salt']);
             $user->set('usertype_id', UserType::$LOCATION_MANAGER);
             $user->set('password', $password['password']);
 
             // Generate the confirmation password also to check hashing is working correctly
-            $confirmPasswordHash = $user->hash_password($this->request->data['confirmPassword'], $password['salt']);
+            $confirmPasswordHash = $user->hash_password($this->request->data('confirmPassword'), $password['salt']);
             $user->set('confirmPassword', $confirmPasswordHash['password']);
 
             $user->getDataSource()->begin(); // Start a new transaction
@@ -46,22 +149,17 @@ class UserController extends ApiController
                 $locationManager->set('lastname', $this->request->data('lastname'));
                 $newLocationManager = $locationManager->save();
             }
-
             if ($newUser && $newLocationManager) {
                 $user->getDataSource()->commit();
-                $result = array (
-                    'data'    => array (
+                $result = [
+                    'data'    => [
                         'uuid'               => $uuid,
                         'user_id'            => $user->id,
                         'locationmanager_id' => $locationManager->id
-                    ),
-                    'options' => array (
-                        'endpoint' => '/user/' . __FUNCTION__,
-                    ),
-                    'message' => array (
-                        'success' => 'User has been successfully created.'
-                    )
-                );
+                    ],
+                    'options' => ['endpoint' => '/user/' . __FUNCTION__],
+                    'message' => ['success' => 'User has been successfully created.']
+                ];
 
                 return new JsonResponse([ 'body' => $result, 'status' => 201]);
             }
@@ -70,182 +168,105 @@ class UserController extends ApiController
                 $user->validationErrors[] = 'There was an issue persisting the request. Please try again later';
             }
         }
-
-        return new JsonResponse([ 'body' => $user->validationErrors, 'status' => 422]);
+        throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($user->validationErrors));
     }
 
-    /**
-     *
-     * @return JsonResponse Returns response object with JSON already set in the body and status code
-     */
     public function login ()
     {
-        $params = $this->request->data;
-        if (empty($params['username']) || empty($params['password'])) {
-            return new JsonResponse([
-                'body'   => [ 'error' => 'Username and Password are required and cannot be empty'],
-                'status' => 401
-                    ]);
+        $errors = AppModel::validationErrors(['username', 'password'], $this->request->data, false);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
         }
-        $oUser = new User();
-        if ($user  = $oUser->authenticate($params['username'], $params['password'])) {
-            $results['data']              = array (
+
+        $params = $this->request->data;
+        $oUser  = $this->getUser();
+        if ($user   = $oUser->authenticate($params['username'], $params['password'])) {
+            $results['data']              = [
                 'user_id'     => $user['id'],
                 'uuid'        => $user['uuid'],
                 'usertype_id' => $user['usertype_id'],
-            );
-            $results['data']['locations'] = $this->locations($user['uuid'], true);
-            $results['options']           = array (
+            ];
+            $results['data']['locations'] = $this->_getLocations($user['usertype_id'], $user['id']);
+            $results['options']           = [
                 'endpoint' => '/user/' . __FUNCTION__,
                 'username' => $user['username']
-            );
-            $results['message']           = array (
-                'success' => 'User login successful.'
-            );
-            $status                       = 200;
+            ];
+            $results['message']           = ['success' => 'User login successful.'];
         }
         else {
-            $status  = 401;
-            $results = [ 'error' => 'Invalid Credentials Supplied'];
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::INVALID_CREDENTIALS);
         }
-
-        return new JsonResponse([ 'body' => $results, 'status' => $status]);
+        return new JsonResponse([ 'body' => $results]);
     }
 
-    /**
-     * Get User info
-     *
-     * @param Array get data
-     *
-     * @return Array
-     */
     public function getSettings ()
     {
-
-        $uuid = $this->request->query['uuid'];
-        if (empty($uuid)) {
-            return new JsonResponse([
-                'body'   => [ 'error' => 'User not found. Please provide a valid UUID.'],
-                'status' => 404
-                    ]);
-        }
-        $userModel  = new User();
-        $userBundle = $userModel->find(
-                'first', [
-            'conditions' => [ 'uuid' => $uuid],
-                ]);
-
-        if (empty($userBundle)) {
-            return new JsonResponse([
-                'body'   => [ 'error' => 'User not found with supplied UUID'],
-                'status' => 404
-                    ]);
-        }
-        else {
-            $emailPreferences = $userBundle['UserLocationReport'];
-            $user             = $userBundle['User'];
+        $errors = AppModel::validationErrors(['uuid'], $this->request->query);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
         }
 
-        $ret['data'] = array (
+        $uuid      = $this->request->query['uuid'];
+        $userModel = $this->getUser();
+        $user      = $userModel->find('first', ['conditions' => ['uuid' => $uuid]]);
+        if (empty($user)) {
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::USER_GETSETTINGS_USER_NOTFOUND);
+        }
+        $userLocationReport = $this->getUserLocationReport();
+        $user               = $user['User'];
+        $emailPreferences   = $userLocationReport->find('all', ['conditions' => ['user_id' => $user['id']]]);
+        $ret['data']        = [
             'username' => $user['username'],
             'email'    => $user['email']
-        );
-
-
-        switch ($user['usertype_id']) {
-            case UserType::$LOCATION_MANAGER:
-                if (!empty($userBundle['LocationManager']) && !empty($userBundle['LocationManager']['id'])) {
-                    $ret['data']['firstname'] = $userBundle['LocationManager']['firstname'];
-                    $ret['data']['lastname']  = $userBundle['LocationManager']['lastname'];
-                }
-
-                $locations = [];
-                try {
-                    $locations = $this->_getLocations($user['usertype_id'], $user['id']);
-                }
-                catch (Exception $e) {
-                    $this->log($e->getMessage(), 'debug');
-                }
-                $ret['data']['locations'] = $locations;
-                break;
-            case UserType::$EMPLOYEE:
-                if (!empty($userBundle['Employee']) && !empty($userBundle['Employee']['id'])) {
-                    $ret['data']['firstname'] = $userBundle['Employee']['firstname'];
-                    $ret['data']['lastname']  = $userBundle['Employee']['lastname'];
-                }
-
-                $locations = [];
-                try {
-                    $locations = $this->_getLocations($user['usertype_id'], $userBundle['Employee']['id']);
-                }
-                catch (Exception $e) {
-                    $this->log($e->getMessage(), 'debug');
-                }
-                $ret['data']['locations'] = $locations;
-                break;
+        ];
+        $roles              = [
+            UserType::$LOCATION_MANAGER => 'LocationManager',
+            UserType::$EMPLOYEE         => 'Employee',
+        ];
+        if (in_array($user['usertype_id'], array_keys($roles))) {
+            $method = 'get' . $roles[$user['usertype_id']];
+            $model  = $this->$method();
+            $entity = $model->find('first', ['conditions' => ['user_id' => $user['id']]]);
+            if (!empty($entity)) {
+                $ret['data']['firstname'] = $entity[$roles[$user['usertype_id']]]['firstname'];
+                $ret['data']['lastname']  = $entity[$roles[$user['usertype_id']]]['lastname'];
+            }
+            $ret['data']['locations'] = $this->_getLocations($user['usertype_id'], $user['id']);
         }
         $ret['data']['uuid']    = $uuid;
         $ret['data']['user_id'] = $user['id'];
         if (!empty($emailPreferences)) {
             foreach ($emailPreferences as $locationPref) {
                 $str = '';
-                if ($locationPref['daily']) {
-                    $str .= 'daily,';
+                foreach (['daily', 'weekly', 'monthly'] as $interval) {
+                    if ($locationPref['UserLocationReport'][$interval]) {
+                        $str .= $interval . ',';
+                    }
                 }
-                if ($locationPref['weekly']) {
-                    $str .= 'weekly,';
-                }
-                if ($locationPref['monthly']) {
-                    $str .= 'monthly,';
-                }
-                if (empty($str)) {
-                    $str .= 'none';
-                }
-                else {
-                    $str = substr($str, 0, - 1);
-                }
-                $ret['data']['emailPrefs'][$locationPref['location_id']] = $str;
+                $str = (empty($str)) ? $str . 'none' : substr($str, 0, - 1);
+                $ret['data']['emailPrefs'][$locationPref['UserLocationReport']['location_id']] = $str;
             }
         }
-        $ret['options'] = array (
+        $ret['options'] = [
             'endpoint' => '/user/' . __FUNCTION__,
             'uuid'     => $uuid,
-        );
-
-        return new JsonResponse([ 'body' => $ret]);
+        ];
+        return new JsonResponse(['body' => $ret]);
     }
 
-    /**
-     * Update user data
-     *
-     */
     public function updateSettings ()
     {
-        $params = $this->request->data;
-
-        if (empty($params['uuid'])) {
-            return new JsonResponse([
-                'status' => 404,
-                'body'   => [ 'error' => 'User not found. Please provide a valid UUID.'],
-                    ]);
+        $errors = AppModel::validationErrors(['uuid'], $this->request->data);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
         }
 
-        $userModel = new User();
-
-        $user = $userModel->find('first', [
-            'recursive'  => 1,
-            'conditions' => [
-                'uuid' => $params['uuid']
-            ]
-                ]);
-
+        $uuid      = $this->request->data['uuid'];
+        $userModel = $this->getUser();
+        $user      = $userModel->find('first', ['conditions' => ['uuid' => $uuid]]);
         if (empty($user)) {
-            return new JsonResponse([
-                'status' => 404,
-                'body'   => [ 'error' => 'User not found. Please provide a valid UUID.'],
-                    ]);
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::USER_UPDATESETTINGS_USER_NOTFOUND);
         }
-
         switch ($user['User']['usertype_id']) {
             case UserType::$LOCATION_MANAGER:
                 $assocUserModelClassname = 'LocationManager';
@@ -257,298 +278,132 @@ class UserController extends ApiController
                 $assocUserModelClassname = false;
         }
 
-        // Validate the User model first, then validate the associated model if it passes
         $userModel->set($user['User']);
-        $userModel->set($params);
-
-        if (!$userModel->validates()) {
-            return new JsonResponse([
-                'status' => 422,
-                'body'   => [
-                    'error'  => 'User data does not pass validation',
-                    'errors' => $userModel->validationErrors
-                ],
-                    ]);
+        $userModel->set($this->request->data);
+        $assocUserModel = false;
+        if ($assocUserModelClassname) {
+            $getAssocUserModelClassname = 'get' . $assocUserModelClassname;
+            $assocUserModel             = $this->$getAssocUserModelClassname();
+            $assocUserEntity            = $assocUserModel->find('first', ['conditions' => ['user_id' => $user['User']['id']]]);
+            $assocUserModel->read(null, $assocUserEntity[$assocUserModelClassname]['id']);
+            $assocUserModel->set($this->request->data);
         }
-
-        if ($assocUserModelClassname &&
-                class_exists($assocUserModelClassname) && !empty($user[$assocUserModelClassname])
-        ) {
-            /** @var Model $assocUserModel */
-            $assocUserModel = new $assocUserModelClassname;
-            $assocUserModel->set($user[$assocUserModelClassname]);
-            $assocUserModel->set($params);
-
-            if (!$assocUserModel->validates()) {
-                return new JsonResponse([
-                    'status' => 422,
-                    'body'   => [
-                        'error'  => 'User data does not pass validation',
-                        'errors' => $assocUserModel->validationErrors
-                    ],
-                        ]);
-            }
+        if (
+                !$userModel->validates(['fieldList'=>['username']]) || 
+                ($assocUserModel && !$assocUserModel->validates())
+            ) {
+            $errors = !$userModel->validates() ? $userModel->validationErrors : $assocUserModel->validationErrors;
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
         }
-        else {
-            $assocUserModel = false;
-        }
-
-
-        // If we got this far everything has validated so save the data
         $userModel->set('ts_update', date('Y-m-d H:i:s'));
-        $userModel->getDataSource()->begin();
-        try {
-            $userModel->save(null, false, [ 'username', 'email', 'usertype_id', 'ts_update']);
-
-            if ($assocUserModel) {
-                $assocUserModel->save(null, false, [ 'firstname', 'lastname']);
-            }
-            $userModel->getDataSource()->commit();
+        $userModel->save(null, false, ['username', 'email', 'ts_update']);
+        if ($assocUserModel) {
+            $assocUserModel->save(null, false, ['firstname', 'lastname']);
         }
-        catch (Exception $e) {
-            $userModel->getDataSource()->rollback();
-
-            return new JsonResponse([
-                'status' => 422,
-                'body'   => [
-                    'error' => 'There was an error processing your request. Please try again or contact support',
-                ],
-                    ]);
-        }
-
         return new JsonResponse([
             'status' => 202,
             'body'   => [
-                array (
-                    'message' => array (
-                        'success' => 'User data has been successfully saved.'
-                    ),
-                    'options' => array (
-                        'endpoint' => '/user/' . __FUNCTION__,
-                        'uuid'     => $params['uuid'],
-                    )
-                )
+                'message' => ['success' => 'User data has been successfully saved.'],
+                'options' => [
+                    'endpoint' => '/user/' . __FUNCTION__,
+                    'uuid'     => $this->request->data['uuid'],
+                ]
             ]
-                ]);
+        ]);
     }
 
-    /**
-     * Update user password
-     *
-     * @param Array POST
-     *
-     * @return Array
-     */
     public function updatePassword ()
     {
-        $params = $this->request->data;
-
-        $preflightErrors = [];
-        if (empty($params['uuid'])) {
-            $preflightErrors[] = 'User not found. Please provide a valid UUID.';
-        }
-        if (empty($params['currentPassword'])) {
-            $preflightErrors[] = 'Current password provided does not match with the password in our records.';
-        }
-        if (empty($params['password']) || empty($params['confirmPassword']) || ( $params['password'] != $params['confirmPassword'] )) {
-            $preflightErrors[] = 'Password and confirmPassword do not match.';
-        }
-        if (strlen($params['password']) < 5) {
-            $preflightErrors[] = 'Password must be at least 5 characters long.';
+        $errors = AppModel::validationErrors(['uuid', 'currentPassword', 'password', 'confirmPassword'], $this->request->data);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
         }
 
-        $userModel           = new User();
-        $userModel->set('password', $params['password']);
-        $userModel->set('confirmPassword', $params['confirmPassword']);
-        $preflightValidation = $userModel->validates([ 'password', 'confirmPassword']);
-
-        if (!empty($preflightErrors) || !$preflightValidation) {
-            $errors = array_merge($preflightErrors, $userModel->validationErrors);
-
-            return new JsonResponse([
-                'status' => 422,
-                'body'   => [
-                    'error'  => 'Your request does not pass validation, please try again',
-                    'errors' => $errors
-                ],
-                    ]);
+        $params    = $this->request->data;
+        $userModel = $this->getUser();
+        $user      = $userModel->find('first', ['conditions' => [ 'uuid' => $this->request->data('uuid')]]);
+        if (empty($user)) {
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::USER_UPDATEPASSWORD_USER_NOTFOUND);
         }
-        $userModel->clear();
-        $userModel->set('uuid', $params['uuid']);
-
-        if ($userModel->validates([ 'field_list' => 'uuid'])) {
-            $userBundle = $userModel->find('first', [
-                'recursive'  => - 1,
-                'conditions' => [ 'uuid' => $params['uuid']]
-                    ]
-            );
+        $userModel->read(null, $user['User']['id']);
+        $current = $userModel->hash_password($params['currentPassword'], $user['User']['salt']);
+        if ($user['User']['password'] != $current['password']) {
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::USER_UPDATEPASSWORD_PASSWORD_MISMATCH);
         }
-
-        if (empty($userBundle)) {
-            return new JsonResponse([
-                'status' => 404,
-                'body'   => [
-                    'error' => 'User not found. Please provide a valid UUID.',
-                ]
-                    ]);
-        }
-        else {
-            $user = $userBundle['User'];
-        }
-
-        $current = $userModel->hash_password($params['currentPassword'], $user['salt']);
-        if ($user['password'] != $current['password']) {
-            return new JsonResponse([
-                'status' => 401,
-                'body'   => [
-                    'error' => 'Current password provided does not match with the password in our records.',
-                ],
-                    ]);
-        }
-
-        $password = $userModel->hash_password($params['password']);
+        $password = $userModel->hash_password($params['password'], $user['User']['salt']);
         $userModel->set('password', $password['password']);
-
-        try {
-            $userModel->save(null, null, [ 'password']);
-        }
-        catch (Exception $e) {
-            return new JsonResponse([
-                'status' => 422,
-                'body'   => [
-                    'error' => 'There was an error processing your request. Please try again or contact support',
-                ],
-                    ]);
-        }
-        $ret = array (
-            'message' => array (
-                'success' => 'Password updated successfully.'
-            ),
-            'options' => array (
+        $userModel->set('salt', $password['salt']);
+        $userModel->save(null, null, ['password']);
+        $ret      = [
+            'message' => ['success' => 'Password updated successfully.'],
+            'options' => [
                 'endpoint' => '/user/' . __FUNCTION__,
                 'uuid'     => $params['uuid'],
-            )
-        );
-
+            ]
+        ];
         return new JsonResponse([ 'body' => $ret]);
     }
 
-    /**
-     * Get locations associated to a user
-     *
-     * @param int $uuid The UUID associated witht the user
-     *
-     * @return JsonResponse
-     */
     public function locations ()
-    {        
-        if (empty($this->request->query['uuid'])) {
-            return new JsonResponse([
-                'status' => 401,
-                'body'   => [ 'error' => 'User not found. Please provide a valid UUID.'],
-                    ]);
+    {
+        $errors = AppModel::validationErrors(['uuid'], $this->request->query);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
         }
-        $uuid = $this->request->query['uuid'];
-        $userModel = new User();
-        $user      = $userModel->find('first', array (
-            'recursive'  => - 1,
-            'conditions' => array (
-                'User.uuid' => $uuid
-            )
-                ));
+
+        $uuid      = $this->request->query['uuid'];
+        $userModel = $this->getUser();
+        $user      = $userModel->find('first', ['conditions' => ['User.uuid' => $uuid]]);
 
         if (empty($user)) {
-            return new JsonResponse([
-                'status' => 404,
-                'body'   => [ 'error' => 'User not found. Please provide a valid UUID.'],
-                    ]);
-        }
-        else {
-            $user = $user['User'];
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::USER_LOCATIONS_USER_NOTFOUND);
         }
 
-        try {
-            $locations = $this->_getLocations($user['usertype_id'], $user['id']);
-        }
-        catch (InvalidArgumentException $ie) {
-            return new JsonResponse([
-                'status' => 400,
-                'body'   => [ 'error' => $ie->getMessage()],
-                    ]);
-        }
-        catch (Exception $e) {
-            return new JsonResponse([
-                'status' => 500,
-                'body'   => [ 'error' => $e->getMessage()]
-                    ]);
-        }
-
-
-        $res['data']['locations'] = $locations;
-        $res['options']           = array (
+        $res['data']['locations'] = $this->_getLocations($user['User']['usertype_id'], $user['User']['id']);
+        $res['options']           = [
             'endpoint' => '/user/' . __FUNCTION__,
             'uuid'     => $uuid
-        );
-
-
-        return new JsonResponse([ 'body' => $res]);
+        ];
+        return new JsonResponse(['body' => $res]);
     }
 
-    /**
-     * Internal function to get the locations associated with a user
-     *
-     * @param $usertype_id
-     * @param $user_id
-     *
-     * @return array of Locations
-     * @throws InvalidArgumentException If the usertype is wrong or empty
-     *
-     */
     protected function _getLocations ($usertype_id, $user_id)
     {
-
-        if (empty($usertype_id) || !in_array($usertype_id, [
-                    UserType::$LOCATION_MANAGER,
-                    UserType::$EMPLOYEE
-                ])
-        ) {
-            throw new InvalidArgumentException('You need to be a location manager or an employee to have locations associated to you.');
-        }
-
         $locations = [];
         switch ($usertype_id) {
             case UserType::$LOCATION_MANAGER:
-                $locationLocationManagerModel = new LocationLocationmanager();
-                $locationsBundle              = $locationLocationManagerModel->find(
-                        'all', [
-                    'conditions' =>
-                    [ 'user_id' => $user_id],
-                        ]);
-
-                if (!empty($locationsBundle)) {
-                    foreach ($locationsBundle as $locationBundle) {
-                        if (!empty($locationBundle) && !empty($locationBundle['Location']['id'])) {
-                            $locations[$locationBundle['Location']['id']] = $locationBundle['Location']['name'];
-                        }
-                    }
-                }
+                $locationManagerModel         = $this->getLocationManager();
+                $locationManager              = $locationManagerModel->find('first', [
+                    'conditions' => ['user_id' => $user_id]
+                ]);
+                $locationLocationManagerModel = $this->getLocationLocationManager();
+                $locations                    = $locationLocationManagerModel->find('all', [
+                    'conditions' => ['locationmanager_id' => $locationManager['LocationManager']['id']]
+                ]);
+                $index                        = 'LocationLocationmanager';
                 break;
             case UserType::$EMPLOYEE:
-                $locationEmployeeModel = new LocationEmployee();
-                $locationsBundle       = $locationEmployeeModel->find('all', [ 'conditions' => [ 'user_id' => $user_id]]);
-                if (!empty($locationsBundle)) {
-                    foreach ($locationsBundle as $locationBundle) {
-                        if (!empty($locationBundle) && !empty($locationBundle['Location']['id'])) {
-                            $locations[$locationBundle['Location']['id']] = $locationBundle['Location']['name'];
-                        }
-                    }
-                }
-
-                return $locations;
-                break;
+                $employeeModel                = $this->getEmployee();
+                $employee                     = $employeeModel->find('first', [
+                    'conditions' => ['user_id' => $user_id]
+                ]);
+                $locationEmployeeModel        = $this->getLocationEmployee();
+                $locations                    = $locationEmployeeModel->find('all', [
+                    'conditions' => ['employee_id' => $employee['Employee']['id']]
+                ]);
+                $index                        = 'LocationEmployee';
         }
-
-        return $locations;
+        $return = [];
+        if (!empty($locations)) {
+            $locationModel = $this->getLocation();
+            foreach ($locations as $location) {
+                $location = $locationModel->find('first', ['conditions' => ['id' => $location[$index]['location_id']]]);
+                if (!empty($location)) {
+                    $return[$location['Location']['id']] = $location['Location']['name'];
+                }
+            }
+        }
+        return $return;
     }
 
 }

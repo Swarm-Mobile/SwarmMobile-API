@@ -1,74 +1,195 @@
 <?php
 
-require_once __DIR__ . '/Component/CompressedFunctions.php';
-
 App::uses('Model', 'Model');
-App::uses('Location', 'Model');
-App::uses('LocationSetting', 'Model');
-App::uses('Invoice', 'Model');
-App::uses('Customer', 'Model');
-App::uses('ValidatorComponent', 'Controller/Component');
+App::uses('Location', 'Model/Location');
+App::uses('LocationSetting', 'Model/Location');
+App::uses('Invoice', 'Model/POS');
+App::uses('Customer', 'Model/POS');
 
 class CustomerController extends AppController
 {
 
-    public $uses = ['Customer', 'Location', 'Invoice', 'LocationSetting'];
+    protected $customer;
+    protected $location;
+    protected $invoice;
+    protected $invoiceLine;
+    protected $locationSetting;
+
+    public function getCustomer ()
+    {
+        if (empty($this->customer)) {
+            App::uses('Customer', 'Model/POS');
+            $this->customer = new Customer();
+        }
+        return $this->customer;
+    }
+
+    public function getLocation ()
+    {
+        if (empty($this->location)) {
+            App::uses('Location', 'Model/Location');
+            $this->location = new Location();
+        }
+        return $this->location;
+    }
+
+    public function getInvoice ()
+    {
+        if (empty($this->invoice)) {
+            App::uses('Invoice', 'Model/POS');
+            $this->invoice = new Invoice();
+        }
+        return $this->invoice;
+    }
+
+    public function getInvoiceLine ()
+    {
+        if (empty($this->invoiceLine)) {
+            App::uses('InvoiceLine', 'Model/POS');
+            $this->invoiceLine = new InvoiceLine();
+        }
+        return $this->invoiceLine;
+    }
+
+    public function getLocationSetting ()
+    {
+        if (empty($this->locationSetting)) {
+            App::uses('LocationSetting', 'Model/Location');
+            $this->locationSetting = new LocationSetting();
+        }
+        return $this->locationSetting;
+    }
+
+    public function setCustomer (Customer $customer)
+    {
+        $this->customer = $customer;
+        return $this;
+    }
+
+    public function setLocation (Location $location)
+    {
+        $this->location = $location;
+        return $this;
+    }
+
+    public function setInvoice (Invoice $invoice)
+    {
+        $this->invoice = $invoice;
+        return $this;
+    }
+
+    public function setInvoiceLine (InvoiceLine $invoiceLine)
+    {
+        $this->invoiceLine = $invoiceLine;
+        return $this;
+    }
+
+    public function setLocationSetting (LocationSetting $locationSetting)
+    {
+        $this->locationSetting = $locationSetting;
+        return $this;
+    }
 
     public function customer ()
     {
-        $this->Customer->readFromParams(['customers_id' => $this->params->query['customer_id']]);
-        $result = [
-            'id'              => $this->Customer->data['Customer']['customer_id'],
-            'pos_customer_id' => $this->Customer->data['Customer']['ls_customer_id'],
-            'fullname'        => coalesce(ucwords(strtolower($this->Customer->data['Customer']['firstname'] . ' ' . $this->Customer->data['Customer']['lastname'])), ''),
-            'phone'           => coalesce($this->Customer->data['Customer']['phone'], ''),
-            'email'           => coalesce($this->Customer->data['Customer']['email'], ''),
-            'address'         => coalesce(ucwords(strtolower($this->Customer->data['Customer']['address1'] . ' ' . $this->Customer->data['Customer']['address2'])), ''),
-            'city'            => coalesce(ucwords(strtolower($this->Customer->data['Customer']['city'])), ''),
-            'state'           => coalesce($this->Customer->data['Customer']['state'], ''),
+        $errors = AppModel::validationErrors(['customer_id', 'location_id'], $this->request->query);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
+        }
+        
+        $locationId      = $this->params->query['location_id'];
+        $locationSetting = $this->getLocationSetting();
+        $locationSetting->setLocationId($locationId);
+
+        $customer = $this->getCustomer();
+        $customer->read(null, $this->params->query('customer_id'));
+        $c        = $customer->data['Customer'];
+        if (empty($c) || empty($c['store_id']) || !$this->_customerCheckLocation($locationId, $c['store_id'])) {
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::CUSTOMER_CUSTOMER_INVALID_CUSTOMER);
+        }
+
+        $customerResult = $this->_customerGetResultStruct($customer->data['Customer']);
+        $invoices       = $this->_customerGetInvoices($customer->data['Customer'], $locationSetting->getTimezone());
+        $result         = $this->_customerProcessInvoices($customerResult, $invoices);
+        return new JsonResponse(['body' => $result]);
+    }
+
+    public function customers ()
+    {
+        $errors = AppModel::validationErrors(['location_id'], $this->request->query);
+        if (!empty($errors)) {
+            throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($errors));
+        }
+        
+        $location = $this->getLocation();
+        $location->read(null, $this->params->query['location_id']);
+
+        $locationSetting = $this->getLocationSetting();
+        $locationSetting->setLocationId($this->params->query['location_id']);
+        $storeId         = $locationSetting->getSettingValue(LocationSetting::POS_STORE_ID);
+        if (empty($storeId)) {
+            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::CUSTOMER_CUSTOMERS_STORE_NOTFOUND);
+        }
+
+        $p                = $this->params->query;
+        $order            = isset($p['order']) ? $p['order'] : 'last_seen';
+        $limit            = isset($p['limit']) ? $p['limit'] : 25;
+        $page             = isset($p['page']) ? $p['page'] : 1;
+        $offset           = ($page > 1) ? $page * $limit : 0;
+        $filters          = $this->_customersGetFilters($this->params->query);
+        $locationTimezone = $locationSetting->getTimezone();
+
+        $customerModel = $this->getCustomer();
+        $customers     = $customerModel->search($storeId, $filters, $order, $limit, $offset, $locationTimezone);
+        return new JsonResponse(['body' => $this->_customersProcessCustomers($customers)]);
+    }
+
+    private function _customerGetResultStruct ($customer)
+    {
+        $c                 = $customer;
+        $possibleFullnames = array_filter([ucwords(strtolower($c['firstname'] . ' ' . $c['lastname'])), '']);
+        $possiblePhones    = array_filter([$c['phone'], '']);
+        $possibleEmails    = array_filter([$c['email'], '']);
+        $possibleAddresses = array_filter([ucwords(strtolower($c['address1'] . ' ' . $c['address2'])), '']);
+        $possibleCities    = array_filter([ucwords(strtolower($c['city'])), '']);
+        $possibleStates    = array_filter([$c['state'], '']);
+        $result            = [
+            'id'              => $c['customer_id'],
+            'pos_customer_id' => $c['ls_customer_id'],
+            'fullname'        => array_shift($possibleFullnames),
+            'phone'           => array_shift($possiblePhones),
+            'email'           => array_shift($possibleEmails),
+            'address'         => array_shift($possibleAddresses),
+            'city'            => array_shift($possibleCities),
+            'state'           => array_shift($possibleStates),
             'country'         => '',
             'transactions'    => []
         ];
+        return $result;
+    }
 
-        $setting = $this->LocationSetting->find('first', [
-            'conditions' => [
-                'value'      => $this->Customer->data['Customer']['store_id'],
-                'setting_id' => settId('pos_store_id')
-            ]
-                ]
-        );
-        if (empty($setting)) {
-            throw new Exception("Incorrect location_id");
-        }
-        $locationId        = $setting['LocationSetting']['location_id'];
-        $locationIdRequest = $this->params->query['location_id'];
-        $posStoreIdRequest = $this->LocationSetting->getSettingValue('pos_store_id', $locationIdRequest);
-        if ($this->Customer->data['Customer']['store_id'] != $posStoreIdRequest) {
-            throw new Exception("Incorrect location_id");
-        }
-
-        $locationTimezone = $this->LocationSetting->getSettingValue('timezone', $locationId);
-
-        try {
-            new DateTimeZone($locationTimezone);
-        }
-        catch (Exception $e) {
-            $locationTimezone = 'America/Los_Angeles';
-        }
-
-        $invoices = $this->Invoice->find('all', [
-            'fields'     => [
-                'CONVERT_TZ(ts, "GMT", "' . $locationTimezone . '") ts',
-                'Invoice.total',
-            ],
-            'conditions' => [
-                'Invoice.customer_id' => $this->Customer->data['Customer']['ls_customer_id'],
-                'Invoice.store_id'    => $this->Customer->data['Customer']['store_id'],
-                'Invoice.completed'   => 1
-            ],
-            'order'      => 'Invoice.ts DESC'
+    private function _customerGetInvoices ($customer, $locationTimezone)
+    {
+        $invoiceModel = $this->getInvoice();
+        return $invoiceModel->find('all', [
+                    'fields'     => [
+                        'Invoice.invoice_id',
+                        'CONVERT_TZ(ts, "GMT", "' . $locationTimezone . '") ts',
+                        'Invoice.total',
+                    ],
+                    'conditions' => [
+                        'Invoice.customer_id' => $customer['ls_customer_id'],
+                        'Invoice.store_id'    => $customer['store_id'],
+                        'Invoice.completed'   => 1
+                    ],
+                    'order'      => 'Invoice.ts DESC'
         ]);
+    }
+
+    private function _customerProcessInvoices ($result, $invoices = [])
+    {
         if (!empty($invoices)) {
+            $invoiceLineModel = $this->getInvoiceLine();
             foreach ($invoices as $invoice) {
                 $transaction = [
                     'date'  => $invoice[0]['ts'],
@@ -76,45 +197,43 @@ class CustomerController extends AppController
                     'items' => 0,
                     'lines' => []
                 ];
-                foreach ($invoice['InvoiceLine'] as $line) {
+                $lines       = $invoiceLineModel->find('all', [
+                    'conditions' => ['invoice_id' => $invoice['Invoice']['invoice_id']]
+                ]);
+                foreach ($lines as $line) {
                     $transaction['lines'][] = [
-                        'description' => ucwords(strtolower($line['description'])),
-                        'quantity'    => $line['quantity'],
-                        'price'       => $line['price']
+                        'description' => ucwords(strtolower($line['InvoiceLine']['description'])),
+                        'quantity'    => $line['InvoiceLine']['quantity'],
+                        'price'       => $line['InvoiceLine']['price']
                     ];
-                    $transaction['items'] += $line['quantity'];
+                    $transaction['items'] += $line['InvoiceLine']['quantity'];
                 }
                 $result['transactions'][] = $transaction;
             }
         }
-        return new JsonResponse(['body' => $result]);
+        return $result;
     }
 
-    public function customers ()
+    private function _customerCheckLocation ($location_id, $store_id)
     {
-        $this->Location->readFromParams($this->params->query, 1);
-        $storeId = settVal('pos_store_id', $this->Location->data['Setting']);
-        if (empty($storeId)) {
-            throw new Exception("Incorrect location_id");
-        }
+        $locationSetting = $this->getLocationSetting();
+        $setting         = $locationSetting->find('first', [
+            'conditions' => [
+                'value'       => $store_id,
+                'setting_id'  => LocationSetting::POS_STORE_ID,
+                'location_id' => $location_id
+            ]
+        ]);
+        return !empty($setting);
+    }
 
-        $locationSetting  = new LocationSetting();
-        $locationTimezone = $locationSetting->getSettingValue('timezone', $this->Location->id);
-
-        try {
-            new DateTimeZone($locationTimezone);
-        }
-        catch (Exception $e) {
-            $locationTimezone = 'America/Los_Angeles';
-        }
-
-        $p      = $this->params->query;
-        $order  = isset($p['order']) ? $p['order'] : 'last_seen';
-        $limit  = isset($p['limit']) ? $p['limit'] : 25;
-        $page   = isset($p['page']) ? $p['page'] : 1;
-        $offset = ($page > 1) ? $page * $limit : 0;
-
-        $filters   = array_filter([
+    private function _customersGetFilters ($params)
+    {
+        $p                 = $params;
+        $locationSetting   = $this->getLocationSetting();
+        $possibleOutlets   = array_filter([$locationSetting->getSettingValue(LocationSetting::OUTLET_FILTER), false]);
+        $possibleRegisters = array_filter([$locationSetting->getSettingValue(LocationSetting::REGISTER_FILTER), false]);
+        return array_filter([
             'visit'       => isset($p['minVisits']) ? $p['minVisits'] : false,
             'sku'         => isset($p['sku']) ? $p['sku'] : false,
             'category'    => isset($p['category']) ? $p['category'] : false,
@@ -124,11 +243,14 @@ class CustomerController extends AppController
             'brand'       => isset($p['brand']) ? $p['brand'] : false,
             'start_date'  => isset($p['start_date']) ? $p['start_date'] : false,
             'end_date'    => isset($p['end_date']) ? $p['end_date'] : false,
-            'outlet'      => coalesce(settVal('outlet_filter', $this->Location->data['Setting']), false),
-            'register'    => coalesce(settVal('register_filter', $this->Location->data['Setting']), false),
+            'outlet'      => array_shift($possibleOutlets),
+            'register'    => array_shift($possibleRegisters),
         ]);
-        $result    = [];
-        $customers = $this->Customer->search($storeId, $filters, $order, $limit, $offset, $locationTimezone);
+    }
+
+    private function _customersProcessCustomers ($customers)
+    {
+        $result = [];
         if (!empty($customers)) {
             foreach ($customers as $customer) {
                 $result[] = [
@@ -142,7 +264,7 @@ class CustomerController extends AppController
                 ];
             }
         }
-        return new JsonResponse(['body' => $result]);
+        return $result;
     }
 
 }

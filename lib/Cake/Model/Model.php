@@ -1350,7 +1350,7 @@ class Model extends Object implements CakeEventListener {
  * @param boolean|string $field Set to true to reload schema, or a string to return a specific field
  * @return array Array of table metadata
  */
-	public function schema($field = false) {
+	public function schema($field = false) {            
 		if ($this->useTable !== false && (!is_array($this->_schema) || $field === true)) {
 			$db = $this->getDataSource();
 			$db->cacheSources = ($this->cacheSources && $db->cacheSources);

@@ -1,6 +1,5 @@
 <?php
 
-require_once(__DIR__ . '/../../Controller/Component/DBComponent.php');
 App::uses('AppShell', 'Console/Command');
 App::uses('Model', 'Model');
 
