@@ -204,8 +204,8 @@ class LocationSetting extends AppModel
             $openCloseByDay[$day][$openClose] = $setting['LocationSetting']['value'];
         }
         foreach ($days as $day) {            
-            $open         = $openCloseByDay[$day]['open'];
-            $close        = $openCloseByDay[$day]['close'];
+            $open         = isset($openCloseByDay[$day]['open'])?$openCloseByDay[$day]['open']:'';
+            $close        = isset($openCloseByDay[$day]['close'])?$openCloseByDay[$day]['close']:'';
             $return[$day] = [
                 'isOpen' => $open !== '0' && $close !== '0',
                 'open'   => $open === '0' || !empty($open) ? $open : '09:00',
