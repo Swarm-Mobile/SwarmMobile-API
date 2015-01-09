@@ -445,18 +445,18 @@ class LocationController extends AppController
     private function _sendLocationCreateEmail ($location, $data)
     {
         //TODO: Move to New Relic
-        $subject = "Location #" . $location->id . ' ( ' . $location->data['name'] . ' ) was added from API';
+        $subject = "Location #" . $location->id . ' ( ' . $data['name'] . ' ) was added from API';
         $msg     = <<<TEXT
 <div>
     Location {$location->id} was just added/modified on the
     MDM using the API with the following info:
 </div>
 <ul>
-    <li>Location Name: {$location->data['name']}</li>    
-    <li>Address      : {$data['Location']['address1']}</li>    
-    <li>City         : {$data['Location']['city']}</li>    
-    <li>Country      : {$data['Location']['country']}</li>
-    <li>ZipCode      : {$data['Location']['zipcode']}</li>
+    <li>Location Name: {$data['name']}</li>    
+    <li>Address      : {$data['address1']}</li>    
+    <li>City         : {$data['city']}</li>    
+    <li>Country      : {$data['country']}</li>
+    <li>ZipCode      : {$data['zipcode']}</li>
 </ul>
 TEXT;
         EmailQueueComponent::queueEmail('info@swarm-mobile.com', 'Info', 'am@swarm-mobile.com', 'AM', $subject, $msg);
