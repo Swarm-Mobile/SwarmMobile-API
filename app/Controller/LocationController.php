@@ -380,8 +380,8 @@ class LocationController extends AppController
         ];
         $days   = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         foreach($days as $day){
-            $result['data'][$day]['open'] = $openHours[$day]['open'];
-            $result['data'][$day]['close'] = $openHours[$day]['close'];
+            $result['data'][$day]['open']  = isset($openHours[$day]['open'])?$openHours[$day]['open']:'9:00';
+            $result['data'][$day]['close'] = isset($openHours[$day]['close'])?$openHours[$day]['close']:'21:00';
         }        
         return new JsonResponse(['body' => $result]);
     }
