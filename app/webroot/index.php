@@ -103,6 +103,4 @@ if (!empty($failed)) {
 App::uses('Dispatcher', 'Routing');
 
 $Dispatcher = new Dispatcher();
-NewRelicComponent::startTransaction();
 $Dispatcher->dispatch(new CakeRequest(), new CakeResponse());
-NewRelicComponent::endTransaction();
