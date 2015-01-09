@@ -5,7 +5,7 @@ class AppError
 
     public static function handleError ($code, $description, $file = null, $line = null, $context = null)
     {
-        NewRelicComponent::noticeError($error, 
+        NewRelicComponent::noticeError(new \Exception($description, $code), 
             [
                 'error_no'          => $code,
                 'error_description' => $description,

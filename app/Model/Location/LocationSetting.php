@@ -169,9 +169,43 @@ class LocationSetting extends AppModel
     {
         $days   = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         $return = [];
-        foreach ($days as $day) {
-            $open         = $this->getSettingValue(constant('LocationSetting::' . strtoupper($day . '_open')));
-            $close        = $this->getSettingValue(constant('LocationSetting::' . strtoupper($day . '_close')));
+        $openCloseByDay = [];
+        $weekSettings = [];
+        foreach ($days as $day) {            
+            $weekSettings[] = constant('LocationSetting::' . strtoupper($day . '_open'));
+            $weekSettings[] = constant('LocationSetting::' . strtoupper($day . '_close'));
+        }
+        $db    = $this->getDataSource();
+        $query = [
+            'table'      => 'location_setting',
+            'alias'      => 'LocationSetting',
+            'conditions' => [],
+            'fields'     => [
+                "LocationSetting.value",
+                "Setting.name",                    
+            ],                
+            'joins'=>[
+                [
+                    'table'      => 'setting',
+                    'alias'      => 'Setting',
+                    'type'       => 'INNER',
+                    'conditions' => [
+                        'Setting.id = LocationSetting.setting_id',
+                        'Setting.id' => $weekSettings,
+                        'LocationSetting.location_id' => $this->getLocationId()
+                    ]
+                ]
+            ]
+        ];
+        $querySQL = $db->buildStatement($query, $this);        
+        $result   = $db->fetchAll($querySQL);        
+        foreach ($result as $setting){
+            list($day, $openClose) = explode('_', $setting['Setting']['name']);
+            $openCloseByDay[$day][$openClose] = $setting['LocationSetting']['value'];
+        }
+        foreach ($days as $day) {            
+            $open         = $openCloseByDay[$day]['open'];
+            $close        = $openCloseByDay[$day]['close'];
             $return[$day] = [
                 'isOpen' => $open !== '0' && $close !== '0',
                 'open'   => $open === '0' || !empty($open) ? $open : '09:00',
@@ -250,9 +284,13 @@ class LocationSetting extends AppModel
 
         //Check if have portal
         $visitorEvent = new VisitorEvent();
-        $count        = $visitorEvent->find('count', ['conditions' => [
-                'location_id' => $this->getLocationId()
-        ]]);
+        $count        = $visitorEvent->find('count', 
+            [
+                'conditions' => [
+                    'location_id' => $this->getLocationId()
+                ]   
+            ]
+        );
         if ($count > 0) {
             $return[] = 'portal';
         }
