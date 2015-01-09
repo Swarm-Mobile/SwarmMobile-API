@@ -22,7 +22,6 @@ if (extension_loaded('newrelic')) {
 	if(!empty($env) && $env == 'live'){
 		newrelic_set_appname ('API');
 	}
-
 	if(!empty($env) && $env == 'staging'){
 		newrelic_set_appname ('API Staging');
 	}

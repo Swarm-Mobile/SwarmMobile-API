@@ -7,6 +7,7 @@ App::uses('LocationSetting', 'Model/Location');
 App::uses('Device', 'Model/Device');
 App::uses('DeviceType', 'Model/Device');
 App::uses('CakeEmail', 'Network/Email');
+App::uses('NewRelicComponent', 'Controller/Component');
 
 class RollupShell extends AppShell
 {
@@ -149,21 +150,6 @@ class RollupShell extends AppShell
         $this->output('');
     }
 
-    private function notifyByEmail (Exception $e, $locationId)
-    {
-        $this->output('Something goes wrong rebuilding');
-        $this->output($e->getMessage());
-        if ($e->getMessage() != 'No data on sessions registered for this location.') {
-            $this->output('Sending email to dev@swarm-mobile.com');
-            $Email = new CakeEmail();
-            $Email->from(['info@swarm-mobile.com' => 'Info']);
-            $Email->to('dev@swarm-mobile.com');
-            $Email->subject('Rollup Issue: Location #' . $locationId);
-            $Email->send('The script throw: ' . $e->getMessage());
-            $this->output('Email sended.');
-        }
-    }
-
     private function processLocations ($locations, $parts)
     {
         $rebuild      = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
@@ -176,6 +162,7 @@ class RollupShell extends AppShell
         $index        = 0;
         $total        = count($locations);
         foreach ($locations as $locationId) {
+            NewRelicComponent::startTransaction('rollup/' . $locationId, true);
             $startDate  = (empty($this->params['start_date'])) ? date('Y-m-d', time() - 7 * 24 * 3600) : $this->params['start_date'];
             $endDate    = (empty($this->params['end_date'])) ? date('Y-m-d', time() + 2 * 24 * 3600) : $this->params['end_date'];
             $index++;
@@ -197,17 +184,24 @@ class RollupShell extends AppShell
                 $this->output("End               : " . date('H:i:s') . "\n");
             }
             catch (Exception $e) {
-                $this->notifyByEmail($e, $locationId);
-                continue;
+                NewRelicComponent::noticeError($e,  
+                    [
+                        'error_no'          => $e->getCode(),
+                        'error_description' => $e->getMessage(),                                                
+                        'exception_type'    => get_class($e),
+                        'exception_file'    => $e->getFile(),
+                        'exception_line'    => $e->getLine(),                
+                    ]
+                );               
+            }
+            finally {
+                NewRelicComponent::addCustomParameter('locationId', $locationId);
+                NewRelicComponent::addCustomParameter('startDate', $startDate);
+                NewRelicComponent::addCustomParameter('endDate', $endDate);
+                NewRelicComponent::addCustomParameter('metrics', $filterMetric);
+                NewRelicComponent::endTransaction();
             }
         }
-    }
-
-    private function logMessage ($message)
-    {
-        $log = fopen(__DIR__ . '/../../tmp/logs/rollup.log', 'a+');
-        fwrite($log, $message);
-        fclose($log);
     }
 
     public function main ($console = true)
@@ -223,12 +217,10 @@ class RollupShell extends AppShell
         $parts[0] = $parts[0] == 'start' ? $minute + 1 : $parts[0];
         $parts[0] = $parts[0] == 'end' ? 60 - $minute : $parts[0];
 
-        $this->logMessage('INI:' . date('Y-m-d H:i:s') . ' ' . $parts[0] . '/' . $parts[1] . ' HASH:' . $hash . "\n");
         $locations = $this->getLocationList($locationId);
         $tmp       = array_chunk($locations, ceil(count($locations) / $parts[1]));
         $locations = $tmp[$parts[0] - 1];
         $this->processLocations($locations, $parts);
-        $this->logMessage('END:' . date('Y-m-d H:i:s') . ' ' . $parts[0] . '/' . $parts[1] . ' HASH:' . $hash . "\n");
     }
 
     public function getOptionParser ()

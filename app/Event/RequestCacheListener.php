@@ -47,12 +47,10 @@ class RequestCacheListener implements CakeEventListener
     public function setCache (CakeEvent $event)
     {
         if ($event->data['request']->is('get') && $event->data['response']->statusCode() == '200') {
-            $params   = $event->data['request']->query;
-            unset($params['access_token']);
             list($endpoint, ) = explode('?', $_SERVER['REQUEST_URI'] . '?');
-            $hash     = hash('sha256', $endpoint . '-' . hash('sha256', json_encode($params)));
-            $response = $event->data['response']->body();
             $redis    = RedisComponent::getInstance('APICache');
+            $hash     = RedisComponent::getHash($endpoint, $event->data['request']->query);
+            $response = $event->data['response']->body();
             if (!$redis->exists($hash)) {
                 $redis->set($hash, $response);
                 $redis->expire($hash, 60);

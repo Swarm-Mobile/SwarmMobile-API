@@ -2,7 +2,6 @@
 
 App::uses('AppController', 'Controller');
 App::uses('DeviceType', 'Model/Device');
-App::uses('NewRelicComponent', 'Controller/Component');
 
 require_once(APP . 'Controller/Component/S3FactoryComponent.php');
 
@@ -256,24 +255,12 @@ class DeviceController extends AppController
         $device->create($data, false);
         if ($device->save(null, false)) {
             $key = SwarmErrorCodes::DEVICE_ASSIGN_DEVICE_CREATE;
-            NewRelicComponent::createTransaction(
-                "MISSING_DEVICE_CREATED_VIA_API", 
-                [
-                    $key          => SwarmErrorCodes::$messages[$key],
-                    'deviceId'    => $device->id,
-                    'deviceAlias' => $data['Device']['alias']
-                ]
-            );
+            NewRelicComponent::addCustomParameter("MISSING_DEVICE_CREATED_VIA_API", 1);
+            NewRelicComponent::addCustomParameter("deviceId", $device->id);
+            NewRelicComponent::addCustomParameter("deviceAlias", $data['Device']['alias']);            
         }
         else {
             $key = SwarmErrorCodes::DEVICE_ASSIGN_DEVICE_CREATE_ERROR;
-            NewRelicComponent::createTransaction(
-                "MISSING_DEVICE_CREATION_FAILED_VIA_API", 
-                [
-                    $key           => SwarmErrorCodes::$messages[$key],
-                    "deviceSerial" => $data['Device']['serial']
-                ]
-            );
             throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::DEVICE_ASSIGN_DEVICE_CREATE_ERROR);
         }
     }

@@ -12,21 +12,17 @@ class AppError
     }
 
     public static function handleException (Exception $error)
-    {                        
-        if (extension_loaded('newrelic')) {
-            newrelic_notice_error($error->getMessage(), $error);
+    {              
+        switch (get_class($error)) {
+            case 'Swarm\BadRequestException'          : $code = 400; break;
+            case 'Swarm\NotFoundException'            : $code = 404; break;
+            case 'Swarm\UnauthorizedException'        : $code = 401; break;
+            case 'Swarm\UnprocessableEntityException' : $code = 422; break;
+            case 'Swarm\ApplicationErrorException'    :
+            default                                   : $code = (!empty($error->getCode())) ? $error->getCode() : 500;
         }
-        switch(get_class($error)){
-            case 'Swarm\BadRequestException':           $code = 400; break;
-            case 'Swarm\NotFoundException':             $code = 404; break;
-            case 'Swarm\UnauthorizedException':         $code = 401; break;
-            case 'Swarm\UnprocessableEntityException':  $code = 422; break;
-            case 'Swarm\ApplicationErrorException':
-            default:
-                $code = (!empty($error->getCode()))?$error->getCode():500;
-                
-        }        
-        $description = ($code == 404)?'Not Found':$error->getMessage();
+        $description = ($code == 404) ? 'Not Found' : $error->getMessage();
+        $error_no    = (!empty($error->getCode())) ? $error->getCode() : 999;
         header("HTTP/1.1 $code");
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: POST, GET");
@@ -37,10 +33,22 @@ class AppError
         header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
         echo json_encode(
             [
-                'error'             => (!empty($error->getCode()))?$error->getCode():999, 
+                'error'             => $error_no,
                 'error_description' => $description
             ]
         );
+        NewRelicComponent::noticeError($error,  
+            [
+                'error_no'          => $error_no,
+                'error_description' => $description,
+                'request_uri'       => $_SERVER['REQUEST_URI'],
+                'request_params'    => json_encode($_POST),
+                'exception_type'    => get_class($error),
+                'exception_file'    => $error->getFile(),
+                'exception_line'    => $error->getLine(),                
+            ]
+        );     
         die();
     }
+
 }
