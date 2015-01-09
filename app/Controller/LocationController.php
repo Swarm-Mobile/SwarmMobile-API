@@ -371,7 +371,13 @@ class LocationController extends AppController
         $ls     = $this->getLocationSetting();
         $ls->setLocationId($locationId);
         $openHours = $ls->getOpenHours();
-        $result = ['data'=>[]];
+        $result = [
+            'data'=>[],            
+            'options' => [
+                'endpoint'    => '/location/openHours',
+                'location_id' => $locationId
+            ]
+        ];
         $days   = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         foreach($days as $day){
             $result['data'][$day]['open'] = $openHours[$day]['open'];
