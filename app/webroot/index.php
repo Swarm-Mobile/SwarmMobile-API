@@ -18,18 +18,6 @@
  * @since         CakePHP(tm) v 0.2.9
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-if (extension_loaded('newrelic')) {
-    $env = getenv('server_location');
-    if (!empty($env) && $env == 'live') {
-        newrelic_set_appname('API');
-    }
-    else if (!empty($env) && $env == 'staging') {
-        newrelic_set_appname('API Staging');
-    }
-    else {
-        newrelic_set_appname('API Test');
-    }
-}
 
 /**
  * Use the DS to separate the directories in other defines
@@ -115,6 +103,4 @@ if (!empty($failed)) {
 App::uses('Dispatcher', 'Routing');
 
 $Dispatcher = new Dispatcher();
-$Dispatcher->dispatch(
-        new CakeRequest(), new CakeResponse()
-);
+$Dispatcher->dispatch(new CakeRequest(), new CakeResponse());

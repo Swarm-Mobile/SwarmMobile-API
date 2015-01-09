@@ -15,10 +15,8 @@ class NewRelicComponent
 
     public static function startTransaction ($transactionName, $isBackground = false)
     {
-        if (extension_loaded('newrelic')) {
-            $env     = getenv('server_location');
-            $appName = $env == 'live' ? 'API' : ($env == 'staging') ? 'API Staging' : 'API Test';
-            newrelic_start_transaction($appName);
+        if (extension_loaded('newrelic')) {            
+            newrelic_start_transaction();
             newrelic_background_job($isBackground);
             newrelic_name_transaction($transactionName);
         }
