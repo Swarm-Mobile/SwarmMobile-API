@@ -253,16 +253,19 @@ class DeviceController extends AppController
         $data['Device']['alias']                = "LocationId-" . $this->request->data['location_id'];
         $device                                 = $this->getDevice();
         $device->create($data, false);
+        NewRelicComponent::startTransaction("MISSING_DEVICE_CREATED_VIA_API");
         if ($device->save(null, false)) {
             $key = SwarmErrorCodes::DEVICE_ASSIGN_DEVICE_CREATE;
             NewRelicComponent::addCustomParameter("MISSING_DEVICE_CREATED_VIA_API", 1);
             NewRelicComponent::addCustomParameter("deviceId", $device->id);
             NewRelicComponent::addCustomParameter("deviceAlias", $data['Device']['alias']);            
+            NewRelicComponent::addCustomParameter("success", true);
         }
         else {
+            NewRelicComponent::addCustomParameter("success", false);
             $key = SwarmErrorCodes::DEVICE_ASSIGN_DEVICE_CREATE_ERROR;
             throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::DEVICE_ASSIGN_DEVICE_CREATE_ERROR);
-        }
+        }        
     }
 
 }

@@ -13,7 +13,7 @@ class NewRelicComponent
         }
     }
 
-    public static function startTransaction ($transactionName, $isBackground = false)
+    public static function startTransaction ($transactionName = null, $isBackground = false)
     {
         if (extension_loaded('newrelic')) {            
             newrelic_start_transaction();
