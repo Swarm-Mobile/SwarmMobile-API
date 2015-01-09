@@ -370,42 +370,13 @@ class LocationController extends AppController
         }
         $ls     = $this->getLocationSetting();
         $ls->setLocationId($locationId);
-        $result = [
-            'data'    => [
-                'monday'    => [
-                    'open'  => $ls->getSettingValue(LocationSetting::MONDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::MONDAY_CLOSE)
-                ],
-                'tuesday'   => [
-                    'open'  => $ls->getSettingValue(LocationSetting::TUESDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::TUESDAY_CLOSE)
-                ],
-                'wednesday' => [
-                    'open'  => $ls->getSettingValue(LocationSetting::WEDNESDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::WEDNESDAY_CLOSE)
-                ],
-                'thursday'  => [
-                    'open'  => $ls->getSettingValue(LocationSetting::THURSDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::THURSDAY_CLOSE)
-                ],
-                'friday'    => [
-                    'open'  => $ls->getSettingValue(LocationSetting::FRIDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::FRIDAY_CLOSE)
-                ],
-                'saturday'  => [
-                    'open'  => $ls->getSettingValue(LocationSetting::SATURDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::SATURDAY_CLOSE)
-                ],
-                'sunday'    => [
-                    'open'  => $ls->getSettingValue(LocationSetting::SUNDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::SUNDAY_CLOSE)
-                ],
-            ],
-            'options' => [
-                'endpoint'    => '/location/openHours',
-                'location_id' => $locationId
-            ]
-        ];
+        $openHours = $ls->getOpenHours();
+        $result = ['data'=>[]];
+        $days   = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        foreach($days as $day){
+            $result['data'][$day]['open'] = $openHours[$day]['open'];
+            $result['data'][$day]['close'] = $openHours[$day]['close'];
+        }        
         return new JsonResponse(['body' => $result]);
     }
 
