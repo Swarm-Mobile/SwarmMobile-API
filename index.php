@@ -30,13 +30,12 @@ define('WEBROOT_DIR', 'webroot');
 define('WWW_ROOT', ROOT . DS . APP_DIR . DS . WEBROOT_DIR . DS);
 
 if (extension_loaded('newrelic')) {
-	$env = getenv('server_location');
-	if(!empty($env) && $env == 'live'){
-		newrelic_set_appname ('API');
-	}
-	if(!empty($env) && $env == 'staging'){
-		newrelic_set_appname ('API Staging');
-	}
+    $env = getenv('server_location');
+    if(!empty($env) && $env == 'live'){
+        newrelic_set_appname ('API');
+    } else {
+        newrelic_set_appname ('API Staging');        
+    }    
 }
 
 
