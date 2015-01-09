@@ -152,6 +152,9 @@ class RollupShell extends AppShell
 
     private function processLocations ($locations, $parts)
     {
+        if(empty($locations)) {
+            return;         
+        }
         $rebuild      = (empty($this->params['rebuild'])) ? false : $this->params['rebuild'];
         $filterMetric = (empty($this->params['filter_metric'])) ? 'all' : $this->params['filter_metric'];
         $rebuild_text = ($rebuild) ? 'YES' : 'NO';
@@ -219,7 +222,7 @@ class RollupShell extends AppShell
 
         $locations = $this->getLocationList($locationId);
         $tmp       = array_chunk($locations, ceil(count($locations) / $parts[1]));
-        $locations = $tmp[$parts[0] - 1];
+        $locations = isset($tmp[$parts[0] - 1])?$tmp[$parts[0] - 1]:[];
         $this->processLocations($locations, $parts);
     }
 
