@@ -156,8 +156,12 @@ class LocationSetting extends AppModel
     public function getTimezone ()
     {
         $timezone = $this->getSettingValue(LocationSetting::TIMEZONE);
-        $timezones = DateTimeZone::listIdentifiers();
-        return in_array($timezone, $timezones)?$timezone:'America/Los_Angeles';        
+        try {
+            @new DateTimeZone($timezone);
+        } catch (Exception $e) {
+            $timezone = 'America/Los_Angeles';
+        }
+        return $timezone;
     }
 
     public function getOpenHours ()
