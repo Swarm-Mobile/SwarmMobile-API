@@ -23,6 +23,7 @@ class AppError
             case 'Swarm\BadRequestException'          : $code = 400; break;
             case 'Swarm\NotFoundException'            : $code = 404; break;
             case 'Swarm\UnauthorizedException'        : $code = 401; break;
+            case 'Swarm\RequestValidationException'   :
             case 'Swarm\UserInputException'           :
             case 'Swarm\UnprocessableEntityException' : $code = 422; break;
             case 'Swarm\ApplicationErrorException'    :

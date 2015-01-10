@@ -87,7 +87,7 @@ class UserControllerTest extends PHPUnit_Framework_TestCase
             $userController->register();
             $this->assertTrue(false);
         }
-        catch (Swarm\RequestValidationException $e) {
+        catch (Swarm\UserInputException $e) {
             $this->assertEquals(SwarmErrorCodes::VALIDATION_ERROR, $e->getCode());
         }
     }
@@ -133,7 +133,7 @@ class UserControllerTest extends PHPUnit_Framework_TestCase
             $userController->login();
             $this->assertTrue(false);
         }
-        catch (Swarm\UnprocessableEntityException $e) {
+        catch (Swarm\UserInputException $e) {
             $this->assertEquals(SwarmErrorCodes::INVALID_CREDENTIALS, $e->getCode());
         }
     }
