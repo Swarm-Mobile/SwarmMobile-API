@@ -41,7 +41,7 @@ class LocationSettingTest extends PHPUnit_Framework_TestCase
         $locationSetting = new LocationSetting();
         $locationSetting->setLocationId(689);
         $timezone        = $locationSetting->getTimezone();
-        $this->assertEquals('Etc/GMT+10', $timezone);
+        $this->assertEquals('Pacific/Guam', $timezone);
 
         $locationSetting->setLocationId(123);
         $timezone = $locationSetting->getTimezone();
