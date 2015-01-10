@@ -177,31 +177,31 @@ class Dispatcher implements CakeEventListener {
  * @param CakeResponse $response The response object to receive the output
  * @return CakeResponse the resulting response object
  */
-	protected function _invoke(Controller $controller, CakeRequest $request, CakeResponse $response) {
-		$controller->constructClasses();
-		$controller->startupProcess();
+    protected function _invoke(Controller $controller, CakeRequest $request, CakeResponse $response) {
+        $controller->constructClasses();
+        $controller->startupProcess();
         $newrelicURL = explode('/', $controller->request->url);
         if (isset($newrelicURL[0]) && isset($newrelicURL[1])) {
             if (extension_loaded ('newrelic')) {
                 newrelic_name_transaction ($newrelicURL[0] . '/' . $newrelicURL[1]);
             }
         }
-		$render = true;
-		$result = $controller->invokeAction($request);
-		if ($result instanceof CakeResponse) {
-			$render = false;
-			$response = $result;
-		}
+        $render = true;
+        $result = $controller->invokeAction($request);
+        if ($result instanceof CakeResponse) {
+                $render = false;
+                $response = $result;
+        }
 
-		if ($render && $controller->autoRender) {
-			$response = $controller->render();
-		} elseif (!($result instanceof CakeResponse) && $response->body() === null) {
-			$response->body($result);
-		}
-		$controller->shutdownProcess();
+        if ($render && $controller->autoRender) {
+                $response = $controller->render();
+        } elseif (!($result instanceof CakeResponse) && $response->body() === null) {
+                $response->body($result);
+        }
+        $controller->shutdownProcess();
 
-		return $response;
-	}
+        return $response;
+    }
 
 /**
  * Applies Routing and additionalParameters to the request to be dispatched.

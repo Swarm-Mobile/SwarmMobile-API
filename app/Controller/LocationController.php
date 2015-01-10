@@ -370,42 +370,19 @@ class LocationController extends AppController
         }
         $ls     = $this->getLocationSetting();
         $ls->setLocationId($locationId);
+        $openHours = $ls->getOpenHours();
         $result = [
-            'data'    => [
-                'monday'    => [
-                    'open'  => $ls->getSettingValue(LocationSetting::MONDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::MONDAY_CLOSE)
-                ],
-                'tuesday'   => [
-                    'open'  => $ls->getSettingValue(LocationSetting::TUESDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::TUESDAY_CLOSE)
-                ],
-                'wednesday' => [
-                    'open'  => $ls->getSettingValue(LocationSetting::WEDNESDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::WEDNESDAY_CLOSE)
-                ],
-                'thursday'  => [
-                    'open'  => $ls->getSettingValue(LocationSetting::THURSDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::THURSDAY_CLOSE)
-                ],
-                'friday'    => [
-                    'open'  => $ls->getSettingValue(LocationSetting::FRIDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::FRIDAY_CLOSE)
-                ],
-                'saturday'  => [
-                    'open'  => $ls->getSettingValue(LocationSetting::SATURDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::SATURDAY_CLOSE)
-                ],
-                'sunday'    => [
-                    'open'  => $ls->getSettingValue(LocationSetting::SUNDAY_OPEN),
-                    'close' => $ls->getSettingValue(LocationSetting::SUNDAY_CLOSE)
-                ],
-            ],
+            'data'=>[],            
             'options' => [
                 'endpoint'    => '/location/openHours',
                 'location_id' => $locationId
             ]
         ];
+        $days   = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        foreach($days as $day){
+            $result['data'][$day]['open']  = isset($openHours[$day]['open'])?$openHours[$day]['open']:'9:00';
+            $result['data'][$day]['close'] = isset($openHours[$day]['close'])?$openHours[$day]['close']:'21:00';
+        }        
         return new JsonResponse(['body' => $result]);
     }
 
@@ -445,18 +422,18 @@ class LocationController extends AppController
     private function _sendLocationCreateEmail ($location, $data)
     {
         //TODO: Move to New Relic
-        $subject = "Location #" . $location->id . ' ( ' . $location->data['name'] . ' ) was added from API';
+        $subject = "Location #" . $location->id . ' ( ' . $data['name'] . ' ) was added from API';
         $msg     = <<<TEXT
 <div>
     Location {$location->id} was just added/modified on the
     MDM using the API with the following info:
 </div>
 <ul>
-    <li>Location Name: {$location->data['name']}</li>    
-    <li>Address      : {$data['Location']['address1']}</li>    
-    <li>City         : {$data['Location']['city']}</li>    
-    <li>Country      : {$data['Location']['country']}</li>
-    <li>ZipCode      : {$data['Location']['zipcode']}</li>
+    <li>Location Name: {$data['name']}</li>    
+    <li>Address      : {$data['address1']}</li>    
+    <li>City         : {$data['city']}</li>    
+    <li>Country      : {$data['country']}</li>
+    <li>ZipCode      : {$data['zipcode']}</li>
 </ul>
 TEXT;
         EmailQueueComponent::queueEmail('info@swarm-mobile.com', 'Info', 'am@swarm-mobile.com', 'AM', $subject, $msg);

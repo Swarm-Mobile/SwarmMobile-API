@@ -349,12 +349,10 @@ class LocationControllerTest extends PHPUnit_Framework_TestCase
 
         $data = [
             'name'     => 'New Location',
-            'Location' => [
-                'address1' => '255 Bush Street',
-                'city'     => 'San Francisco',
-                'zipcode'  => 12345,
-                'country'  => 'US'
-            ]
+            'address1' => '255 Bush Street',
+            'city'     => 'San Francisco',
+            'zipcode'  => 12345,
+            'country'  => 'US'
         ];
 
         $probes = [
