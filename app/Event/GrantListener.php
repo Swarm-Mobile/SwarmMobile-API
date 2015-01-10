@@ -54,10 +54,10 @@ class GrantListener implements CakeEventListener
             header("Pragma: no-cache");
             header("Cache-Control: no-store; no-cache;must-revalidate; post-check=0; pre-check=0");
             echo json_encode(
-                [
-                    'error'             => 'invalid_param',
-                    'error_description' => $e->getMessage()
-                ], true
+                    [
+                'error'             => 'invalid_param',
+                'error_description' => $e->getMessage()
+                    ], true
             );
             exit();
         }
@@ -76,23 +76,25 @@ class GrantListener implements CakeEventListener
         $user    = new User();
         $user->read(null, $user_id);
         $isValid = false;
-        switch ($user->data['User']['usertype_id']) {
-            case UserType::$SUPER_ADMIN:
-            case UserType::$ACCOUNT_MANAGER:
-                $isValid = true;
-                break;
-            case UserType::$RESELLER:
-            case UserType::$LOCATION_MANAGER:
-            case UserType::$DEVELOPER:
-            case UserType::$EMPLOYEE:
-            case UserType::$GUEST:
-            default:
-                $isValid = in_array($location_id, $user->getLocationList());
-                break;
+        if (isset($user->data['User'])) {
+            switch ($user->data['User']['usertype_id']) {
+                case UserType::$SUPER_ADMIN:
+                case UserType::$ACCOUNT_MANAGER:
+                    $isValid = true;
+                    break;
+                case UserType::$RESELLER:
+                case UserType::$LOCATION_MANAGER:
+                case UserType::$DEVELOPER:
+                case UserType::$EMPLOYEE:
+                case UserType::$GUEST:
+                default:
+                    $isValid = in_array($location_id, $user->getLocationList());
+                    break;
+            }
         }
         if (!$isValid) {
             throw new Swarm\UnauthorizedException(
-                SwarmErrorCodes::setError('You are not allowed to access to this location_id.')
+            SwarmErrorCodes::setError('You are not allowed to access to this location_id.')
             );
         }
     }
@@ -118,13 +120,13 @@ class GrantListener implements CakeEventListener
             case UserType::$LOCATION_MANAGER:
             case UserType::$DEVELOPER:
             case UserType::$EMPLOYEE:
-                $tokenLocations    = $user->getLocationList();
-                $customer          = new Customer();
+                $tokenLocations = $user->getLocationList();
+                $customer       = new Customer();
                 $customer->read(null, $customer_id);
                 if (empty($customer->data)) {
                     throw new Swarm\UnauthorizedException(
-                        SwarmErrorCodes::setError('Incorrect customer_id')
-                    );                    
+                    SwarmErrorCodes::setError('Incorrect customer_id')
+                    );
                 }
                 $locationSetting   = new LocationSetting();
                 $settings          = $locationSetting->find('all', [
@@ -143,9 +145,9 @@ class GrantListener implements CakeEventListener
                 }
             case UserType::$GUEST:
             default:
-               throw new Swarm\UnauthorizedException(
-                    SwarmErrorCodes::setError('You are not allowed to access to this location_id.')
-               );
+                throw new Swarm\UnauthorizedException(
+                SwarmErrorCodes::setError('You are not allowed to access to this location_id.')
+                );
         }
     }
 
@@ -163,8 +165,8 @@ class GrantListener implements CakeEventListener
         $user->read(null, $user_id);
         if ($user->data['User']['uuid'] != $uuid) {
             throw new Swarm\UnauthorizedException(
-                SwarmErrorCodes::setError("UUID don't match with the token user_id.")
-            );            
+            SwarmErrorCodes::setError("UUID don't match with the token user_id.")
+            );
         }
         return true;
     }
