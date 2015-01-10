@@ -168,7 +168,7 @@ class UserController extends AppController
                 $user->validationErrors[] = 'There was an issue persisting the request. Please try again later';
             }
         }
-        throw new Swarm\RequestValidationException(SwarmErrorCodes::getFirstError($user->validationErrors));
+        throw new Swarm\UserInputException(SwarmErrorCodes::getFirstError($user->validationErrors));
     }
 
     public function login ()
@@ -194,7 +194,7 @@ class UserController extends AppController
             $results['message']           = ['success' => 'User login successful.'];
         }
         else {
-            throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::INVALID_CREDENTIALS);
+            throw new Swarm\UserInputException(SwarmErrorCodes::INVALID_CREDENTIALS);
         }
         return new JsonResponse([ 'body' => $results]);
     }

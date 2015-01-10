@@ -31,7 +31,7 @@ class RedisComponent
                 self::$instances['name'] = $instance;
             }
             else {
-                throw new Swarm\BadRequestException('Redis Adaptor not found.');
+                throw new Swarm\BadRequestException(SwarmErrorCodes::setError('Redis Adaptor not found.'));
             }
         }
         return self::$instances['name'];

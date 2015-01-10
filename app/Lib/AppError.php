@@ -20,16 +20,13 @@ class AppError
     public static function handleException (Exception $error)
     {
         switch (get_class($error)) {
-            case 'Swarm\BadRequestException' : $code = 400;
-                break;
-            case 'Swarm\NotFoundException' : $code = 404;
-                break;
-            case 'Swarm\UnauthorizedException' : $code = 401;
-                break;
-            case 'Swarm\UnprocessableEntityException' : $code = 422;
-                break;
-            case 'Swarm\ApplicationErrorException' :
-            default : $code = (!empty($error->getCode())) ? $error->getCode() : 500;
+            case 'Swarm\BadRequestException'          : $code = 400; break;
+            case 'Swarm\NotFoundException'            : $code = 404; break;
+            case 'Swarm\UnauthorizedException'        : $code = 401; break;
+            case 'Swarm\UserInputException'           :
+            case 'Swarm\UnprocessableEntityException' : $code = 422; break;
+            case 'Swarm\ApplicationErrorException'    :
+            default                                   : $code = (!empty($error->getCode())) ? $error->getCode() : 500;
         }
         $description = ($code == 404) ? 'Not Found' : $error->getMessage();
         $error_no    = (!empty($error->getCode())) ? $error->getCode() : 999;
@@ -47,16 +44,19 @@ class AppError
                     'error_description' => $description
                 ]
         );
-        NewRelicComponent::noticeError($error, [
-            'error_no'          => $error_no,
-            'error_description' => $description,
-            'request_uri'       => $_SERVER['REQUEST_URI'],
-            'request_params'    => json_encode($_POST),
-            'exception_type'    => get_class($error),
-            'exception_file'    => $error->getFile(),
-            'exception_line'    => $error->getLine(),
+        if(get_class($error) != 'Swarm\UserInputException'){
+            NewRelicComponent::noticeError($error, 
+                [
+                    'error_no'          => $error_no,
+                    'error_description' => $description,
+                    'request_uri'       => $_SERVER['REQUEST_URI'],
+                    'request_params'    => json_encode($_POST),
+                    'exception_type'    => get_class($error),
+                    'exception_file'    => $error->getFile(),
+                    'exception_line'    => $error->getLine(),
                 ]
-        );
+            );
+        }
         die();
     }
 
