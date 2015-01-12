@@ -3,7 +3,7 @@
 class TimeComponent
 {
 
-    public static $TZ_CORRECTIONS =  [
+    public static $TZ_CORRECTIONS = [
         'Austrailia NSW'    => 'Australia/NSW',
         'Australia NSW'     => 'Australia/NSW',
         'Australia/Syndey'  => 'Australia/Sydney',
@@ -12,15 +12,15 @@ class TimeComponent
     ];
 
     public static function getTimezone ($timezone)
-    {
-        $timezone = trim($timezone);
-        try {
-            $tz = new DateTimeZone($timezone);
-        }
-        catch (Exception $e) {
+    {        
+        $timezones = DateTimeZone::listIdentifiers();
+        if (!in_array($timezone, $timezones)) {
             $tz = isset(self::$TZ_CORRECTIONS[$timezone]) ?
                     new DateTimeZone(self::$TZ_CORRECTIONS[$timezone]) :
                     new DateTimeZone('America/Los_Angeles');
+        }
+        else {
+            $tz = new DateTimeZone($timezone);
         }
         return $tz;
     }
@@ -30,7 +30,7 @@ class TimeComponent
         if (!$timezone instanceof DateTimeZone) {
             $timezone = self::getTimezone($timezone);
         }
-        $time = new DateTime($time, $timezone);        
+        $time = new DateTime($time, $timezone);
         $time = $time->setTimezone(new DateTimeZone('GMT'));
         return $time->format($format);
     }
