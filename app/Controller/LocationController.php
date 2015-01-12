@@ -582,7 +582,9 @@ TEXT;
                 'setting_id'  => $settingId
             ]
         ]);
-        $locationSettingModel->read(null, $locationSetting['LocationSetting']['id']);
+        if(!empty($locationSetting)){
+            $locationSettingModel->read(null, $locationSetting['LocationSetting']['id']);
+        }
         $locationSettingModel->save(['LocationSetting' => [
                 'location_id' => $location->id,
                 'setting_id'  => $settingId,
