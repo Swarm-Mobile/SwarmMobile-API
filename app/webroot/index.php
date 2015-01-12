@@ -25,6 +25,9 @@ if(
 ){
     putenv('server_location=runscope');
     $_SERVER['server_location'] = 'runscope';
+} else {
+    $env = getenv('server_location');
+    $_SERVER['server_location'] = $env;
 }
 
 /**

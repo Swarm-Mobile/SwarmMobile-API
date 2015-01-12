@@ -1,6 +1,7 @@
 <?php
 
 putenv('server_location=phpunit');
+$_SERVER['server_location'] = 'phpunit';
 
 define('DS', DIRECTORY_SEPARATOR);
 define('ROOT', dirname(dirname(__FILE__)));
