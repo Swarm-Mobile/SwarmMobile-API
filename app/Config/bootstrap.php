@@ -107,7 +107,7 @@ CakeLog::config('error', [
 /**
  * Event Listeners
  */
-$env = getenv('server_location');
+$env = $_SERVER['server_location'];
 //$env = 'live';
 if (in_array($env, ['live', 'staging', 'runscope'])){
     App::uses('CakeEventManager', 'Event');
