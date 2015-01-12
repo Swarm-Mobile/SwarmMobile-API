@@ -1,5 +1,4 @@
 <?php
-
 /**
  * This file is loaded automatically by the app/webroot/index.php file after core.php
  *
@@ -23,45 +22,39 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 // Start Composer Include
-require APP . '../vendor/autoload.php';
+    require APP . '../vendor/autoload.php';
 
-// Remove and re-prepend CakePHP's autoloader as Composer thinks it is the
-// most important.
-// See: http://goo.gl/kKVJO7
-spl_autoload_unregister(array ('App', 'load'));
-spl_autoload_register(array ('App', 'load'), true, true);
+    /**
+     * Remove and re-prepend CakePHP's autoloader as Composer thinks it is the most important.
+     * See: http://goo.gl/kKVJO7
+     */
+    spl_autoload_unregister(['App', 'load']);
+    spl_autoload_register(['App', 'load'], true, true);
 // End Composer Include
+    
+//Import Exceptions
+require_once(APP.'/Lib/Error/Exception.php');
+foreach (glob(APP."/Lib/Error/*.php") as $filename) require_once($filename);
+unset($filename);
+
 // Setup a 'default' cache configuration for use in the application.
-Cache::config('default', array (
+Cache::config('default', [
     'engine' => 'File',
     'mask'   => 0777,
-));
+]);
 
-/**
- * The settings below can be used to set additional paths to models, views and controllers.
- *
- * App::build(array(
- *     'Model'                     => array('/path/to/models/', '/next/path/to/models/'),
- *     'Model/Behavior'            => array('/path/to/behaviors/', '/next/path/to/behaviors/'),
- *     'Model/Datasource'          => array('/path/to/datasources/', '/next/path/to/datasources/'),
- *     'Model/Datasource/Database' => array('/path/to/databases/', '/next/path/to/database/'),
- *     'Model/Datasource/Session'  => array('/path/to/sessions/', '/next/path/to/sessions/'),
- *     'Controller'                => array('/path/to/controllers/', '/next/path/to/controllers/'),
- *     'Controller/Component'      => array('/path/to/components/', '/next/path/to/components/'),
- *     'Controller/Component/Auth' => array('/path/to/auths/', '/next/path/to/auths/'),
- *     'Controller/Component/Acl'  => array('/path/to/acls/', '/next/path/to/acls/'),
- *     'View'                      => array('/path/to/views/', '/next/path/to/views/'),
- *     'View/Helper'               => array('/path/to/helpers/', '/next/path/to/helpers/'),
- *     'Console'                   => array('/path/to/consoles/', '/next/path/to/consoles/'),
- *     'Console/Command'           => array('/path/to/commands/', '/next/path/to/commands/'),
- *     'Console/Command/Task'      => array('/path/to/tasks/', '/next/path/to/tasks/'),
- *     'Lib'                       => array('/path/to/libs/', '/next/path/to/libs/'),
- *     'Locale'                    => array('/path/to/locales/', '/next/path/to/locales/'),
- *     'Vendor'                    => array('/path/to/vendors/', '/next/path/to/vendors/'),
- *     'Plugin'                    => array('/path/to/plugins/', '/next/path/to/plugins/'),
- * ));
- *
- */
+//Create additional App:uses() folders
+App::build([
+    'Model/Device'   => [ ROOT . '/app/Model/Device'],
+    'Model/Location' => [ ROOT . '/app/Model/Location'],
+    'Model/Metrics'  => [ ROOT . '/app/Model/Metrics'],
+    'Model/POS'      => [ ROOT . '/app/Model/POS'],
+    'Model/Ping'     => [ ROOT . '/app/Model/Ping'],
+    'Model/Portal'   => [ ROOT . '/app/Model/Portal'],
+    'Model/User'     => [ ROOT . '/app/Model/User'],
+    'Model/Totals'   => [ ROOT . '/app/Model/Totals']
+]);
+
 /**
  * Custom Inflector rules can be set to correctly pluralize or singularize table, model, controller names or whatever other
  * string is passed to the inflection functions
@@ -79,60 +72,52 @@ Cache::config('default', array (
  * CakePlugin::load('DebugKit'); //Loads a single plugin named DebugKit
  *
  */
-CakePlugin::load('ibeacon', array ('routes' => true));
-CakePlugin::loadAll(array ('OAuth' => array ('routes' => true)));
+CakePlugin::loadAll(['OAuth' => ['routes' => true]]);
 
-/**
- * You can attach event listeners to the request lifecycle as Dispatcher Filter. By default CakePHP bundles two filters:
- *
- * - AssetDispatcher filter will serve your asset files (css, images, js, etc) from your themes and plugins
- * - CacheDispatcher filter will read the Cache.check configure variable and try to serve cached content generated from controllers
- *
- * Feel free to remove or add filters as you see fit for your application. A few examples:
- *
- * Configure::write('Dispatcher.filters', array(
- * 		'MyCacheFilter', //  will use MyCacheFilter class from the Routing/Filter package in your app.
- * 		'MyPlugin.MyFilter', // will use MyFilter class from the Routing/Filter package in MyPlugin plugin.
- * 		array('callable' => $aFunction, 'on' => 'before', 'priority' => 9), // A valid PHP callback type to be called on beforeDispatch
- * 		array('callable' => $anotherMethod, 'on' => 'after'), // A valid PHP callback type to be called on afterDispatch
- *
- * ));
- */
-Configure::write('Dispatcher.filters', array (
+// Dispatch Filters
+Configure::write('Dispatcher.filters', [
     'AssetDispatcher',
     'CacheDispatcher'
-));
+]);
+
+/**
+ * Add NewRelic Component to ensure that any exception can be 
+ * tracked properly.
+ */
+App::uses('NewRelicComponent', 'Controller/Component');
 
 /**
  * Configures default file logging options
  */
 App::uses('CakeLog', 'Log');
-CakeLog::config('debug', array (
+CakeLog::config('debug', [
     'engine' => 'File',
-    'types'  => array ('notice', 'info', 'debug'),
+    'types'  => ['notice', 'info', 'debug'],
     'file'   => 'debug',
-));
+]);
 
 // Configure default error handler
 App::uses('AppError', 'Lib');
-
-CakeLog::config('error', array (
+CakeLog::config('error', [
     'engine' => 'File',
-    'types'  => array ('warning', 'error', 'critical', 'alert', 'emergency'),
+    'types'  => ['warning', 'error', 'critical', 'alert', 'emergency'],
     'file'   => 'error',
-));
+]);
 
 /**
  * Event Listeners
  */
+$env = getenv('server_location');
 //$env = 'live';
-$env = $_SERVER['server_location'];
-if (in_array($env, ['live', 'runscope'])) {
+if (in_array($env, ['live', 'staging', 'runscope'])){
     App::uses('CakeEventManager', 'Event');
     App::uses('LogListener', 'Event');
     App::uses('AuthenticationListener', 'Event');
     App::uses('GrantListener', 'Event');
+    App::uses('RequestCacheListener', 'Event');
     CakeEventManager::instance()->attach(new LogListener());
     CakeEventManager::instance()->attach(new AuthenticationListener());
     CakeEventManager::instance()->attach(new GrantListener());
+    //CakeEventManager::instance()->attach(new RequestCacheListener());
 }
+

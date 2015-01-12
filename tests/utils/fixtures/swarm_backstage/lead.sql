@@ -1,0 +1,26 @@
+DROP TABLE IF EXISTS `lead`;
+CREATE TABLE `lead` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `address1` varchar(255) DEFAULT NULL,
+  `address2` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT NULL,
+  `state` varchar(255) DEFAULT NULL,
+  `zipcode` varchar(255) DEFAULT NULL,
+  `country` varchar(255) DEFAULT NULL,
+  `leadstatus_id` smallint(5) DEFAULT NULL,
+  `reseller_id` int(10) DEFAULT NULL,
+  `contact_firstname` varchar(255) DEFAULT NULL,
+  `contact_lastname` varchar(255) DEFAULT NULL,
+  `contact_email` varchar(255) DEFAULT NULL,
+  `contact_phone` varchar(255) DEFAULT NULL,
+  `number_locations` int(10) DEFAULT NULL,
+  `opportunity_description` text,
+  `opportunity_amount` decimal(10,2) DEFAULT NULL,
+  `sales_person` varchar(255) DEFAULT NULL,
+  `ts_expiration` timestamp NULL DEFAULT '0000-00-00 00:00:00',
+  `ts_creation` timestamp NULL DEFAULT '0000-00-00 00:00:00',
+  `ts_update` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `confirmed` tinyint(1) DEFAULT '0',
+  `deployed` tinyint(1) DEFAULT '0'
+);

@@ -1,11 +1,12 @@
 <?php
+
 /**
  * Requests collector.
  *
  *  This file collects requests if:
- *	- no mod_rewrite is available or .htaccess files are not supported
+ * 	- no mod_rewrite is available or .htaccess files are not supported
  *  - requires App.baseUrl to be uncommented in app/Config/core.php
- *	- app/webroot is not set as a document root.
+ * 	- app/webroot is not set as a document root.
  *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -19,7 +20,6 @@
  * @since         CakePHP(tm) v 0.2.9
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-
 /**
  *  Get CakePHP's root directory
  */
@@ -29,25 +29,13 @@ define('ROOT', dirname(__FILE__));
 define('WEBROOT_DIR', 'webroot');
 define('WWW_ROOT', ROOT . DS . APP_DIR . DS . WEBROOT_DIR . DS);
 
-if (extension_loaded('newrelic')) {
-	$env = getenv('server_location');
-	if(!empty($env) && $env == 'live'){
-		newrelic_set_appname ('API');
-	}
-
-	if(!empty($env) && $env == 'staging'){
-		newrelic_set_appname ('API Staging');
-	}
-}
-
-
 /**
  * This only needs to be changed if the "cake" directory is located
  * outside of the distributed structure.
  * Full path to the directory containing "cake". Do not add trailing directory separator
  */
 if (!defined('CAKE_CORE_INCLUDE_PATH')) {
-	define('CAKE_CORE_INCLUDE_PATH', ROOT . DS . 'lib');
+    define('CAKE_CORE_INCLUDE_PATH', ROOT . DS . 'lib');
 }
 
 require APP_DIR . DS . WEBROOT_DIR . DS . 'index.php';

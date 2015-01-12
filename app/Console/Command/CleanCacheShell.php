@@ -9,7 +9,7 @@ class CleanCacheShell extends AppShell
     {
         $files = scandir($path);
         foreach ($files as $file) {
-            if (!in_array($file, array ('.', '..'))) {
+            if (!in_array($file, ['.', '..'])) {
                 if (is_dir($path . $file)) {
                     $this->clean($path . $file . DS, $seconds);
                 }
@@ -37,11 +37,11 @@ class CleanCacheShell extends AppShell
     public function getOptionParser ()
     {
         $parser = parent::getOptionParser();
-        $parser->addOption('grace_time', array (
+        $parser->addOption('grace_time', [
             'short'   => 't',
             'default' => '5',
             'help'    => "Number of minutes of grace (0 to remove all)."
-        ));
+        ]);
         return $parser;
     }
 

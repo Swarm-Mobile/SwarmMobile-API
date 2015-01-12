@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS `iab1`;
+CREATE TABLE `iab1` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `name` varchar(255) NOT NULL
+);
