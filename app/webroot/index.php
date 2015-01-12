@@ -19,6 +19,14 @@
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+if(
+    isset($_SERVER['HTTP_SWARM_RUNSCOPE_CALL']) && 
+    $_SERVER['HTTP_SWARM_RUNSCOPE_CALL'] == 'TwWT8Kc8Y4jyvmSA5ZMxdU4FmGg2tA'
+){
+    putenv('server_location=runscope');
+    $_SERVER['server_location'] = 'runscope';
+}
+
 /**
  * Use the DS to separate the directories in other defines
  */
