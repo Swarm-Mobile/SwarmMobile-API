@@ -3,6 +3,7 @@
 App::uses('Revenue', 'Model/Metrics');
 App::uses('Transactions', 'Model/Metrics');
 App::uses('PortalTraffic', 'Model/Metrics');
+App::uses('PresenceTraffic', 'Model/Metrics');
 App::uses('MetricModel', 'Model');
 
 class HistoricalTotals extends MetricModel
@@ -77,7 +78,7 @@ class HistoricalTotals extends MetricModel
                 $$resultVar = $$model->getFromCache();
                 $$dataVar   = MetricFormatComponent::formatAsSum($startDate, $endDate, $$resultVar, $openHours);
             }
-            $trafficData = ($defaultFootTraffic == 'Presence' ? $presenceTrafficData : $portalTrafficData);
+            $trafficData = (strtolower($defaultFootTraffic) == 'presence' ? $presenceTrafficData : $portalTrafficData);
             $days        = ['byWeek' => [], 'total' => 0];
             $weeks       = [];
             $end         = new DateTime($endDate);
