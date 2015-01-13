@@ -148,11 +148,11 @@ class CustomerController extends AppController
     {
         $c                 = $customer;
         $possibleFullnames = array_filter([ucwords(strtolower($c['firstname'] . ' ' . $c['lastname'])), '']);
-        $possiblePhones    = array_filter([$c['phone'], '']);
-        $possibleEmails    = array_filter([$c['email'], '']);
+        $possiblePhones    = array_filter([$c['phone'], ' ']);
+        $possibleEmails    = array_filter([$c['email'], ' ']);
         $possibleAddresses = array_filter([ucwords(strtolower($c['address1'] . ' ' . $c['address2'])), '']);
         $possibleCities    = array_filter([ucwords(strtolower($c['city'])), '']);
-        $possibleStates    = array_filter([$c['state'], '']);
+        $possibleStates    = array_filter([$c['state'], ' ']);
         $result            = [
             'id'              => $c['customer_id'],
             'pos_customer_id' => $c['ls_customer_id'],

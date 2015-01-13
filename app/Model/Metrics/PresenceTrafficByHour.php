@@ -9,15 +9,15 @@ class PresenceTrafficByHour extends CacheMetricModel
 
     public function getFromRaw ()
     {
-        if (!$this->validates()) {            
+        if (!$this->validates()) {
             throw new Swarm\ApplicationErrorException(SwarmErrorCodes::MODEL_NOT_INITIALIZED);
-        }        
+        }
         $networkId = $this->locationSetting->getSettingValue(LocationSetting::NETWORK_ID);
         $result    = [];
         foreach (['sessions_archive', 'sessions'] as $sessionsTable) {
-            if(!$this->needsSessionTable($sessionsTable)){
+            if (!$this->needsSessionTable($sessionsTable)) {
                 continue;
-            }       
+            }
             $model  = new Model(null, $sessionsTable, 'swarmdata');
             $db     = $model->getDataSource();
             $xQuery = "SELECT 0 as hour";
@@ -100,9 +100,9 @@ class PresenceTrafficByHour extends CacheMetricModel
 
     public function storeInCache ($result = [])
     {
-        if (!$this->validates()) {            
+        if (!$this->validates()) {
             throw new Swarm\ApplicationErrorException(SwarmErrorCodes::MODEL_NOT_INITIALIZED);
-        }        
+        }
         $openHours = $this->getLocationSetting()->getOpenHours();
         foreach ($result as $date => $rows) {
             $model    = new self();
@@ -115,7 +115,7 @@ class PresenceTrafficByHour extends CacheMetricModel
             foreach ($rows as $row) {
                 $i              = $row['hour'];
                 $h              = ($row['hour'] < 10 ? '0' : '') . $row['hour'];
-                $data['h' . $h] = (!empty($row['value']))?$row['value']:0;
+                $data['h' . $h] = (!empty($row['value'])) ? $row['value'] : 0;
                 $data['total_open'] += ($isOpen && $i >= $open && $i <= $close) ? $row['value'] : 0;
                 $data['total_close'] += (!$isOpen || $i < $open || $i > $close) ? $row['value'] : 0;
                 $data['total_total'] += $row['value'];
@@ -130,14 +130,16 @@ class PresenceTrafficByHour extends CacheMetricModel
                 $model->read(null, $row[__CLASS__]['id']);
             }
             $model->save([__CLASS__ => $data], false, array_keys($data));
+            $totals = new Totals();
+            $totals->updateRollupMetric($date, $this->data[__CLASS__]['location_id'], 'presenceTraffic', $data['total_open']);
         }
     }
 
     public function getFromCache ()
     {
-        if (!$this->validates()) {            
+        if (!$this->validates()) {
             throw new Swarm\ApplicationErrorException(SwarmErrorCodes::MODEL_NOT_INITIALIZED);
-        }        
+        }
         $result = $this->find('all', [
             'conditions' => [
                 'date >='     => $this->getStartDate(),
