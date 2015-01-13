@@ -81,6 +81,12 @@ Configure::write('Dispatcher.filters', [
 ]);
 
 /**
+ * Add NewRelic Component to ensure that any exception can be 
+ * tracked properly.
+ */
+App::uses('NewRelicComponent', 'Controller/Component');
+
+/**
  * Configures default file logging options
  */
 App::uses('CakeLog', 'Log');
@@ -101,7 +107,7 @@ CakeLog::config('error', [
 /**
  * Event Listeners
  */
-$env = getenv('server_location');
+$env = $_SERVER['server_location'];
 //$env = 'live';
 if (in_array($env, ['live', 'staging', 'runscope'])){
     App::uses('CakeEventManager', 'Event');
@@ -112,6 +118,6 @@ if (in_array($env, ['live', 'staging', 'runscope'])){
     CakeEventManager::instance()->attach(new LogListener());
     CakeEventManager::instance()->attach(new AuthenticationListener());
     CakeEventManager::instance()->attach(new GrantListener());
-    CakeEventManager::instance()->attach(new RequestCacheListener());
+    //CakeEventManager::instance()->attach(new RequestCacheListener());
 }
 

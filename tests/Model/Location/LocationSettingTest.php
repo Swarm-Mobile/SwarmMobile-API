@@ -41,7 +41,7 @@ class LocationSettingTest extends PHPUnit_Framework_TestCase
         $locationSetting = new LocationSetting();
         $locationSetting->setLocationId(689);
         $timezone        = $locationSetting->getTimezone();
-        $this->assertEquals('Etc/GMT+10', $timezone);
+        $this->assertEquals('Pacific/Guam', $timezone);
 
         $locationSetting->setLocationId(123);
         $timezone = $locationSetting->getTimezone();
@@ -66,7 +66,7 @@ class LocationSettingTest extends PHPUnit_Framework_TestCase
         $locationSetting = new LocationSetting();
         $locationSetting->setLocationId(689);
         $firstPurchase   = $locationSetting->getFirstPurchaseDate();
-        $this->assertEquals('2013-12-31', $firstPurchase);
+        $this->assertEquals('2014-01-01', $firstPurchase);
     }
 
     public function testGetFirstSessionDate ()
@@ -74,7 +74,7 @@ class LocationSettingTest extends PHPUnit_Framework_TestCase
         $locationSetting = new LocationSetting();
         $locationSetting->setLocationId(689);
         $firstSession    = $locationSetting->getFirstSessionDate();
-        $this->assertEquals('2014-09-30', $firstSession);
+        $this->assertEquals('2014-10-01', $firstSession);
     }
 
     public function testGetFirstSensorDate ()
