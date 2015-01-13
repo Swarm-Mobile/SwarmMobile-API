@@ -106,7 +106,7 @@ class CsvFtpShell extends AppShell
     public function emailAlert($msg = '', $error = '')
     {
         EmailQueueComponent::queueEmail(
-            'info@swarm-mobile.com', 'Info', 'jinesh.lalan@swarm-mobile.com', 'AM', "Alert: FTP File upload issue", "$msg"
+            'info@swarm-mobile.com', 'Info', 'am@swarm-mobile.com', 'AM', "Alert: FTP File upload issue", "$msg"
         );
         if($error == 'error') {
             $this->out($msg);

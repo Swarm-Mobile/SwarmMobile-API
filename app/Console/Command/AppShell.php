@@ -53,7 +53,7 @@ class AppShell extends Shell
 
     public function setEnvironment ($env = false)
     {
-        $cenv = $_SERVER['server_location'];
+        $cenv = (isset($_SERVER['server_location']))?$_SERVER['server_location']:'';
         if ($cenv != 'phpunit') {
             if (!$env) {
                 $htaccess = file_get_contents(__DIR__ . '/../../../.htaccess');
