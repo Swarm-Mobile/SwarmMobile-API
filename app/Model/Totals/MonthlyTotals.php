@@ -89,7 +89,7 @@ class MonthlyTotals extends MetricModel
         $models             = [
             'revenue',
             'transactions',
-            ($defaultFootTraffic == 'Presence' ? 'presenceTraffic' : 'portalTraffic'),
+            (strtolower($defaultFootTraffic) == 'presence' ? 'presenceTraffic' : 'portalTraffic'),
         ];
         foreach ($models as $cmodel) {
             $model      = $cmodel . 'Model';
@@ -103,7 +103,7 @@ class MonthlyTotals extends MetricModel
                     ], true);
             $$resultVar = $$model->getFromCache();
         }
-        $trafficResult = $defaultFootTraffic == 'Presence' ? $presenceTrafficResult : $portalTrafficResult;
+        $trafficResult = strtolower($defaultFootTraffic) == 'presence' ? $presenceTrafficResult : $portalTrafficResult;
         $whileClosed   = $locationSetting->getSettingValue(LocationSetting::TRANSACTIONS_WHILE_CLOSED);
         $openTotal     = $whileClosed == 'no' ? 'open' : 'total';
 
