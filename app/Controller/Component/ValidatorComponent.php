@@ -32,7 +32,7 @@ class ValidatorComponent
     public static function isTimezone ($value)
     {
         $timezones = DateTimeZone::listIdentifiers();
-        return in_array($value, $timezones)?$value:'America/Los_Angeles';        
+        return in_array($value, $timezones);
     }
 
     public static function isDeviceType ($value)
