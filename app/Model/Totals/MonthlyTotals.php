@@ -3,6 +3,7 @@
 App::uses('Revenue', 'Model/Metrics');
 App::uses('Transactions', 'Model/Metrics');
 App::uses('PortalTraffic', 'Model/Metrics');
+App::uses('PresenceTraffic', 'Model/Metrics');
 App::uses('MetricModel', 'Model');
 
 class MonthlyTotals extends MetricModel
