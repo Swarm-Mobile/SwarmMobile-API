@@ -151,6 +151,8 @@ class PresenceReturningByHour extends CacheMetricModel
                 $model->read(null, $row[__CLASS__]['id']);
             }
             $model->save([__CLASS__ => $data], false, array_keys($data));
+            $totals = new Totals();
+            $totals->updateRollupMetric($date, $this->data[__CLASS__]['location_id'], 'presenceReturning', $data['total_open']);
         }
     }
 

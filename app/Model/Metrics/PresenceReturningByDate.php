@@ -10,15 +10,15 @@ class PresenceReturningByDate extends CacheMetricModel
 
     public function getFromRaw ()
     {
-        if (!$this->validates()) {            
+        if (!$this->validates()) {
             throw new Swarm\ApplicationErrorException(SwarmErrorCodes::MODEL_NOT_INITIALIZED);
-        }        
+        }
         $networkId = $this->locationSetting->getSettingValue(LocationSetting::NETWORK_ID);
         $result    = [];
         foreach (['sessions_archive', 'sessions'] as $sessionsTable) {
-            if(!$this->needsSessionTable($sessionsTable)){
+            if (!$this->needsSessionTable($sessionsTable)) {
                 continue;
-            }       
+            }
             $model    = new Model(null, $sessionsTable, 'swarmdata');
             $db       = $model->getDataSource();
             $subquery = [
@@ -84,9 +84,9 @@ class PresenceReturningByDate extends CacheMetricModel
 
     public function storeInCache ($result = [])
     {
-        if (!$this->validates()) {            
+        if (!$this->validates()) {
             throw new Swarm\ApplicationErrorException(SwarmErrorCodes::MODEL_NOT_INITIALIZED);
-        }        
+        }
         foreach ($result as $date => $rows) {
             foreach ($rows as $row) {
                 $data  = [
@@ -107,17 +107,15 @@ class PresenceReturningByDate extends CacheMetricModel
                     $model->read(null, $row[__CLASS__]['id']);
                 }
                 $model->save([__CLASS__ => $data], false, array_keys($data));
-                $totals = new Totals();
-                $totals->updateRollupMetric($date, $this->data[__CLASS__]['location_id'], 'presenceReturning', $data['total']);
             }
         }
     }
 
     public function getFromCache ()
     {
-        if (!$this->validates()) {            
+        if (!$this->validates()) {
             throw new Swarm\ApplicationErrorException(SwarmErrorCodes::MODEL_NOT_INITIALIZED);
-        }        
+        }
         $result = $this->find('all', [
             'conditions' => [
                 'date >='     => $this->getStartDate(),
