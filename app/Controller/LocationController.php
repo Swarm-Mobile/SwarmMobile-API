@@ -273,14 +273,17 @@ class LocationController extends AppController
         if (empty($location->data['Location'])) {
             throw new Swarm\UnprocessableEntityException(SwarmErrorCodes::LOCATION_UPDATESETTINGS_LOCATION_NOTFOUND);
         }
+        $updated = false;
         if (!empty($data['Location'][$location->id])) {
             if (!empty($data['Location']['name'])) {
                 $location->save(['Location' => ['name' => $data['Location']['name']]], false, ['name']);
+                $updated = true;
             }
             foreach ($data['Location'][$location->id] as $key => $val) {
-                if (defined('LocationSetting::' . strtoupper($key))) {
+                if (defined('LocationSetting::' . strtoupper($key))) {                    
                     $settingId = constant('LocationSetting::' . strtoupper($key));
-                    $this->_saveLocationSetting($location, $settingId, $key, $val);
+                    $this->_saveLocationSetting($location, $settingId, $val);
+                    $updated = true;
                 }
             }
         }
@@ -291,7 +294,7 @@ class LocationController extends AppController
                     'location_id' => $location->id
                 ],
                 'message' => [
-                    'success' => empty($location->data['Location']) 
+                    'success' => $updated
                         ? 'Settings have been successfully saved.' 
                         : 'Nothing to update.'
                 ]
@@ -573,7 +576,7 @@ TEXT;
         return true;
     }
 
-    private function _saveLocationSetting ($location, $settingId, $key, $val)
+    private function _saveLocationSetting ($location, $settingId, $val)
     {
         $locationSettingModel = $this->getLocationSetting();
         $locationSetting      = $locationSettingModel->find('first', [
@@ -581,15 +584,16 @@ TEXT;
                 'location_id' => $location->id,
                 'setting_id'  => $settingId
             ]
-        ]);
+        ]);        
         if(!empty($locationSetting)){
             $locationSettingModel->read(null, $locationSetting['LocationSetting']['id']);
-        }
-        $locationSettingModel->save(['LocationSetting' => [
-                'location_id' => $location->id,
-                'setting_id'  => $settingId,
-                'value'       => $val
-        ]]);
+        }        
+        $data = [
+            'location_id' => $location->id,
+            'setting_id'  => $settingId,
+            'value'       => $val
+        ];
+        $locationSettingModel->save(['LocationSetting' => $data], true, array_keys($data));        
     }
 
 }
