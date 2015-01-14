@@ -232,12 +232,16 @@ class LocationControllerTest extends PHPUnit_Framework_TestCase
             'address1'    => 'My Awesome address',
             'city'        => 'San Awesome',
             'Location'    => [
-                'name' => 'New Location Name',
+                //'name' => 'New Location Name',
                 689    => ['pos_store_id' => 121123]
             ]
         ];
-        $response      = $locationController->updateSettings();
+        $locationSetting = new LocationSetting();
+        $locationSetting->setLocationId(689);
+        $this->assertEquals(704,$locationSetting->getSettingValue(LocationSetting::POS_STORE_ID));
+        $response      = $locationController->updateSettings();        
         $result        = json_decode($response->body(), true);
+        $this->assertEquals(121123,$locationSetting->getSettingValue(LocationSetting::POS_STORE_ID));        
         $this->assertArrayHasKey('success', $result['message']);
     }
 
