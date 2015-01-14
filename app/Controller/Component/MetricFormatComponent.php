@@ -1,5 +1,7 @@
 <?php
 
+App::uses('ValidatorComponent','Controller/Component');
+
 class MetricFormatComponent
 {
 
@@ -207,24 +209,28 @@ class MetricFormatComponent
     public static function nightclubHoursSwitch ($formattedResult, $nightTimezone, $nightclubHours, $nightclubLocation)
     {
         if ($nightclubHours === 'yes') {
-            switch ($nightclubLocation) {
-                case 'eastcoast_time' :
-                case 'eastcost_time' :
-                    $tz = 'America/Detroit';
-                    break;
-                case 'pacific_time' :
-                    $tz = 'America/Los_Angeles';
-                    break;
-                case 'mountain_time' :
-                    $tz = 'America/Denver';
-                    break;
-                case 'central_time' :
-                    $tz = 'America/Chicago';
-                    break;
-                case 'eastaustralian_time':
-                    $tz = 'Australia/Brisbane';
-                    break;
-                default : return $formattedResult;
+            if(!ValidatorComponent::isTimezone($nightclubLocation)){
+                switch ($nightclubLocation) {
+                    case 'eastcoast_time' :
+                    case 'eastcost_time' :
+                        $tz = 'America/Detroit';
+                        break;
+                    case 'pacific_time' :
+                        $tz = 'America/Los_Angeles';
+                        break;
+                    case 'mountain_time' :
+                        $tz = 'America/Denver';
+                        break;
+                    case 'central_time' :
+                        $tz = 'America/Chicago';
+                        break;
+                    case 'eastaustralian_time':
+                        $tz = 'Australia/Brisbane';
+                        break;
+                    default : return $formattedResult;
+                }
+            } else {
+                $tz = $nightclubLocation;
             }
             
             $return = [
