@@ -36,7 +36,7 @@ class PortalController extends AppController
                 ];
                 $this->errrorsCount = 0;
                 $id                 = $this->insertVisitorEvent($safeRow, $now);
-                if (!empty($id) && $row['entered'] > 0) {
+                if (!empty($id) && isset($row['entered']) && $row['entered'] > 0) {
                     $this->updateCache($safeRow);
                     $count++;
                 }
