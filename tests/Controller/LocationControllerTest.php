@@ -235,7 +235,8 @@ class LocationControllerTest extends PHPUnit_Framework_TestCase
                 //'name' => 'New Location Name',
                 689    => [
                     'pos_store_id' => 121123,
-                    'address1' => 'hola'
+                    'address1' => 'hola',
+                    'monday_open' => '12:35',
                 ]
             ]
         ];
@@ -247,7 +248,8 @@ class LocationControllerTest extends PHPUnit_Framework_TestCase
         $result        = json_decode($response->body(), true);
         $this->assertEquals('hola',$locationSetting->getSettingValue(LocationSetting::ADDRESS1));        
         $this->assertEquals(121123,$locationSetting->getSettingValue(LocationSetting::POS_STORE_ID));        
-        $this->assertArrayHasKey('success', $result['message']);
+        $this->assertEquals('12:35',$locationSetting->getSettingValue(LocationSetting::MONDAY_OPEN));        
+        $this->assertArrayHasKey('success', $result['message']);        
     }
 
     public function testAvailableSettingsExceptions ()
