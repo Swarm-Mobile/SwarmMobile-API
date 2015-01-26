@@ -23,7 +23,7 @@ class RequestedRollupsShell extends AppShell
         ];
         $processed->save([$processed->alias => $data], false, array_keys($data));
         $queue     = new Model(null, 'requested_rollups_queue', 'rollups');
-        $queue->deleteAll(['conditions' => [$queue->alias . '.id' => $row['id']]]);
+        $queue->deleteAll([$queue->alias . '.id' => $row['id']]);
     }
 
     public function send_email ($row)
