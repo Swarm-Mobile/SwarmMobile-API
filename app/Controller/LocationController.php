@@ -411,8 +411,8 @@ class LocationController extends AppController
                     empty($result['data']['settings'][$setting['Setting']['name']]) ||
                     (
                         empty($result['data']['settings'][$setting['Setting']['name']]['value']) &&
-                        empty($result['data']['settings'][$setting['Setting']['name']]['value']) !== '0' &&
-                        empty($result['data']['settings'][$setting['Setting']['name']]['value']) !== 0                            
+                        $result['data']['settings'][$setting['Setting']['name']]['value'] !== '0' &&
+                        $result['data']['settings'][$setting['Setting']['name']]['value'] !== 0                            
                     )
             ) {
                 $result['data']['settings'][$setting['Setting']['name']] = [
